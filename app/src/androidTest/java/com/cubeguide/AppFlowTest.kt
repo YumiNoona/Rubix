@@ -23,7 +23,7 @@ class AppFlowTest {
  }
  @Test fun practiceFlowReachesSolved() {
   screenshot("home")
-  compose.onNodeWithText("Try a practice solve").performScrollTo().performClick()
+  compose.onNodeWithText("Try a demo").performScrollTo().performClick()
   screenshot("review")
   compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
   compose.waitUntil(30000) { compose.onAllNodesWithText("Cube is in position").fetchSemanticsNodes().isNotEmpty() }
@@ -33,26 +33,24 @@ class AppFlowTest {
   compose.waitForIdle(); screenshot("guide")
   repeat(30) {
    if(compose.onAllNodesWithText("Order restored.").fetchSemanticsNodes().isNotEmpty()) return@repeat
-   compose.onNodeWithText("Done this turn Ã‚Â· Next").performScrollTo().performClick()
+   compose.onNodeWithText("Next").assertIsDisplayed().performClick()
   }
   compose.onNodeWithText("Order restored.").assertExists()
   screenshot("solved")
  }
  @Test fun manualCorrectionRejectsBadCounts() {
-  compose.onNodeWithText("Enter colors manually").performScrollTo().performClick()
+  compose.onNodeWithText("Enter colors").performScrollTo().performClick()
   compose.onAllNodesWithContentDescription("front row 1 column 1, Green",useUnmergedTree=true).onFirst().performClick()
-  compose.onNodeWithText("Red",substring=false).performClick()
   compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
   compose.onNodeWithText("Check the scan before solving").assertIsDisplayed()
   compose.onNodeWithText("Check colors").assertIsDisplayed()
   compose.onNodeWithText("Rescan cube").assertIsDisplayed()
-  compose.onNodeWithText("White has",substring=true).assertDoesNotExist()
   compose.onAllNodesWithText("exactly 9",substring=true).onLast().assertIsDisplayed()
  }
  @Test fun deniedCameraStillOffersManualEntry() {
-  compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
-  compose.onNodeWithText("Use manual entry instead").performScrollTo().assertExists().performClick()
-  compose.onNodeWithText("A good look first.").assertExists()
+  compose.onNodeWithText("Scan your cube").performScrollTo().performClick()
+  compose.onNodeWithText("Enter colors instead").performScrollTo().assertExists().performClick()
+  compose.onNodeWithText("Paint your cube.").assertExists()
  }
 }
 

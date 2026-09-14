@@ -19,8 +19,8 @@ keystore.properties
 
 # One published Android install file
 dist/*
-!dist/CubeGuide.apk
-!dist/CubeGuide.apk.sha256
+!dist/Rubix.apk
+!dist/Rubix.apk.sha256
 
 # Editors / operating systems
 .vscode/

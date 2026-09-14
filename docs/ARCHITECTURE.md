@@ -57,3 +57,9 @@ Source read/write operations must specify UTF-8 explicitly. Direction icons are 
 ## Preferences and correction (1.1.0)
 
 Compose screens live in separate UI files. SharedPreferences persists initials and haptics through AppPreferences. Android touch feedback respects system preferences; a DisposableEffect restores the previous keep-screen-on value when leaving active screens. Guide correction saves the original current state for cancellation and process restoration. Accepted edits are physically validated and independently replay-verified, then start a fresh guide in the existing holding frame. Invalid manual edits never invoke scan-rotation guessing.
+
+## Rubix capture and display (1.2.0)
+
+Photo picker input is decoded on Default with a 1280-pixel bound and software allocation. ImageDecoder normalizes image orientation on API 28+; older devices use BitmapFactory and [AndroidX ExifInterface 1.4.2](https://developer.android.com/jetpack/androidx/releases/exifinterface) for rotation/reflection. Detected faces require explicit confirmation and the expected center, then enter the same center-calibrated classification pipeline as the live camera. Gallery selection suspends camera binding, preventing simultaneous live captures. Torch follows CameraX hardware availability and is switched off on disposal.
+
+Display palette overrides are preferences only; solver identity and camera anchors remain independent. The home demonstration applies the inverse of a known scramble and animates real layer geometry. Manual editing uses a bounded undo history and persists the entry mode.

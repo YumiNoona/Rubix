@@ -1,5 +1,8 @@
 package com.cubeguide.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.clip
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -36,32 +39,87 @@ import com.cubeguide.rendering.CubeView
 @Composable internal fun Scan(vm: CubeViewModel) {
  if(vm.scanIndex>0) CompletionFeedback(vm.scanIndex)
  val context=LocalContext.current
+ val scope=rememberCoroutineScope()
+ val feedback=rememberTouchFeedback()
  var permission by remember { mutableStateOf(ContextCompat.checkSelfPermission(context,Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED) }
+ var torch by remember { mutableStateOf(false) }
+ var flashAvailable by remember { mutableStateOf(false) }
+ var importing by remember { mutableStateOf(false) }
+ var photo by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+ var detected by remember { mutableStateOf<com.cubeguide.vision.Detection?>(null) }
+ var photoMessage by remember { mutableStateOf("") }
+ var loading by remember { mutableStateOf(false) }
  val request=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permission=it }
+ val picker=rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+  if(uri==null) importing=false else {
+   loading=true
+   scope.launch {
+    val result=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runCatching {
+     val bitmap=if(android.os.Build.VERSION.SDK_INT>=28) {
+      android.graphics.ImageDecoder.decodeBitmap(android.graphics.ImageDecoder.createSource(context.contentResolver,uri)) { decoder,info,_ ->
+       decoder.allocator=android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+       val scale=minOf(1f,1280f/maxOf(info.size.width,info.size.height))
+       decoder.setTargetSize((info.size.width*scale).toInt().coerceAtLeast(1),(info.size.height*scale).toInt().coerceAtLeast(1))
+      }
+     } else {
+      val bounds=android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds=true }
+      context.contentResolver.openInputStream(uri).use { android.graphics.BitmapFactory.decodeStream(it,null,bounds) }
+      val options=android.graphics.BitmapFactory.Options().apply { while(maxOf(bounds.outWidth,bounds.outHeight)/inSampleSize>1280) inSampleSize*=2 }
+      val original=context.contentResolver.openInputStream(uri).use { android.graphics.BitmapFactory.decodeStream(it,null,options) } ?: error("Couldn't open this image.")
+      val exif=context.contentResolver.openInputStream(uri).use { stream -> stream?.let { androidx.exifinterface.media.ExifInterface(it) } }
+      val matrix=android.graphics.Matrix().apply { if(exif?.isFlipped==true) postScale(-1f,1f); postRotate(exif?.rotationDegrees?.toFloat() ?: 0f) }
+      android.graphics.Bitmap.createBitmap(original,0,0,original.width,original.height,matrix,true).also { if(it!==original) original.recycle() }
+     }
+     val detection=try { check(org.opencv.android.OpenCVLoader.initLocal()) { "Image processing unavailable. Use color entry instead." }; com.cubeguide.vision.FaceDetector().detect(bitmap) } catch(e: Exception) { bitmap.recycle(); throw e }
+     bitmap to detection
+    } }
+    result.onSuccess { (bitmap,detection) -> photo=bitmap; detected=detection; photoMessage=if(detection.samples.size==9) "Check the face, then add it." else detection.message }.onFailure { photoMessage=it.message ?: "Couldn't read this photo. Try another image." }
+    loading=false
+   }
+  }
+ }
+ DisposableEffect(photo) { val current=photo; onDispose { current?.recycle() } }
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
   val color=CubeColor.entries[vm.pose.face.ordinal]; val top=CubeColor.entries[vm.pose.top.ordinal]
-  Heading("SCAN ${vm.scanIndex+1} / 6","Show ${color.label.lowercase()}.",vm.pose.guidance)
+  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+   Box(Modifier.size(34.dp).background(Color(LocalAppPreferences.current.color(color)),RoundedCornerShape(10.dp)))
+   Spacer(Modifier.width(12.dp))
+   Column(Modifier.weight(1f)) { Text("${color.label} face",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold); Text("${top.label} center on top",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant) }
+   Text("${vm.scanIndex+1} / 6",style=MaterialTheme.typography.labelLarge)
+  }
   Spacer(Modifier.height(18.dp))
-  if(permission) {
-   Box(Modifier.fillMaxWidth().height(340.dp).background(Color.Black,RoundedCornerShape(24.dp))) {
-    CameraPreview(Modifier.fillMaxSize(),vm::detection)
+  if(importing) {
+   if(loading) Box(Modifier.fillMaxWidth().height(280.dp),contentAlignment=Alignment.Center) { CircularProgressIndicator() }
+   photo?.let { bitmap -> androidx.compose.foundation.Image(bitmap=bitmap.asImageBitmap(),contentDescription="Selected cube face photo",modifier=Modifier.fillMaxWidth().height(280.dp),contentScale=androidx.compose.ui.layout.ContentScale.Fit) }
+   Text(photoMessage,modifier=Modifier.padding(vertical=12.dp))
+   Primary("Add this face",!loading && detected?.samples?.size==9) { detected?.let { if(vm.importFace(it)) { importing=false;photo=null;detected=null } else photoMessage=vm.message } }
+   TextButton(onClick={importing=false;photo=null;detected=null},enabled=!loading,modifier=Modifier.fillMaxWidth()) { Text("Back to camera") }
+  } else if(permission) {
+   Box(Modifier.fillMaxWidth().height(330.dp).clip(RoundedCornerShape(24.dp)).background(Color.Black)) {
+    CameraPreview(Modifier.fillMaxSize(),vm::detection,torch= torch,onFlashAvailable={flashAvailable=it})
     Canvas(Modifier.fillMaxSize()) {
+     val ratio=vm.cameraAspect; val w=minOf(size.width,size.height*ratio); val h=w/ratio; val left=(size.width-w)/2; val topOffset=(size.height-h)/2
      if(vm.corners.size==4) {
-      // Match the analysis image to the FIT_CENTER preview.
-      val ratio=vm.cameraAspect; val w=minOf(size.width,size.height*ratio); val h=w/ratio; val left=(size.width-w)/2; val topOffset=(size.height-h)/2
       val points=vm.corners.map { Offset(left+it.first*w,topOffset+it.second*h) }
       val path=Path().apply { moveTo(points[0].x,points[0].y); points.drop(1).forEach { lineTo(it.x,it.y) }; close() }
-      drawPath(path,Mint,style=Stroke(4.dp.toPx()))
+      drawPath(path,Mint,style=Stroke(3.dp.toPx()))
+     } else {
+      val edge=minOf(size.width,size.height)*0.7f
+      drawRoundRect(Color.White.copy(alpha=0.55f),Offset((size.width-edge)/2,(size.height-edge)/2),androidx.compose.ui.geometry.Size(edge,edge),androidx.compose.ui.geometry.CornerRadius(18.dp.toPx()),style=Stroke(2.dp.toPx()))
      }
     }
-    Text("${top.label.uppercase()} SIDE ABOVE",color=Color.White,style=MaterialTheme.typography.labelMedium,modifier=Modifier.align(Alignment.TopCenter).padding(14.dp).background(Color.Black.copy(alpha=0.6f)).padding(8.dp))
    }
-   Spacer(Modifier.height(16.dp)); LinearProgressIndicator(progress={vm.progress},modifier=Modifier.fillMaxWidth())
-   Spacer(Modifier.height(12.dp)); Text(vm.message.ifBlank { "Hold the face toward the camera." },style=MaterialTheme.typography.bodyLarge)
+   Spacer(Modifier.height(14.dp)); LinearProgressIndicator(progress={vm.progress},modifier=Modifier.fillMaxWidth())
+   Text(vm.message.ifBlank { "Fit one face inside the frame and hold steady." },modifier=Modifier.padding(vertical=12.dp),style=MaterialTheme.typography.bodyMedium)
   } else {
-   Spacer(Modifier.height(40.dp)); Text("Camera access lets Cube Guide recognize the stickers on your phone. Images are never uploaded.",style=MaterialTheme.typography.bodyLarge)
-   Spacer(Modifier.height(24.dp)); Primary("Allow camera") { request.launch(Manifest.permission.CAMERA) }
+   Surface(Modifier.fillMaxWidth().padding(vertical=24.dp),shape=RoundedCornerShape(24.dp),color=MaterialTheme.colorScheme.surfaceContainer) {
+    Column(Modifier.padding(24.dp)) { Text("Ready when you are",style=MaterialTheme.typography.titleLarge); Spacer(Modifier.height(12.dp)); Text("Allow camera access, choose a photo, or enter your colors."); Spacer(Modifier.height(20.dp)); Primary("Allow camera") { request.launch(Manifest.permission.CAMERA) } }
+   }
   }
-  Spacer(Modifier.height(12.dp)); TextButton(onClick={vm.manual()},modifier=Modifier.fillMaxWidth()) { Text("Use manual entry instead") }
+  if(!importing) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+   OutlinedButton(onClick={feedback();torch=!torch},enabled=permission && flashAvailable,modifier=Modifier.weight(1f)) { Text(if(torch) "Flash on" else "Flash off") }
+   OutlinedButton(onClick={feedback();torch=false;importing=true;photoMessage="";picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},modifier=Modifier.weight(1f)) { Text("Gallery") }
+  }
+  TextButton(onClick={vm.manual()},enabled=!loading,modifier=Modifier.fillMaxWidth()) { Text("Enter colors instead") }
  }
 }

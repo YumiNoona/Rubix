@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace = "com.cubeguide"; compileSdk = 36
- defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 4; versionName = "1.1.0"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 5; versionName = "1.2.0"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
 
  buildFeatures { compose = true }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
@@ -20,6 +20,7 @@ dependencies {
  implementation("androidx.camera:camera-camera2:1.6.2")
  implementation("androidx.camera:camera-lifecycle:1.6.2")
  implementation("androidx.camera:camera-view:1.6.2")
+ implementation("androidx.exifinterface:exifinterface:1.4.2")
  implementation("org.opencv:opencv:4.13.0")
  testImplementation("junit:junit:4.13.2")
  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

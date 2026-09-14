@@ -54,7 +54,7 @@ import com.cubeguide.rendering.CubeView
   Column(Modifier.heightIn(max=340.dp).verticalScroll(rememberScrollState())) {
    Face.entries.forEach { face -> val color=vm.initial.stickers[face.ordinal*9+4]
     TextButton(onClick={vm.chooseStartingFace(face);choose=false},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) {
-     Box(Modifier.size(22.dp).background(Color(color.argb),RoundedCornerShape(6.dp)))
+     Box(Modifier.size(22.dp).background(Color(LocalAppPreferences.current.color(color)),RoundedCornerShape(6.dp)))
      Spacer(Modifier.width(12.dp)); Text(color.label,modifier=Modifier.weight(1f),textAlign=TextAlign.Start)
     }
    }

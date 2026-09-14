@@ -26,12 +26,13 @@ private data class P(val x: Float,val y: Float,val z: Float) {
 private fun Vec.p()=P(x.toFloat(),y.toFloat(),z.toFloat())
 private data class Quad(val vertices: List<P>,val color: Color,val letter: String?=null,val ink: Int=0)
 @Composable fun CubeView(cube: CubeState, modifier: Modifier=Modifier, move: Move?=null, replay: Int=0,viewReset: Int=0) {
- val initials=LocalAppPreferences.current.initials
+ val preferences=LocalAppPreferences.current
+ val initials=preferences.initials
  val letterPaint=remember { android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textAlign=android.graphics.Paint.Align.CENTER; typeface=android.graphics.Typeface.DEFAULT_BOLD } }
  val animation=remember { Animatable(0f) }
  var yaw by remember { mutableFloatStateOf(-0.55f) }; var pitch by remember { mutableFloatStateOf(0.45f) }
  LaunchedEffect(viewReset) { yaw=-0.55f; pitch=0.45f }
- LaunchedEffect(cube,move,replay) { animation.snapTo(0f); if(move!=null) { animation.animateTo(1f,tween(1300)) } }
+ LaunchedEffect(cube,move,replay) { animation.snapTo(0f); if(move!=null) { animation.animateTo(1f,tween(preferences.animationMillis)) } }
  Canvas(modifier.clipToBounds().pointerInput(Unit) { detectDragGestures { change,drag -> change.consume(); yaw+=drag.x*0.008f; pitch=(pitch+drag.y*0.008f).coerceIn(-1.3f,1.3f) } }) {
   val axis=move?.let { Geometry.normals[it.face.ordinal].p() }
   val angle=if(move==null) 0f else -animation.value*(if(move.turns==3) -1 else move.turns)*PI.toFloat()/2
@@ -55,7 +56,7 @@ private data class Quad(val vertices: List<P>,val color: Color,val letter: Strin
   }
   Geometry.stickers.forEachIndexed { i,g ->
    val pos=g.position.p(); val center=pos+g.normal.p()*0.49f; val r=g.right.p()*0.40f; val d=g.down.p()*0.40f
-   quads+=Quad(listOf(center+r*-1f+d*-1f,center+r+d*-1f,center+r+d,center+r*-1f+d).map { camera(layer(it,pos)) },Color(cube.stickers[i].argb),if(initials) cube.stickers[i].initial else null,cube.stickers[i].inkArgb.toInt())
+   quads+=Quad(listOf(center+r*-1f+d*-1f,center+r+d*-1f,center+r+d,center+r*-1f+d).map { camera(layer(it,pos)) },Color(preferences.color(cube.stickers[i])),if(initials) cube.stickers[i].initial else null,preferences.ink(cube.stickers[i]).toInt())
   }
   val scale=min(size.width,size.height)*0.17f
   fun project(p: P): Offset { val perspective=7f/(7f-p.z); return Offset(size.width/2+p.x*scale*perspective,size.height/2-p.y*scale*perspective) }

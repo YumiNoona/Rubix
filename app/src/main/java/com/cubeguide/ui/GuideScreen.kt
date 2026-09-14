@@ -57,7 +57,7 @@ import com.cubeguide.rendering.CubeView
      DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
       DropdownMenuItem(text={Text("Replay animation")},onClick={menu=false;replay++})
       DropdownMenuItem(text={Text("Reset cube view")},onClick={menu=false;viewReset++})
-      DropdownMenuItem(text={Text("Display & feedback")},onClick={menu=false;settings=true})
+      DropdownMenuItem(text={Text("Settings")},onClick={menu=false;settings=true})
       if(!vm.isReplay) DropdownMenuItem(text={Text("Correct cube colors")},onClick={menu=false;vm.beginCorrection()},enabled=!vm.busy)
       DropdownMenuItem(text={Text("How to hold the cube")},onClick={menu=false;holdHelp=true})
       DropdownMenuItem(text={Text("Restart guide")},onClick={menu=false;if(vm.isReplay) vm.restart() else restart=true})

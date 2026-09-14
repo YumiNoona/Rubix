@@ -1,33 +1,41 @@
-# Cube Guide
+# Rubix
 
 An offline Android app that scans a 3x3 Rubik's Cube and guides you through solving it, one turn at a time.
 
 ## Install
 
-**[Download CubeGuide.apk](dist/CubeGuide.apk)** - Android 8.0 or newer, ARM 32-bit and 64-bit phones. There is one installable download. Android uses APK files rather than Windows EXE files.
+**[Download Rubix.apk](dist/Rubix.apk)** - Android 8.0 or newer, ARM 32-bit and 64-bit phones. There is one installable download. Android uses APK files rather than Windows EXE files.
 
 This APK is development-signed. Install it by opening the downloaded file on your phone, or run:
 
 ```sh
-adb install -r dist/CubeGuide.apk
+adb install -r dist/Rubix.apk
 ```
 
-The accompanying `dist/CubeGuide.apk.sha256` lets you check download integrity.
+The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 
 ## Solve your cube
 
-1. Select **Scan my cube** and follow the face and top-center instructions for all six sides. Manual entry and a practice cube are also available.
-2. **Check your scan** using the 3D preview and editable face grid. Turn on **Color initials** if you want W, R, G, Y, O and B labels. Correct stickers, rotate a scanned face, or rescan before solving.
+1. Select **Scan your cube** and follow the face and top-center instructions for all six sides. Manual entry and a practice cube are also available.
+2. Review your scan using the 3D preview and editable face grid. Turn on **Color initials** if you want W, R, G, Y, O and B labels. Correct stickers, rotate a scanned face, or rescan before solving.
 3. Tap **Solve this cube**. Invalid scans show a correction message; solving shows progress. A scan with exactly one valid face-rotation reconstruction can be aligned automatically.
 4. Match the **Starting position**: white center facing you and blue center on top by default. You can select another front center; the cube and solution change reference frame together.
 5. Follow the animated cube and turn instruction. Confirm each physical move with **Next**. **Previous** explains the inverse physical move before stepping back.
 
 Keep the same holding orientation while following the guide. Clockwise is viewed directly at the face being turned.
 
+## Capture and personalize
+
+The scanner supports a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and the expected center is checked before acceptance. Gallery access does not require broad storage permission. Check every imported sticker in review.
+
+Manual entry supports a selected-color paint brush, fixed centers, a large face editor, per-color counts and undo.
+
+Settings is available from home and active screens. Customize hue, saturation and brightness for each display color, reset the palette, toggle initials, haptics, touch sounds and screen-awake handling, or adjust animation speed. Display colors do not alter camera classification. Touch sounds use Android's native click and respect system sound settings.
+
 ## A clearer guide
 
 - Deeper, distinct sticker colors with contrasting optional initials on the net and 3D cube.
-- Persistent color-label and haptic settings under **Display & feedback**.
+- Persistent color-label and haptic settings under **Settings**.
 - Touch feedback for selections and moves, plus capture/completion feedback; Android's system settings are respected.
 - Fixed Previous/Next controls, scrollable instructions, and extra actions tucked into **More**.
 - **Correct cube colors** in the guide lets you enter the actual current stickers and calculate a fresh verified solution. Cancel restores the original guide. Match the holding orientation before editing.
@@ -72,7 +80,7 @@ The UI is split by screen under `app/src/main/java/com/cubeguide/ui`. `CubeViewM
 
 JVM tests cover cube permutations, physical validity, solver replay, scan rotations, all 24 holding orientations, guide progression, undo, restoration and current-state correction. Android instrumentation covers the practice flow and synthetic vision fixtures. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
 
-The latest layout, haptics and real-camera behavior still need physical-device verification. Synthetic fixtures do not establish real-world scan accuracy. Lighting, glare, cube shades and capture orientation can require manual sticker correction.
+The latest layout, photo import, flash, sounds, haptics and real-camera behavior still need physical-device verification. Synthetic fixtures do not establish real-world scan accuracy. Lighting, glare, cube shades and capture orientation can require manual sticker correction.
 
 ## Dependencies and licenses
 

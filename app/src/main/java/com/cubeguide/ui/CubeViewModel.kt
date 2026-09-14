@@ -12,6 +12,9 @@ import kotlinx.coroutines.withContext
 
 enum class Screen { HOME, SCAN, REVIEW, CORRECT, SETUP, GUIDE, DONE }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
+ var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
+ private val editHistory=java.util.ArrayDeque<CubeState>()
+ var canUndoEdit by mutableStateOf(false); private set
  var screen by mutableStateOf(Screen.valueOf(saved.get<String>("screen") ?: "HOME")); private set
  var cube by mutableStateOf(decode(saved["cube"]) ?: CubeState.solved()); private set
  var initial by mutableStateOf(decode(saved["initial"]) ?: cube); private set
@@ -36,10 +39,11 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube }; if(screen==Screen.SCAN) screen=Screen.HOME; if(step !in 0..moves.size) { screen=Screen.HOME; step=0 } }
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
- private fun save() { saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
+ private fun save() { saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
  fun scan(face: Face?=null) {
+  manualEntry=false; editHistory.clear();canUndoEdit=false
   solveError=null; solvingGeneration++; busy=false
   rescanFace=if(face!=null && captures.size==6) face else null
   beforeRescan=if(rescanFace!=null) cube else null
@@ -47,7 +51,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   if(face!=null && captures.size!=6) message="Calibration is needed; scan all six faces in the guided order."
   stability.reset(); progress=0f; message=""; screen=Screen.SCAN; save()
  }
- fun manual() { solveError=null; captures.clear(); cube=CubeState.solved(); lowConfidence=emptySet(); message="Tap a sticker to change its color. Centers define the six faces."; screen=Screen.REVIEW; save() }
+ fun manual() { manualEntry=true;editHistory.clear();canUndoEdit=false; solveError=null; captures.clear(); cube=CubeState.solved(); lowConfidence=emptySet(); message="Tap a sticker to change its color. Centers define the six faces."; screen=Screen.REVIEW; save() }
  fun detection(d: Detection) {
   if(screen!=Screen.SCAN) return
   corners=d.corners; cameraAspect=d.aspectRatio; message=d.message
@@ -55,6 +59,14 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   if(d.samples.size==9 && ColorClassifier.nominal(d.samples[4])!=expected) { stability.reset(); progress=0f; message="Please show the ${expected.label.lowercase()} center face."; return }
   progress=stability.accept(d.samples,System.currentTimeMillis(),d.corners)
   if(progress<1f) return
+  captureFace(d)
+ }
+ fun importFace(d: Detection): Boolean {
+  if(screen!=Screen.SCAN || d.samples.size!=9) return false
+  if(ColorClassifier.nominal(d.samples[4])!=CubeColor.entries[pose.face.ordinal]) { message="Choose the ${CubeColor.entries[pose.face.ordinal].label.lowercase()} center face."; return false }
+  captureFace(d); return true
+ }
+ private fun captureFace(d: Detection) {
   captures[pose.face]=d.samples; stability.reset(); progress=0f
   if(captures.size==6) {
    val anchors=Face.entries.associate { f -> CubeColor.entries[f.ordinal] to captures.getValue(f)[4] }
@@ -70,7 +82,8 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
    save()
   } else { scanIndex=(0..5).first { scanSequence[it].face !in captures }; save() }
  }
- fun edit(index: Int,color: CubeColor) { if(busy) return; cube=CubeState(cube.stickers.toMutableList().also { it[index]=color }); lowConfidence=lowConfidence-index; message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve."; save() }
+ fun edit(index: Int,color: CubeColor) { if(busy || cube.stickers[index]==color) return; editHistory.addLast(cube); if(editHistory.size>54) editHistory.removeFirst(); canUndoEdit=true; cube=CubeState(cube.stickers.toMutableList().also { it[index]=color }); lowConfidence=lowConfidence-index; message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve."; save() }
+ fun undoEdit() { if(busy || editHistory.isEmpty()) return; cube=editHistory.removeLast();canUndoEdit=editHistory.isNotEmpty();save() }
  val validationIssue: ValidationIssue? get() = Validator.validate(cube)
 
  fun rotateFace(face: Face) {
@@ -126,7 +139,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
 
  fun beginCorrection() {
   if(screen!=Screen.GUIDE || busy || isReplay) return
-  correctionOriginal=cube; solveError=null; message=""
+  editHistory.clear();canUndoEdit=false; correctionOriginal=cube; solveError=null; message=""
   saved["correctionOriginal"]=cube.stickers.joinToString("") { it.ordinal.toString() }
   screen=Screen.CORRECT; save()
  }
@@ -157,5 +170,5 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   solve(cube.apply(moves[step-1].inverse()).apply(actual))
  }
  fun viewSolution() { isReplay=true; cube=initial; step=0; screen=if(moves.isEmpty()) Screen.DONE else Screen.GUIDE; save() }
- fun demo() { cube=CubeState.solved().apply(Move.parse("R U R' U' F2 L D2 B R2 U")); lowConfidence=emptySet(); screen=Screen.REVIEW; message="Practice cube. Try the guide before scanning your own."; save() }
+ fun demo() { manualEntry=false; cube=CubeState.solved().apply(Move.parse("R U R' U' F2 L D2 B R2 U")); lowConfidence=emptySet(); screen=Screen.REVIEW; message="Practice cube. Try the guide before scanning your own."; save() }
 }

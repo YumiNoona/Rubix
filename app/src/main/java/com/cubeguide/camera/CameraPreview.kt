@@ -17,9 +17,12 @@ import com.cubeguide.vision.*
 import org.opencv.android.OpenCVLoader
 import java.util.concurrent.Executors
 
-@Composable fun CameraPreview(modifier: Modifier,onDetection: (Detection)->Unit) {
+@Composable fun CameraPreview(modifier: Modifier,onDetection: (Detection)->Unit,torch: Boolean=false,onFlashAvailable: (Boolean)->Unit={}) {
  val context=LocalContext.current; val lifecycle=LocalLifecycleOwner.current
  val callback by rememberUpdatedState(onDetection)
+ val flashCallback by rememberUpdatedState(onFlashAvailable)
+ var boundCamera by remember { mutableStateOf<Camera?>(null) }
+ LaunchedEffect(boundCamera,torch) { boundCamera?.let { if(it.cameraInfo.hasFlashUnit()) it.cameraControl.enableTorch(torch) } }
  val previewView=remember { PreviewView(context).apply { scaleType=PreviewView.ScaleType.FIT_CENTER; implementationMode=PreviewView.ImplementationMode.COMPATIBLE } }
  AndroidView(factory={ previewView },modifier=modifier)
  DisposableEffect(lifecycle) {
@@ -47,9 +50,10 @@ import java.util.concurrent.Executors
      } catch(e: Exception) { handler.post { if(!disposed) callback(Detection(emptyList(),emptyList(),"Couldn't read the camera frame. Try again or edit colors manually.")) } }
      finally { image.close() }
     }
-    provider!!.bindToLifecycle(lifecycle,CameraSelector.DEFAULT_BACK_CAMERA,preview,analysis)
+    boundCamera=provider!!.bindToLifecycle(lifecycle,CameraSelector.DEFAULT_BACK_CAMERA,preview,analysis)
+    flashCallback(boundCamera!!.cameraInfo.hasFlashUnit())
    } catch(e: Exception) { callback(Detection(emptyList(),emptyList(),e.message ?: "Camera unavailable. Use manual entry.")) }
   },ContextCompat.getMainExecutor(context))
-  onDispose { disposed=true; analysis?.clearAnalyzer(); val useCases=listOfNotNull(preview,analysis).toTypedArray(); if(useCases.isNotEmpty()) provider?.unbind(*useCases); executor.shutdown(); handler.removeCallbacksAndMessages(null) }
+  onDispose { disposed=true; boundCamera?.cameraControl?.enableTorch(false); boundCamera=null; analysis?.clearAnalyzer(); val useCases=listOfNotNull(preview,analysis).toTypedArray(); if(useCases.isNotEmpty()) provider?.unbind(*useCases); executor.shutdown(); handler.removeCallbacksAndMessages(null) }
  }
 }

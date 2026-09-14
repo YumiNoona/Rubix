@@ -38,21 +38,22 @@ internal val Mint=Color(0xFFA9F5C5)
  val context=LocalContext.current
  val preferences=remember { AppPreferences(context) }
  val view=androidx.compose.ui.platform.LocalView.current
- DisposableEffect(vm.screen) {
+ DisposableEffect(vm.screen,preferences.keepAwake) {
   val previous=view.keepScreenOn
-  view.keepScreenOn=vm.screen in listOf(Screen.SCAN,Screen.SETUP,Screen.GUIDE,Screen.CORRECT)
+  view.keepScreenOn=preferences.keepAwake && vm.screen in listOf(Screen.SCAN,Screen.SETUP,Screen.GUIDE,Screen.CORRECT)
   onDispose { view.keepScreenOn=previous }
  }
  CompositionLocalProvider(LocalAppPreferences provides preferences) {
  val dark=isSystemInDarkTheme()
  val scheme=if(dark) darkColorScheme(primary=Mint,background=Color(0xFF0C1511),surface=Color(0xFF17241D),onPrimary=Color(0xFF102A1C)) else lightColorScheme(primary=Color(0xFF246642),background=Color(0xFFF5F7F1),surface=Color(0xFFE8EFE5))
+ var settings by remember { mutableStateOf(false) }
  var exit by remember { mutableStateOf(false) }
  MaterialTheme(colorScheme=scheme) {
   Surface(Modifier.fillMaxSize()) {
    Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal=24.dp)) {
     Row(Modifier.fillMaxWidth().padding(vertical=16.dp),verticalAlignment=Alignment.CenterVertically) {
-     Text("CUBE GUIDE",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f))
-     if(vm.screen!=Screen.HOME) TextButton(onClick={ exit=true }) { Text("Exit") } else Text("ON DEVICE",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
+     Text(if(vm.screen==Screen.HOME) "rubix" else when(vm.screen) { Screen.SCAN -> "Capture"; Screen.REVIEW -> "Review"; Screen.CORRECT -> "Adjust"; Screen.SETUP -> "Get ready"; Screen.GUIDE -> "Your solve"; Screen.DONE -> "Complete"; else -> "rubix" },style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f))
+     if(vm.screen!=Screen.HOME) { TextButton(onClick={settings=true}) { Text("Settings") }; TextButton(onClick={ exit=true }) { Text("Close") } }
     }
     Box(Modifier.weight(1f)) { when(vm.screen) {
      Screen.HOME -> Home(vm)
@@ -66,6 +67,7 @@ internal val Mint=Color(0xFFA9F5C5)
    }
   }
   BackHandler(vm.screen!=Screen.HOME) { if(vm.screen==Screen.CORRECT && !vm.busy) vm.cancelCorrection() else exit=true }
+  if(settings) DisplaySettings { settings=false }
   if(exit) AlertDialog(onDismissRequest={exit=false},title={Text("Leave this solve?")},text={Text("Your physical cube will stay as it is. You can scan it again whenever you're ready.")},confirmButton={TextButton(onClick={exit=false;vm.home()}) { Text("Exit") }},dismissButton={TextButton(onClick={exit=false}) { Text("Keep going") }})
  }
 }}

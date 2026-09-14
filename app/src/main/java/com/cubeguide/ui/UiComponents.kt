@@ -50,7 +50,7 @@ import com.cubeguide.rendering.CubeView
    Box(Modifier.weight(1f).aspectRatio(1f)) { if(face!=null) Column(verticalArrangement=Arrangement.spacedBy(2.dp)) { (0..2).forEach { r ->
     Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(2.dp)) { (0..2).forEach { c ->
      val index=face.ordinal*9+r*3+c
-     Box(Modifier.weight(1f).fillMaxHeight().background(Color(cube.stickers[index].argb),RoundedCornerShape(3.dp)).border(if(index in uncertain) 2.dp else 0.5.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.2f),RoundedCornerShape(3.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" },contentAlignment=Alignment.Center) { if(initials || r==1 && c==1) Text(if(initials) cube.stickers[index].initial else face.name,color=Color(cube.stickers[index].inkArgb),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold) }
+     Box(Modifier.weight(1f).fillMaxHeight().background(Color(LocalAppPreferences.current.color(cube.stickers[index])),RoundedCornerShape(3.dp)).border(if(index in uncertain) 2.dp else 0.5.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.2f),RoundedCornerShape(3.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" },contentAlignment=Alignment.Center) { if(initials || r==1 && c==1) Text(if(initials) cube.stickers[index].initial else face.name,color=Color(LocalAppPreferences.current.ink(cube.stickers[index])),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold) }
     } }
    } } }
   } }
@@ -61,7 +61,7 @@ import com.cubeguide.rendering.CubeView
  Column(Modifier.fillMaxWidth().padding(horizontal=40.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) { (0..2).forEach { r ->
   Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) { (0..2).forEach { c ->
    val index=face.ordinal*9+r*3+c
-   Box(Modifier.weight(1f).aspectRatio(1f).heightIn(min=48.dp).background(Color(cube.stickers[index].argb),RoundedCornerShape(10.dp)).border(if(index in uncertain) 3.dp else 1.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.15f),RoundedCornerShape(10.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" },contentAlignment=Alignment.Center) { if(initials) Text(cube.stickers[index].initial,color=Color(cube.stickers[index].inkArgb),fontWeight=FontWeight.Bold,style=MaterialTheme.typography.titleLarge) }
+   Box(Modifier.weight(1f).aspectRatio(1f).heightIn(min=48.dp).background(Color(LocalAppPreferences.current.color(cube.stickers[index])),RoundedCornerShape(10.dp)).border(if(index in uncertain) 3.dp else 1.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.15f),RoundedCornerShape(10.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" },contentAlignment=Alignment.Center) { if(initials) Text(cube.stickers[index].initial,color=Color(LocalAppPreferences.current.ink(cube.stickers[index])),fontWeight=FontWeight.Bold,style=MaterialTheme.typography.titleLarge) }
   } }
  } }
 }
@@ -71,7 +71,7 @@ import com.cubeguide.rendering.CubeView
    Surface(Modifier.weight(1f),shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer) {
     Column(Modifier.padding(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
      Text(label,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-     Spacer(Modifier.height(10.dp)); Box(Modifier.size(24.dp).background(Color(color.argb),RoundedCornerShape(6.dp)))
+     Spacer(Modifier.height(10.dp)); Box(Modifier.size(24.dp).background(Color(LocalAppPreferences.current.color(color)),RoundedCornerShape(6.dp)))
      Spacer(Modifier.height(8.dp)); Text(color.label,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
     }
    }
@@ -107,11 +107,38 @@ import com.cubeguide.rendering.CubeView
 @Composable internal fun DisplaySettings(onDismiss: () -> Unit) {
  val preferences=LocalAppPreferences.current
  val feedback=rememberTouchFeedback()
- AlertDialog(onDismissRequest=onDismiss,title={Text("Display & feedback")},text={Column(Modifier.heightIn(max=320.dp).verticalScroll(rememberScrollState())) {
-  Row(verticalAlignment=Alignment.CenterVertically) { Text("Color initials",modifier=Modifier.weight(1f)); Switch(checked=preferences.initials,onCheckedChange={feedback();preferences.updateInitials(it)}) }
-  Text("W white, R red, G green, Y yellow, O orange, B blue",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+ var selected by remember { mutableStateOf(CubeColor.YELLOW) }
+ val hsv=FloatArray(3).also { android.graphics.Color.colorToHSV(preferences.color(selected),it) }
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Settings")},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState())) {
+  Text("Cube colors",style=MaterialTheme.typography.titleMedium)
   Spacer(Modifier.height(12.dp))
-  Row(verticalAlignment=Alignment.CenterVertically) { Text("Haptic feedback",modifier=Modifier.weight(1f)); Switch(checked=preferences.haptics,onCheckedChange={preferences.updateHaptics(it);feedback()}) }
-  Text("Gentle feedback for taps, captured faces and completion. Respects your phone settings.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+   CubeColor.entries.forEach { c ->
+    Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(c)),RoundedCornerShape(8.dp)).border(if(c==selected) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable { selected=c; feedback() }.semantics { contentDescription="${c.label} display color" },contentAlignment=Alignment.Center) { Text(c.initial,color=Color(preferences.ink(c)),fontWeight=FontWeight.Bold) }
+   }
+  }
+  Spacer(Modifier.height(8.dp)); Text(selected.label,style=MaterialTheme.typography.labelLarge)
+  Text("Hue",style=MaterialTheme.typography.labelMedium)
+  Slider(value=hsv[0],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(it,hsv[1],hsv[2])))},valueRange=0f..359f)
+  Text("Saturation",style=MaterialTheme.typography.labelMedium)
+  Slider(value=hsv[1],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(hsv[0],it,hsv[2])))})
+  Text("Brightness",style=MaterialTheme.typography.labelMedium)
+  Slider(value=hsv[2],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(hsv[0],hsv[1],it)))},valueRange=0.25f..1f)
+  TextButton(onClick={preferences.resetColors();feedback()}) { Text("Reset cube colors") }
+  Text("Changes apply to the display, not camera recognition.",style=MaterialTheme.typography.bodySmall)
+  HorizontalDivider(Modifier.padding(vertical=12.dp))
+  SettingsToggle("Color initials",preferences.initials) { preferences.updateInitials(it) }
+  SettingsToggle("Haptic feedback",preferences.haptics) { preferences.updateHaptics(it) }
+  SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
+  SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }
+  Text("Turn animation speed",style=MaterialTheme.typography.labelLarge)
+  Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)
+  Text("Fast to slow. Feedback respects phone settings.",style=MaterialTheme.typography.bodySmall)
  }},confirmButton={TextButton(onClick=onDismiss) { Text("Done") }})
+}
+@Composable private fun SettingsToggle(label: String,value: Boolean,change: (Boolean) -> Unit) {
+ val feedback=rememberTouchFeedback()
+ Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+  Text(label,modifier=Modifier.weight(1f)); Switch(checked=value,onCheckedChange={change(it);feedback()})
+ }
 }

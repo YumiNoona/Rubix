@@ -5,7 +5,7 @@ import cs.min2phase.Tools
 
 enum class CubeColor(val label: String, val argb: Long) {
  WHITE("White", 0xFFE9ECF2), RED("Red", 0xFFB72235), GREEN("Green", 0xFF15824F),
- YELLOW("Yellow", 0xFFD2AF1B), ORANGE("Orange", 0xFFD96B12), BLUE("Blue", 0xFF2463BB);
+ YELLOW("Yellow", 0xFFFFE43B), ORANGE("Orange", 0xFFD96B12), BLUE("Blue", 0xFF2463BB);
  val initial: String get() = label.take(1)
  val inkArgb: Long get() = if(this in listOf(RED,GREEN,BLUE)) 0xFFFFFFFF else 0xFF101820
 }

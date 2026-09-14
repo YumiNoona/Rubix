@@ -47,6 +47,5 @@ import com.cubeguide.rendering.CubeView
   Text("${vm.moves.size} moves  /  one solved cube",style=MaterialTheme.typography.titleMedium)
   Spacer(Modifier.height(26.dp)); Primary("Solve another cube") { vm.scan() }
   TextButton(onClick={vm.viewSolution()},enabled=vm.moves.isNotEmpty()) { Text("View solution again") }
-  Text(vm.moves.joinToString("  ") { it.notation },style=MaterialTheme.typography.bodyMedium,textAlign=TextAlign.Center)
  }
 }

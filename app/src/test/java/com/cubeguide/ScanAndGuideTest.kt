@@ -19,6 +19,33 @@ class ScanAndGuideTest {
   CubeColor.ORANGE to Sample(65.0,40.0,65.0,15.0,225.0,240.0),
   CubeColor.BLUE to Sample(40.0,20.0,-65.0,115.0,220.0,200.0)
  )
+ @Test fun galleryCaptureChecksCenterAndBuildsAllSixFaces() {
+  val vm=CubeViewModel(SavedStateHandle()); vm.scan()
+  val target=CubeState.solved().apply(Move.parse("R U F2 L D"))
+  val wrong=CubeColor.entries.first { it!=CubeColor.entries[vm.pose.face.ordinal] }
+  assertFalse(vm.importFace(Detection(List(9) { anchors.getValue(wrong) },emptyList(),"")))
+  assertEquals(0,vm.scanIndex)
+  assertFalse(vm.importFace(Detection(emptyList(),emptyList(),"No face")))
+  repeat(6) {
+   val face=vm.pose.face
+   val samples=target.stickers.drop(face.ordinal*9).take(9).map { anchors.getValue(it) }
+   assertTrue(vm.importFace(Detection(samples,emptyList(),"")))
+  }
+  assertEquals(Screen.REVIEW,vm.screen)
+  assertEquals(target,vm.cube)
+  assertFalse(vm.importFace(Detection(List(9) { anchors.getValue(CubeColor.WHITE) },emptyList(),"")))
+ }
+ @Test fun manualEntryCanUndoPaintAndRestoreItsMode() {
+  val saved=SavedStateHandle(); val vm=CubeViewModel(saved); vm.manual()
+  val original=vm.cube
+  vm.edit(0,CubeColor.RED); vm.edit(1,CubeColor.BLUE)
+  assertTrue(vm.canUndoEdit)
+  vm.undoEdit(); assertEquals(CubeColor.WHITE,vm.cube.stickers[1])
+  assertEquals(CubeColor.RED,vm.cube.stickers[0])
+  vm.undoEdit(); assertEquals(original,vm.cube); assertFalse(vm.canUndoEdit)
+  assertTrue(CubeViewModel(saved).manualEntry)
+  vm.demo(); assertFalse(vm.manualEntry)
+ }
  @Test fun colorsUseCentersAndFlagAmbiguity() {
   anchors.forEach { (color,s) ->
    assertEquals(color,ColorClassifier.nominal(s))

@@ -1,3 +1,15 @@
+# 1.2.0
+
+- Rename the app Rubix and use distinct screen titles.
+- Animate a scrambled cube back to solved on the redesigned home screen.
+- Brighten yellow to separate it from orange.
+- Add hardware-aware flash and per-face photo-picker import with resized, orientation-corrected decoding.
+- Add manual paint mode, fixed centers, color counts and undo.
+- Replace the home privacy/credits controls with one Settings entry.
+- Configure display colors, initials, haptics, native touch sounds, screen awake and animation speed.
+- Remove the long completed-move string from the completion screen.
+- Deliver one current Rubix.apk.
+
 # 1.1.0
 
 - Deepen sticker colors and add contrasting optional color initials across review and 3D guidance.
