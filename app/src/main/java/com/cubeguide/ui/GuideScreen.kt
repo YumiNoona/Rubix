@@ -1,37 +1,19 @@
 package com.cubeguide.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cubeguide.camera.CameraPreview
 import com.cubeguide.core.*
 import com.cubeguide.rendering.CubeView
-
 
 @Composable internal fun Guide(vm: CubeViewModel) {
  val feedback=rememberTouchFeedback()
@@ -46,6 +28,7 @@ import com.cubeguide.rendering.CubeView
  var correctingPrevious by remember { mutableStateOf(false) }
  var recoveryFace by remember { mutableStateOf(Face.F) }
  var recoveryKind by remember { mutableStateOf("direction") }
+ var animationProgress by remember(vm.cube,vm.step) { mutableFloatStateOf(0f) }
  val move=vm.moves.getOrNull(vm.step) ?: return
  BoxWithConstraints(Modifier.fillMaxSize()) {
   val cubeHeight=(maxHeight*0.44f).coerceIn(160.dp,280.dp)
@@ -67,7 +50,7 @@ import com.cubeguide.rendering.CubeView
    }
    LinearProgressIndicator(progress={vm.step.toFloat()/vm.moves.size},modifier=Modifier.fillMaxWidth(),color=MaterialTheme.colorScheme.primary,trackColor=MaterialTheme.colorScheme.surfaceContainerHighest)
    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
-    CubeView(vm.cube,Modifier.fillMaxWidth().height(cubeHeight).semantics { contentDescription=move.instruction+". Drag to inspect the cube." },move,replay,viewReset)
+    CubeView(vm.cube,Modifier.fillMaxWidth().height(cubeHeight).semantics { contentDescription=move.instruction+". Drag to inspect the cube." },move,replay,viewReset,onAnimationProgress={animationProgress=it})
     Text("${vm.cube.stickers[move.face.ordinal*9+4].label.uppercase()} / ${move.face.label.uppercase()} FACE",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary,textAlign=TextAlign.Center)
     Spacer(Modifier.height(12.dp))
     Text(move.instruction,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center)
@@ -75,6 +58,17 @@ import com.cubeguide.rendering.CubeView
      TurnArrow(move.turns==3,Modifier.size(36.dp))
      Spacer(Modifier.width(10.dp)); Text(move.notation,style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
+    if(move.turns==2) {
+     Text("2 quarter-turns / 180 degrees",style=MaterialTheme.typography.labelLarge)
+     Row(horizontalArrangement=Arrangement.spacedBy(10.dp),modifier=Modifier.padding(vertical=12.dp)) {
+      (1..2).forEach { quarter ->
+       val reached=animationProgress>=if(quarter==1) 0.5f else 0.99f
+       Surface(shape=RoundedCornerShape(12.dp),color=if(reached) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer) {
+        Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically) { TurnArrow(false,Modifier.size(24.dp));Spacer(Modifier.width(8.dp));Text("Turn $quarter of 2",style=MaterialTheme.typography.labelMedium) }
+       }
+      }
+     }
+    } else Text(if(move.turns==3) "One counter-clockwise quarter-turn" else "One clockwise quarter-turn",style=MaterialTheme.typography.bodySmall)
     if(vm.isReplay) Text("Replay only - no physical turns needed.",style=MaterialTheme.typography.bodySmall,textAlign=TextAlign.Center)
     if(vm.busy) { CircularProgressIndicator(Modifier.size(24.dp)); Text("Updating the solution...",style=MaterialTheme.typography.bodySmall) }
     if(vm.solveError!=null) Text(vm.solveError!!,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.error)
@@ -84,7 +78,7 @@ import com.cubeguide.rendering.CubeView
     Spacer(Modifier.height(10.dp))
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
      OutlinedButton(onClick={feedback();if(vm.isReplay) vm.back() else previous=true},enabled=vm.step>0 && !vm.busy,modifier=Modifier.weight(1f).heightIn(min=56.dp),shape=RoundedCornerShape(18.dp)) { Text("Previous") }
-     Button(onClick={feedback();vm.next()},enabled=!vm.busy,modifier=Modifier.weight(1f).heightIn(min=56.dp),shape=RoundedCornerShape(18.dp)) { Text("Next") }
+     Button(onClick={feedback();vm.next()},enabled=!vm.busy && animationProgress>=0.99f,modifier=Modifier.weight(1f).heightIn(min=56.dp),shape=RoundedCornerShape(18.dp)) { Text("Next") }
     }
    }
   }

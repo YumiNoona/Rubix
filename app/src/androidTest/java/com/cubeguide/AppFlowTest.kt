@@ -1,5 +1,10 @@
 package com.cubeguide
 
+import androidx.activity.compose.setContent
+import androidx.lifecycle.SavedStateHandle
+import com.cubeguide.ui.CubeApp
+import com.cubeguide.ui.CubeViewModel
+import com.cubeguide.core.CubeState
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -21,6 +26,32 @@ class AppFlowTest {
   val file=java.io.File(instrumentation.targetContext.getExternalFilesDir(null),"$name.png")
   file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; bitmap.recycle()
  }
+ @Test fun editingAnUncertainFrontStickerKeepsFrontSelected() {
+  val vm=CubeViewModel(SavedStateHandle())
+  val anchors=listOf(
+   Sample(90.0,0.0,2.0,0.0,20.0,230.0),Sample(45.0,60.0,35.0,2.0,220.0,200.0),
+   Sample(60.0,-50.0,35.0,65.0,200.0,190.0),Sample(90.0,-10.0,80.0,30.0,220.0,240.0),
+   Sample(65.0,40.0,65.0,15.0,225.0,240.0),Sample(40.0,20.0,-65.0,115.0,220.0,200.0)
+  )
+  val ambiguous=Sample(55.0,50.0,50.0,8.5,222.0,220.0)
+  compose.activity.runOnUiThread {
+   vm.scan()
+   repeat(6) {
+    val face=vm.pose.face
+    val samples=CubeState.solved().stickers.drop(face.ordinal*9).take(9).map { anchors[it.ordinal] }.toMutableList()
+    if(face.ordinal==1 || face.ordinal==2) samples[0]=ambiguous
+    Assert.assertTrue(vm.importFace(Detection(samples,emptyList(),"")))
+   }
+   compose.activity.setContent { CubeApp(vm) }
+  }
+  compose.onNodeWithText("Edit colors").performScrollTo().performClick()
+  compose.onNodeWithText("F / Green").performScrollTo().performClick()
+  compose.onAllNodesWithContentDescription("front row 1 column 1",substring=true,useUnmergedTree=true).onLast().performScrollTo().performClick()
+  compose.onNodeWithText("Choose a color").assertIsDisplayed()
+  compose.onNodeWithContentDescription("Green").performClick()
+  compose.onNodeWithText("F / Green").assertIsSelected()
+  compose.onNodeWithText("R / Red").assertIsNotSelected()
+ }
  @Test fun practiceFlowReachesSolved() {
   screenshot("home")
   compose.onNodeWithText("Try a demo").performScrollTo().performClick()
@@ -33,7 +64,8 @@ class AppFlowTest {
   compose.waitForIdle(); screenshot("guide")
   repeat(30) {
    if(compose.onAllNodesWithText("Order restored.").fetchSemanticsNodes().isNotEmpty()) return@repeat
-   compose.onNodeWithText("Next").assertIsDisplayed().performClick()
+   compose.waitUntil(5000) { compose.onAllNodesWithText("Next").fetchSemanticsNodes().any { !it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled) } }
+  compose.onNodeWithText("Next").assertIsDisplayed().performClick()
   }
   compose.onNodeWithText("Order restored.").assertExists()
   screenshot("solved")

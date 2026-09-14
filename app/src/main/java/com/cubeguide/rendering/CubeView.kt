@@ -2,6 +2,7 @@ package com.cubeguide.rendering
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.*
@@ -25,14 +26,24 @@ private data class P(val x: Float,val y: Float,val z: Float) {
 }
 private fun Vec.p()=P(x.toFloat(),y.toFloat(),z.toFloat())
 private data class Quad(val vertices: List<P>,val color: Color,val letter: String?=null,val ink: Int=0)
-@Composable fun CubeView(cube: CubeState, modifier: Modifier=Modifier, move: Move?=null, replay: Int=0,viewReset: Int=0) {
+@Composable fun CubeView(cube: CubeState, modifier: Modifier=Modifier, move: Move?=null, replay: Int=0,viewReset: Int=0,onAnimationProgress: (Float)->Unit={}) {
  val preferences=LocalAppPreferences.current
  val initials=preferences.initials
  val letterPaint=remember { android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textAlign=android.graphics.Paint.Align.CENTER; typeface=android.graphics.Typeface.DEFAULT_BOLD } }
- val animation=remember { Animatable(0f) }
+ val animation=remember(cube,move) { Animatable(0f) }
+ val progressCallback by rememberUpdatedState(onAnimationProgress)
+ LaunchedEffect(animation) { snapshotFlow { animation.value }.collect { progressCallback(it) } }
  var yaw by remember { mutableFloatStateOf(-0.55f) }; var pitch by remember { mutableFloatStateOf(0.45f) }
  LaunchedEffect(viewReset) { yaw=-0.55f; pitch=0.45f }
- LaunchedEffect(cube,move,replay) { animation.snapTo(0f); if(move!=null) { animation.animateTo(1f,tween(preferences.animationMillis)) } }
+ LaunchedEffect(animation,replay) {
+  if(move!=null) {
+   if(animation.value>0f) animation.animateTo(0f,tween(300))
+   if(move.turns==2) {
+    animation.animateTo(0.5f,tween(preferences.animationMillis)); delay(180)
+   }
+   animation.animateTo(1f,tween(preferences.animationMillis))
+  }
+ }
  Canvas(modifier.clipToBounds().pointerInput(Unit) { detectDragGestures { change,drag -> change.consume(); yaw+=drag.x*0.008f; pitch=(pitch+drag.y*0.008f).coerceIn(-1.3f,1.3f) } }) {
   val axis=move?.let { Geometry.normals[it.face.ordinal].p() }
   val angle=if(move==null) 0f else -animation.value*(if(move.turns==3) -1 else move.turns)*PI.toFloat()/2
@@ -60,7 +71,7 @@ private data class Quad(val vertices: List<P>,val color: Color,val letter: Strin
   }
   val scale=min(size.width,size.height)*0.17f
   fun project(p: P): Offset { val perspective=7f/(7f-p.z); return Offset(size.width/2+p.x*scale*perspective,size.height/2-p.y*scale*perspective) }
-  quads.sortedBy { q -> q.vertices.map { it.z }.average() }.forEach { q ->
+  quads.filter { q -> val center=q.vertices.reduce { a,b -> a+b }*0.25f; val inward=(q.vertices[1]+q.vertices[0]*-1f).cross(q.vertices[3]+q.vertices[0]*-1f); inward.dot(P(0f,0f,7f)+center*-1f)<-0.0001f }.sortedBy { q -> q.vertices.map { it.z }.average() }.forEach { q ->
    val points=q.vertices.map(::project); val path=Path().apply { moveTo(points[0].x,points[0].y); points.drop(1).forEach { lineTo(it.x,it.y) }; close() }
    drawPath(path,q.color); drawPath(path,Color(0xFF0C1410),style=Stroke(1.5f))
    q.letter?.let { letter ->

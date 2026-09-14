@@ -1,13 +1,5 @@
 package com.cubeguide.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,36 +8,28 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cubeguide.camera.CameraPreview
 import com.cubeguide.core.*
 import com.cubeguide.rendering.CubeView
-
 
 @Composable internal fun Review(vm: CubeViewModel) {
  val preferences=LocalAppPreferences.current
  val feedback=rememberTouchFeedback()
  val correcting=vm.screen==Screen.CORRECT
- var selected by remember { mutableStateOf<Int?>(null) }
- var face by remember { mutableStateOf(Face.U) }
- var editing by remember { mutableStateOf(vm.manualEntry || correcting) }
- var paint by remember { mutableStateOf(vm.manualEntry) }
- var brush by remember { mutableStateOf(CubeColor.WHITE) }
- val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback(); if(vm.manualEntry && index%9==4) Unit else if(paint) vm.edit(index,brush) else selected=index } }
+ var selected by rememberSaveable { mutableStateOf<Int?>(null) }
+ var faceOrdinal by rememberSaveable { mutableIntStateOf(vm.lowConfidence.firstOrNull()?.div(9) ?: Face.U.ordinal) }
+ val face=Face.entries[faceOrdinal]
+ var editing by rememberSaveable { mutableStateOf(vm.manualEntry || correcting) }
+ var paint by rememberSaveable { mutableStateOf(vm.manualEntry) }
+ var brushOrdinal by rememberSaveable { mutableIntStateOf(CubeColor.WHITE.ordinal) }
+ val brush=CubeColor.entries[brushOrdinal]
+ val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback(); faceOrdinal=index/9; if(vm.manualEntry && index%9==4) Unit else if(paint) vm.edit(index,brush) else selected=index } }
  val issue=vm.validationIssue
  val highlighted=vm.lowConfidence+(issue?.suspectStickers ?: emptyList())
- LaunchedEffect(vm.lowConfidence) { vm.lowConfidence.firstOrNull()?.let { face=Face.entries[it/9] } }
  Column(Modifier.fillMaxSize()) {
   Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
    Heading(if(correcting) "CURRENT STATE" else if(vm.manualEntry) "COLOR ENTRY" else "SIX SIDES CAPTURED",if(correcting) "Match your cube." else if(vm.manualEntry) "Paint your cube." else "Does it match?",if(vm.manualEntry) "Choose a color, then tap stickers. Centers stay fixed." else "Check the stickers against the cube in your hands.")
@@ -57,11 +41,11 @@ import com.cubeguide.rendering.CubeView
    if(editing) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text("Paint stickers",modifier=Modifier.weight(1f)); Switch(checked=paint,onCheckedChange={paint=it}) }
     if(paint) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-     CubeColor.entries.forEach { color -> Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(color)),RoundedCornerShape(8.dp)).border(if(brush==color) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable(enabled=!vm.busy) { brush=color;feedback() }.semantics { contentDescription="Paint ${color.label.lowercase()} stickers" },contentAlignment=Alignment.Center) { Text(color.initial,color=Color(preferences.ink(color)),fontWeight=FontWeight.Bold) } }
+     CubeColor.entries.forEach { color -> Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(color)),RoundedCornerShape(8.dp)).border(if(brush==color) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable(enabled=!vm.busy) { brushOrdinal=color.ordinal;feedback() }.semantics { contentDescription="Paint ${color.label.lowercase()} stickers" },contentAlignment=Alignment.Center) { Text(color.initial,color=Color(preferences.ink(color)),fontWeight=FontWeight.Bold) } }
     }
     TextButton(onClick=vm::undoEdit,enabled=vm.canUndoEdit && !vm.busy) { Text("Undo color change") }
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-     Face.entries.forEach { f -> FilterChip(selected=face==f,onClick={face=f},enabled=!vm.busy,label={Text("${f.name} / ${vm.cube.stickers[f.ordinal*9+4].label}")}) }
+     Face.entries.forEach { f -> FilterChip(selected=face==f,onClick={faceOrdinal=f.ordinal},enabled=!vm.busy,label={Text("${f.name} / ${vm.cube.stickers[f.ordinal*9+4].label}")}) }
     }
     Spacer(Modifier.height(8.dp))
     LargeFace(vm.cube,face,highlighted,selectSticker)
@@ -92,12 +76,13 @@ import com.cubeguide.rendering.CubeView
    onDismissRequest=vm::dismissSolveError,
    title={Text("Check the scan before solving")},
    text={Text(error)},
-   confirmButton={TextButton(onClick={vm.dismissSolveError(); editing=true; highlighted.firstOrNull()?.let { face=Face.entries[it/9] }}) { Text("Check colors") }},
+   confirmButton={TextButton(onClick={vm.dismissSolveError(); editing=true; highlighted.firstOrNull()?.let { faceOrdinal=it/9 }}) { Text("Check colors") }},
    dismissButton={TextButton(onClick={vm.dismissSolveError(); vm.scan()}) { Text("Rescan cube") }}
   )
  }
 
- selected?.let { index -> AlertDialog(onDismissRequest={selected=null},title={Text("${Face.entries[index/9].label.replaceFirstChar { it.uppercase() }}  /  row ${index%9/3+1}, column ${index%3+1}")},text={
-  Column { CubeColor.entries.forEach { c -> TextButton(onClick={feedback(); vm.edit(index,c);selected=null},enabled=!vm.busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) { Box(Modifier.size(24.dp).background(Color(LocalAppPreferences.current.color(c)),RoundedCornerShape(6.dp))); Spacer(Modifier.width(16.dp)); Text(c.label) } } }
- },confirmButton={TextButton(onClick={selected=null}) { Text("Cancel") }}) }
+ selected?.let { index -> StickerColorPicker(
+  index=index,current=vm.cube.stickers[index],enabled=!vm.busy,
+  onSelect={color -> feedback(); vm.edit(index,color);selected=null},onDismiss={selected=null}
+ ) }
 }

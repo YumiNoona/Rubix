@@ -3,7 +3,7 @@
 ## Executed locally
 
 - `:core:test`: 10 test methods passed, covering all 18 face moves against independent min2phase scrambles, inverses, doubles, four-turn identity, 60 seeded random scrambles and verified solver solutions, invalid color/center counts, impossible/mirrored pieces, flips, twists, parity, optimizer preservation, strict parsing and solved states.
-- `:app:testDebugUnitTest`: 10 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
+- `:app:testDebugUnitTest`: 12 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -69,3 +69,7 @@ Guide correction tests cover invalid edited stickers, cancellation, saved correc
 ## 1.2.0 Rubix redesign
 
 Two further JVM regressions cover photo-face acceptance (wrong/missing centers rejected, all six faces reconstructed in canonical order) and manual paint undo/restoration. Android flow selectors match the new home and paint flow. Native photo decoding, torch, system touch sound and the home animation require connected-device runtime QA. Total JVM test methods: 20.
+
+## 1.2.1 recognition and interaction regressions
+
+JVM regressions cover red hue wrap-around, stable-frame median sampling, reset behavior and reduced confidence for distant calibration outliers. Total JVM test methods: 22. The face-focus/color-sheet and animation changes require Android runtime checks, especially double turns, fast taps, replay, hidden-face rendering and process restoration. Real camera accuracy remains unmeasured.

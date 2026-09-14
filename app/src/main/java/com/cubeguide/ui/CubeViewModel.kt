@@ -30,7 +30,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var progress by mutableFloatStateOf(0f); private set
  var cameraAspect by mutableFloatStateOf(0.75f); private set
  var corners by mutableStateOf(emptyList<Pair<Float,Float>>()); private set
- var lowConfidence by mutableStateOf(emptySet<Int>()); private set
+ var lowConfidence by mutableStateOf(saved.get<IntArray>("lowConfidence")?.toSet() ?: emptySet()); private set
  private val captures=mutableMapOf<Face,List<Sample>>()
  private val stability=Stability()
  private var rescanFace: Face?=null
@@ -39,7 +39,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube }; if(screen==Screen.SCAN) screen=Screen.HOME; if(step !in 0..moves.size) { screen=Screen.HOME; step=0 } }
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
- private fun save() { saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
+ private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray(); saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
  fun scan(face: Face?=null) {
@@ -59,7 +59,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   if(d.samples.size==9 && ColorClassifier.nominal(d.samples[4])!=expected) { stability.reset(); progress=0f; message="Please show the ${expected.label.lowercase()} center face."; return }
   progress=stability.accept(d.samples,System.currentTimeMillis(),d.corners)
   if(progress<1f) return
-  captureFace(d)
+  captureFace(d.copy(samples=stability.stableSamples))
  }
  fun importFace(d: Detection): Boolean {
   if(screen!=Screen.SCAN || d.samples.size!=9) return false
@@ -82,7 +82,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
    save()
   } else { scanIndex=(0..5).first { scanSequence[it].face !in captures }; save() }
  }
- fun edit(index: Int,color: CubeColor) { if(busy || cube.stickers[index]==color) return; editHistory.addLast(cube); if(editHistory.size>54) editHistory.removeFirst(); canUndoEdit=true; cube=CubeState(cube.stickers.toMutableList().also { it[index]=color }); lowConfidence=lowConfidence-index; message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve."; save() }
+ fun edit(index: Int,color: CubeColor) { if(busy) return; if(cube.stickers[index]==color) { lowConfidence=lowConfidence-index;save();return }; editHistory.addLast(cube); if(editHistory.size>54) editHistory.removeFirst(); canUndoEdit=true; cube=CubeState(cube.stickers.toMutableList().also { it[index]=color }); lowConfidence=lowConfidence-index; message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve."; save() }
  fun undoEdit() { if(busy || editHistory.isEmpty()) return; cube=editHistory.removeLast();canUndoEdit=editHistory.isNotEmpty();save() }
  val validationIssue: ValidationIssue? get() = Validator.validate(cube)
 

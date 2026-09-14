@@ -1,5 +1,11 @@
 # Rubix
 
+![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.2.1-2463BB)
+![JVM checks](https://img.shields.io/badge/JVM_tests-22_passed-15824F)
+
+
 An offline Android app that scans a 3x3 Rubik's Cube and guides you through solving it, one turn at a time.
 
 ## Install
@@ -28,7 +34,7 @@ Keep the same holding orientation while following the guide. Clockwise is viewed
 
 The scanner supports a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and the expected center is checked before acceptance. Gallery access does not require broad storage permission. Check every imported sticker in review.
 
-Manual entry supports a selected-color paint brush, fixed centers, a large face editor, per-color counts and undo.
+Manual entry supports a selected-color paint brush, fixed centers, a large face editor, per-color counts and undo. Sticker selection opens a labeled six-color bottom sheet with the current color outlined. The selected face and brush survive edits and saved UI restoration.
 
 Settings is available from home and active screens. Customize hue, saturation and brightness for each display color, reset the palette, toggle initials, haptics, touch sounds and screen-awake handling, or adjust animation speed. Display colors do not alter camera classification. Touch sounds use Android's native click and respect system sound settings.
 
@@ -37,6 +43,7 @@ Settings is available from home and active screens. Customize hue, saturation an
 - Deeper, distinct sticker colors with contrasting optional initials on the net and 3D cube.
 - Persistent color-label and haptic settings under **Settings**.
 - Touch feedback for selections and moves, plus capture/completion feedback; Android's system settings are respected.
+- Double turns animate as two quarter-turns, with numbered progress and a brief pause. An inverse turn is one counter-clockwise quarter-turn. Next becomes available when the preview finishes.
 - Fixed Previous/Next controls, scrollable instructions, and extra actions tucked into **More**.
 - **Correct cube colors** in the guide lets you enter the actual current stickers and calculate a fresh verified solution. Cancel restores the original guide. Match the holding orientation before editing.
 - Known-turn mistake recovery, restart, replay, holding help, and cube-view reset.
@@ -78,7 +85,7 @@ The UI is split by screen under `app/src/main/java/com/cubeguide/ui`. `CubeViewM
 
 ## Verification and limits
 
-JVM tests cover cube permutations, physical validity, solver replay, scan rotations, all 24 holding orientations, guide progression, undo, restoration and current-state correction. Android instrumentation covers the practice flow and synthetic vision fixtures. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
+JVM tests cover cube permutations, physical validity, solver replay, scan rotations, all 24 holding orientations, guide progression, undo, restoration and current-state correction. Android instrumentation covers the practice flow and synthetic vision fixtures. Circular hue sampling keeps reds around the HSV wrap point together; live capture uses a median across stable frames. Out-of-calibration colors receive lower confidence rather than a confident forced label. These changes need real-camera measurement. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
 
 The latest layout, photo import, flash, sounds, haptics and real-camera behavior still need physical-device verification. Synthetic fixtures do not establish real-world scan accuracy. Lighting, glare, cube shades and capture orientation can require manual sticker correction.
 

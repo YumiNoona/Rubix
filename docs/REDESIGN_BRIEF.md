@@ -25,3 +25,11 @@ Manual entry joins the same flow at review. Guide correction returns to an edito
 - Optional local solve history and saved cube sessions.
 - A short interactive tutorial that teaches clockwise turns before the first solve.
 - Physical-device testing across glare, lighting, small displays, large fonts and stickerless cube shades before claiming scan accuracy.
+
+## Sticker, animation and recognition polish brief
+
+Replace the sticker color list with an accessible labeled 3-by-2 color picker that marks the current color. Keep the selected face while editing; uncertain stickers must never steal focus after an edit. Preserve face, paint mode and brush through UI restoration.
+
+Show a half turn as two numbered quarter-turns with a short pause; show an inverse as one counter-clockwise turn. Reset animation state synchronously with a changed cube, smoothly rewind an explicit replay, cull hidden faces and prevent confirming a move before its preview finishes.
+
+Use circular hue statistics for red wrap-around, stable-frame median sampling and distance-aware confidence for recognition. Test these edge cases without claiming measured camera accuracy. Split vision responsibilities into focused files, remove unused imports and dead source, refresh badges and retain one current APK.

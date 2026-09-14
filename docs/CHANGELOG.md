@@ -1,3 +1,14 @@
+# 1.2.1
+
+- Replace the sticker color list with a labeled six-color bottom sheet and current-color selection.
+- Keep face focus while uncertain stickers change; preserve face, paint mode and brush.
+- Animate double turns as two quarter-turns with numbered progress; explain inverse turns clearly.
+- Avoid old animation progress on a changed cube, rewind explicit replays smoothly and cull hidden faces.
+- Enable Next after the animation preview finishes.
+- Add circular hue medians, stable-frame median capture and lower confidence for distant calibration outliers.
+- Split vision into Sample, FaceDetector, ColorClassifier and Stability; remove unused screen imports.
+- Add README badges and recognition edge-case regressions.
+
 # 1.2.0
 
 - Rename the app Rubix and use distinct screen titles.

@@ -63,3 +63,9 @@ Compose screens live in separate UI files. SharedPreferences persists initials a
 Photo picker input is decoded on Default with a 1280-pixel bound and software allocation. ImageDecoder normalizes image orientation on API 28+; older devices use BitmapFactory and [AndroidX ExifInterface 1.4.2](https://developer.android.com/jetpack/androidx/releases/exifinterface) for rotation/reflection. Detected faces require explicit confirmation and the expected center, then enter the same center-calibrated classification pipeline as the live camera. Gallery selection suspends camera binding, preventing simultaneous live captures. Torch follows CameraX hardware availability and is switched off on disposal.
 
 Display palette overrides are preferences only; solver identity and camera anchors remain independent. The home demonstration applies the inverse of a known scramble and animates real layer geometry. Manual editing uses a bounded undo history and persists the entry mode.
+
+## Focus and rendering polish (1.2.1)
+
+Review focus is saved local UI state. Uncertainty affects outlines, not face selection; only explicit sticker/face selection or a requested error review changes focus. StickerColorPicker owns the bottom sheet. Vision now has separate sampling, detection, classification and stability files. Live capture classifies the stable window median, with circular hue aggregation and absolute-distance confidence attenuation.
+
+Animation progress belongs to the cube/move pair and is initialized during composition rather than reset after a new frame has drawn. Double turns use two animations separated by 180 ms. Explicit replay rewinds the same geometry. Back-face culling reduces hidden-face overdraw and depth-order artifacts. Guide progress observes the current animation and enables confirmation after completion.

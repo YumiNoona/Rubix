@@ -19,6 +19,32 @@ class ScanAndGuideTest {
   CubeColor.ORANGE to Sample(65.0,40.0,65.0,15.0,225.0,240.0),
   CubeColor.BLUE to Sample(40.0,20.0,-65.0,115.0,220.0,200.0)
  )
+ @Test fun redHueWrapAndTemporalNoiseStayRed() {
+  val red=anchors.getValue(CubeColor.RED)
+  val reds=listOf(red.copy(hue=179.0),red.copy(hue=1.0),red.copy(hue=178.0),red.copy(hue=2.0))
+  val result=Sample.median(reds)
+  assertEquals(CubeColor.RED,ColorClassifier.nominal(result))
+  assertEquals(CubeColor.RED,ColorClassifier.classify(result,anchors).first)
+  val stability=Stability()
+  repeat(8) { i -> stability.accept(List(9) { reds[i%reds.size].copy(l=red.l+(i%3-1)*1.5) },i*130L) }
+  assertEquals(9,stability.stableSamples.size)
+  assertTrue(stability.stableSamples.all { ColorClassifier.nominal(it)==CubeColor.RED })
+  stability.reset();assertTrue(stability.stableSamples.isEmpty())
+ }
+ @Test fun uncalibratedOutliersDoNotReceiveHighConfidence() {
+  val outlier=Sample(10.0,-120.0,120.0,60.0,240.0,50.0)
+  assertTrue(ColorClassifier.classify(outlier,anchors).second<0.18)
+  val saved=SavedStateHandle();val vm=CubeViewModel(saved);vm.scan()
+  repeat(6) {
+   val face=vm.pose.face;val samples=List(9) { anchors.getValue(CubeColor.entries[face.ordinal]) }.toMutableList()
+   if(face==Face.R || face==Face.F) samples[0]=outlier
+   assertTrue(vm.importFace(Detection(samples,emptyList(),"")))
+  }
+  assertTrue(9 in vm.lowConfidence);assertTrue(18 in vm.lowConfidence)
+  val unchanged=vm.cube;vm.edit(18,vm.cube.stickers[18])
+  assertEquals(unchanged,vm.cube);assertFalse(18 in vm.lowConfidence);assertTrue(9 in vm.lowConfidence)
+  assertEquals(vm.lowConfidence,CubeViewModel(saved).lowConfidence)
+ }
  @Test fun galleryCaptureChecksCenterAndBuildsAllSixFaces() {
   val vm=CubeViewModel(SavedStateHandle()); vm.scan()
   val target=CubeState.solved().apply(Move.parse("R U F2 L D"))
