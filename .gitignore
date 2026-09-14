@@ -1,0 +1,29 @@
+# Android / Gradle generated state
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+*.iml
+.externalNativeBuild/
+.cxx/
+
+# Local tooling, devices, logs and signing material
+tools/
+*.log
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+
+# One published Android install file
+dist/*
+!dist/CubeGuide.apk
+!dist/CubeGuide.apk.sha256
+
+# Editors / operating systems
+.vscode/
+.DS_Store
+Thumbs.db
+.local-archive/
