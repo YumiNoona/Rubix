@@ -6,7 +6,8 @@ import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.*
 
-class FaceDetector {
+class FaceDetector(private val gridSize:Int=3) {
+ init { require(gridSize in 2..5) }
  fun detect(bitmap: Bitmap): Detection {
   val rgba=Mat(); val rgb=Mat(); val gray=Mat(); val edges=Mat(); val hierarchy=Mat()
   val contours=mutableListOf<MatOfPoint>(); val warp=Mat(); val lab=Mat(); val hsv=Mat()
@@ -34,17 +35,20 @@ class FaceDetector {
      if(area>bestArea) { bestArea=area; best=pts }
     } finally { curve.release(); approx.release() }
    }
-   val points=best ?: return Detection(emptyList(),emptyList(),"Show one complete face. Move closer and keep all nine stickers visible.")
+   val points=best ?: return Detection(emptyList(),emptyList(),"Show one complete face. Move closer and keep all stickers visible.")
    val ordered=arrayOf(points.minBy { it.x+it.y },points.maxBy { it.x-it.y },points.maxBy { it.x+it.y },points.minBy { it.x-it.y })
    if(ordered.toSet().size!=4) return Detection(emptyList(),emptyList(),"Tilt the face toward the camera.")
    val source=MatOfPoint2f(*ordered); val target=MatOfPoint2f(Point(0.0,0.0),Point(299.0,0.0),Point(299.0,299.0),Point(0.0,299.0))
    transform=try { Imgproc.getPerspectiveTransform(source,target) } finally { source.release(); target.release() }
    Imgproc.warpPerspective(rgb,warp,transform,Size(300.0,300.0))
    Imgproc.cvtColor(warp,lab,Imgproc.COLOR_RGB2Lab); Imgproc.cvtColor(warp,hsv,Imgproc.COLOR_RGB2HSV)
-   val samples=(0..8).map { i ->
+   val cell=300/gridSize
+   val samples=(0 until gridSize*gridSize).map { i ->
     val pixels=mutableListOf<DoubleArray>()
-    for(y in (i/3*100+28)..(i/3*100+72) step 4) for(x in (i%3*100+28)..(i%3*100+72) step 4) {
-     if(i==4 && x%100 in 40..60 && y%100 in 40..60) continue // Avoid center logos in calibration.
+    val inset=(cell*0.28).roundToInt();val far=(cell*0.72).roundToInt()
+    for(y in (i/gridSize*cell+inset)..(i/gridSize*cell+far) step max(2,cell/25)) for(x in (i%gridSize*cell+inset)..(i%gridSize*cell+far) step max(2,cell/25)) {
+     val centerIndex=(gridSize*gridSize)/2
+     if(gridSize%2==1 && i==centerIndex && x%cell in (cell*0.4).toInt()..(cell*0.6).toInt() && y%cell in (cell*0.4).toInt()..(cell*0.6).toInt()) continue
      val hp=hsv.get(y,x);val lp=lab.get(y,x)
      if(hp[2]>=35) pixels+=doubleArrayOf(lp[0]*100/255,lp[1]-128,lp[2]-128,hp[0],hp[1],hp[2])
     }
@@ -57,11 +61,12 @@ class FaceDetector {
    }
    // A uniform square surface is not evidence of a sticker grid. Require internal seams.
    var gap=0.0; var inside=0.0; var count=0
-   for(pos in 30..270 step 8) for(boundary in listOf(100,200)) {
+   val boundaries=(1 until gridSize).map { it*cell }
+   for(pos in (cell/3)..(300-cell/3) step max(4,cell/12)) for(boundary in boundaries) {
     gap+=grayValue(warp,boundary,pos)+grayValue(warp,pos,boundary)
-    inside+=grayValue(warp,boundary-25,pos)+grayValue(warp,pos,boundary-25); count+=2
+    inside+=grayValue(warp,boundary-cell/4,pos)+grayValue(warp,pos,boundary-cell/4); count+=2
    }
-   if(inside/count-gap/count<4 && samples.all { it.distance(samples[4])<6 }) return Detection(emptyList(),emptyList(),"Couldn't locate the sticker grid. Show the entire cube face.")
+   if(count>0 && inside/count-gap/count<4 && samples.all { it.distance(samples.first())<6 }) return Detection(emptyList(),emptyList(),"Couldn't locate the sticker grid. Show the entire cube face.")
    return Detection(samples,ordered.map { (it.x/bitmap.width).toFloat() to (it.y/bitmap.height).toFloat() },"Hold steady to capture automatically")
   } finally { listOf(rgba,rgb,gray,edges,hierarchy,warp,lab,hsv).forEach { it.release() }; contours.forEach { it.release() }; transform?.release() }
  }

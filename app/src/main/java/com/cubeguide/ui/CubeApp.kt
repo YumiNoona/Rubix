@@ -37,7 +37,7 @@ private val rootScreens=setOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PR
       Screen.TIMER -> TimerScreen()
       Screen.LEARN -> LearnScreen(vm)
       Screen.PROGRESS -> ProgressScreen(preferences)
-      Screen.PUZZLES -> PuzzleCatalogScreen { vm.open(Screen.VIRTUAL) }
+      Screen.PUZZLES -> PuzzleCatalogScreen(onPlay={vm.open(Screen.VIRTUAL)},onScan=vm::scan)
       Screen.SCAN -> Scan(vm);Screen.REVIEW,Screen.CORRECT -> Review(vm);Screen.EDIT -> ColorEditorScreen(vm);Screen.ANALYZING -> AnalyzingScreen(vm);Screen.SETUP -> HoldingSetup(vm);Screen.GUIDE -> Guide(vm) { exit=true };Screen.DONE -> Done(vm)
      } }
     }

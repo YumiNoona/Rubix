@@ -142,7 +142,12 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
     when(aligned) {
      ScanOrientationResult.Ambiguous -> error("More than one face orientation fits this scan. Check which side was above each face, then rotate or rescan it.")
      ScanOrientationResult.Impossible -> error((issue?.message ?: "The scan needs correction.")+" Check the sticker colors or rescan the highlighted faces.")
-     is ScanOrientationResult.Unique -> aligned to Solver.solve(aligned.cube)
+     is ScanOrientationResult.Unique -> {
+      when(val verified=PuzzleSolverGate.solve(ThreeByThreeEngine,aligned.cube)) {
+       is VerifiedSolution.Ready -> aligned to Move.parse(verified.moves.joinToString(" "))
+       is VerifiedSolution.Rejected -> error(verified.reason)
+      }
+     }
     }
    } }
    if(generation!=solvingGeneration) return@launch

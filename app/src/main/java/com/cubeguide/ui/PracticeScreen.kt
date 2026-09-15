@@ -12,19 +12,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.cubeguide.core.PuzzleRegistry
 
 @Composable
 internal fun PracticeScreen(vm: CubeViewModel) {
     val preferences = LocalAppPreferences.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Text("Train at your pace", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("One tool at a time, with your preferred cube size.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("One tool at a time, with your preferred puzzle.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(22.dp))
         PracticeCard("Virtual cube", "${preferences.puzzleSize}×${preferences.puzzleSize} interactive playground", FeatureIcon.CUBE) { vm.open(Screen.VIRTUAL) }
         Spacer(Modifier.height(12.dp))
         PracticeCard("Cube timer", "Scrambles and personal records", FeatureIcon.TIMER) { vm.open(Screen.TIMER) }
         Spacer(Modifier.height(12.dp))
-        PracticeCard("Choose cube size", "2×2 through 7×7", FeatureIcon.PUZZLES) { vm.open(Screen.PUZZLES) }
+        PracticeCard("Puzzle library", "Nine official puzzle types · ${PuzzleRegistry.get(preferences.puzzleId).shortName}", FeatureIcon.PUZZLES) { vm.open(Screen.PUZZLES) }
         Spacer(Modifier.height(20.dp))
     }
 }
