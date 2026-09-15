@@ -25,6 +25,7 @@ import kotlin.math.*
 @Composable internal fun PuzzleCatalogScreen(onPlay:()->Unit,onScan:(PuzzleId)->Unit,scanMode:Boolean=false) {
  val preferences=LocalAppPreferences.current
  val selected=PuzzleRegistry.get(preferences.puzzleId)
+ val capturePlan=PuzzleCapturePlans.get(selected.id)
  Column(Modifier.fillMaxSize()) {
   Text(if(scanMode) "Scan and solve" else "Choose a puzzle",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
   Text(if(scanMode) "Choose the puzzle in your hands. Verified scanners can be opened below." else "Every solver is enabled only after its moves can be replay-verified.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -50,6 +51,7 @@ import kotlin.math.*
   Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()) {
    Column(Modifier.padding(14.dp)) {
     Text(selected.name,fontWeight=FontWeight.SemiBold)
+    Text("${capturePlan.steps.size} guided captures · ${capturePlan.steps.first().title} first",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
     Text(when(selected.solverState) {
      SolverState.AVAILABLE -> "Camera scan, verified solve, 3D guide and timer are ready."
      SolverState.ENGINE_READY -> "The verified solver is ready. Camera review and 2D/3D guidance are next."
