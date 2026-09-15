@@ -34,3 +34,9 @@ AndroidX / Jetpack — Apache License 2.0
 https://source.android.com/docs/setup/about/licenses
 Kotlin — Apache License 2.0
 https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt
+
+threephase 4x4 solver, Shuang Chen
+Source: https://github.com/thewca/tnoodle-lib/tree/master/threephase
+License: GNU General Public License version 3 or later
+The vendored Java files retain their original copyright and license headers.
+The complete license text is included at vendor/threephase/LICENSE.

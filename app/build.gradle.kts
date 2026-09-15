@@ -23,6 +23,7 @@ dependencies {
  implementation("androidx.camera:camera-view:1.6.2")
  implementation("androidx.exifinterface:exifinterface:1.4.2")
  implementation("org.opencv:opencv:4.13.0")
+ runtimeOnly("org.slf4j:slf4j-nop:2.0.17")
  testImplementation("junit:junit:4.13.2")
  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
  testImplementation(kotlin("test"))
