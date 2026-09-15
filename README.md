@@ -2,11 +2,21 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.3.0-2463BB)
-![JVM checks](https://img.shields.io/badge/JVM_tests-23_passed-15824F)
+![Version](https://img.shields.io/badge/version-2.0.0-2463BB)
+![JVM checks](https://img.shields.io/badge/JVM_tests-28_passed-15824F)
 
 
-An offline Android app that scans a 3x3 Rubik's Cube and guides you through solving it, one turn at a time.
+An offline Android cube workspace for solving a scanned 3x3, practising on virtual 2x2–7x7 cubes, timing solves and learning the beginner method.
+
+## What is inside
+
+- **Solve** — camera capture, gallery import, manual color entry, scan review and a step-by-step animated 3x3 guide.
+- **Virtual cube** — playable 2x2 through 7x7 cubes with touch rotation, face controls, scrambles, reset and animated undo.
+- **Cube timer** — size-aware scrambles, a large tap target, last/best/average-of-five statistics and saved sessions.
+- **Learn** — seven compact lessons with progress tracking and a direct path into the virtual cube.
+- **Puzzle library** — one place to choose the cube size used by the virtual cube and timer.
+
+Rubix uses a quiet dark theme, compact navigation, clear pressed and selected states, optional color initials, system-aware haptics, and display colors that can be tuned for a particular physical cube.
 
 ## Install
 
@@ -22,7 +32,7 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 
 ## Solve your cube
 
-1. Select **Scan your cube** and follow the face and top-center instructions for all six sides. Manual entry and a practice cube are also available.
+1. Select **Start camera scan** and follow the face and top-center instructions for all six sides. Manual entry and a practice cube are also available.
 2. Review your scan using the 3D preview and editable face grid. Turn on **Color initials** if you want W, R, G, Y, O and B labels. Correct stickers, rotate a scanned face, or rescan before solving.
 3. Tap **Solve this cube**. Invalid scans show a correction message; solving shows progress. A scan with exactly one valid face-rotation reconstruction can be aligned automatically.
 4. Match the **Starting position**: white center facing you and blue center on top by default. You can select another front center; the cube and solution change reference frame together.
@@ -34,9 +44,9 @@ Keep the same holding orientation while following the guide. Clockwise is viewed
 
 The scanner supports a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and the expected center is checked before acceptance. Gallery access does not require broad storage permission. Check every imported sticker in review.
 
-Manual entry supports a selected-color paint brush, fixed centers, a large face editor, per-color counts and undo. Sticker selection opens a labeled six-color bottom sheet with the current color outlined. The selected face and brush survive edits and saved UI restoration.
+Manual entry uses a large 3D preview, one focused face at a time, persistent brush selection, fixed centers, live per-color counts and undo. Sticker selection opens a labeled six-color bottom sheet with the current color outlined. The selected face, brush and virtual cube survive UI restoration.
 
-Settings is available from home and active screens. Customize hue, saturation and brightness for each display color, reset the palette, toggle initials, haptics, touch sounds and screen-awake handling, or adjust animation speed. Display colors do not alter camera classification. Touch sounds use Android's native click and respect system sound settings.
+Settings is available from every screen in a spacious bottom sheet. Customize hue, saturation and brightness for each display color, reset the palette, toggle initials, haptics, touch sounds and screen-awake handling, or adjust animation speed. Display colors do not alter camera classification. Touch sounds use Android's native click and respect system sound settings.
 
 ## A clearer guide
 

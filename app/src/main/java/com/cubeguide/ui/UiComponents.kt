@@ -89,37 +89,51 @@ import com.cubeguide.core.*
 @Composable internal fun RecoveryOption(label: String,onClick: () -> Unit) {
  OutlinedButton(onClick=onClick,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp),shape=RoundedCornerShape(14.dp)) { Text(label,textAlign=TextAlign.Center) }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun DisplaySettings(onDismiss: () -> Unit) {
  val preferences=LocalAppPreferences.current
  val feedback=rememberTouchFeedback()
  var selected by remember { mutableStateOf(CubeColor.YELLOW) }
  val hsv=FloatArray(3).also { android.graphics.Color.colorToHSV(preferences.color(selected),it) }
- AlertDialog(onDismissRequest=onDismiss,title={Text("Settings")},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState())) {
-  Text("Cube colors",style=MaterialTheme.typography.titleMedium)
+ ModalBottomSheet(onDismissRequest=onDismiss) {
+  Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=22.dp).navigationBarsPadding()) {
+  Row(verticalAlignment=Alignment.CenterVertically) {
+   Column(Modifier.weight(1f)) {
+    Text("Settings",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
+    Text("Tune Rubix for your hands and cube.",color=MaterialTheme.colorScheme.onSurfaceVariant)
+   }
+   TextButton(onClick=onDismiss) { Text("Done") }
+  }
+  Spacer(Modifier.height(22.dp))
+  Text("Cube display",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+  Text("Choose a sticker, then tune its display color.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(12.dp))
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
    CubeColor.entries.forEach { c ->
     Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(c)),RoundedCornerShape(8.dp)).border(if(c==selected) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable { selected=c; feedback() }.semantics { contentDescription="${c.label} display color" },contentAlignment=Alignment.Center) { Text(c.initial,color=Color(preferences.ink(c)),fontWeight=FontWeight.Bold) }
    }
   }
-  Spacer(Modifier.height(8.dp)); Text(selected.label,style=MaterialTheme.typography.labelLarge)
+  Spacer(Modifier.height(12.dp)); Text(selected.label,style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
   Text("Hue",style=MaterialTheme.typography.labelMedium)
   Slider(value=hsv[0],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(it,hsv[1],hsv[2])))},valueRange=0f..359f)
   Text("Saturation",style=MaterialTheme.typography.labelMedium)
   Slider(value=hsv[1],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(hsv[0],it,hsv[2])))})
   Text("Brightness",style=MaterialTheme.typography.labelMedium)
   Slider(value=hsv[2],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(hsv[0],hsv[1],it)))},valueRange=0.25f..1f)
-  TextButton(onClick={preferences.resetColors();feedback()}) { Text("Reset cube colors") }
+  TextButton(onClick={preferences.resetColors();feedback()}) { Text("Restore default colors") }
   Text("Changes apply to the display, not camera recognition.",style=MaterialTheme.typography.bodySmall)
-  HorizontalDivider(Modifier.padding(vertical=12.dp))
+  HorizontalDivider(Modifier.padding(vertical=16.dp))
+  Text("Interaction",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   SettingsToggle("Color initials",preferences.initials) { preferences.updateInitials(it) }
   SettingsToggle("Haptic feedback",preferences.haptics) { preferences.updateHaptics(it) }
   SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
   SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }
-  Text("Turn animation speed",style=MaterialTheme.typography.labelLarge)
+  HorizontalDivider(Modifier.padding(vertical=16.dp))
+  Text("Guide animation",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)
-  Text("Fast to slow. Feedback respects phone settings.",style=MaterialTheme.typography.bodySmall)
- }},confirmButton={TextButton(onClick=onDismiss) { Text("Done") }})
+  Text("Fast to slow. Feedback respects phone settings.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Spacer(Modifier.height(24.dp))
+ } }
 }
 @Composable private fun SettingsToggle(label: String,value: Boolean,change: (Boolean) -> Unit) {
  val feedback=rememberTouchFeedback()

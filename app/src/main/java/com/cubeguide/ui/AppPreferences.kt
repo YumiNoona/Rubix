@@ -12,6 +12,11 @@ class AppPreferences(context: Context) {
  var haptics by mutableStateOf(storage.getBoolean("haptics",true)); private set
  var sound by mutableStateOf(storage.getBoolean("sound",false)); private set
  var keepAwake by mutableStateOf(storage.getBoolean("keepAwake",true)); private set
+ var puzzleSize by mutableIntStateOf(storage.getInt("puzzleSize",3).coerceIn(2,7)); private set
+ var completedLessons by mutableStateOf(storage.getStringSet("completedLessons",emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()); private set
+ private var timerRecordsBySize by mutableStateOf((2..7).associateWith { size ->
+  storage.getString("timerRecords_$size",if(size==3) storage.getString("timerRecords","") else "")!!.split(",").mapNotNull { it.toLongOrNull() }.take(20)
+ })
  var animationMillis by mutableIntStateOf(storage.getInt("animationMillis",1300)); private set
  private val colors=mutableStateMapOf<com.cubeguide.core.CubeColor,Int>().apply {
   com.cubeguide.core.CubeColor.entries.forEach { if(storage.contains("color_${it.name}")) put(it,storage.getInt("color_${it.name}",it.argb.toInt())) }
@@ -20,6 +25,11 @@ class AppPreferences(context: Context) {
  fun ink(c: com.cubeguide.core.CubeColor): Int = if(androidx.core.graphics.ColorUtils.calculateLuminance(color(c))>0.179) 0xFF101820.toInt() else 0xFFFFFFFF.toInt()
  fun updateColor(c: com.cubeguide.core.CubeColor,value: Int) { colors[c]=value; storage.edit().putInt("color_${c.name}",value).apply() }
  fun resetColors() { colors.clear(); val editor=storage.edit(); com.cubeguide.core.CubeColor.entries.forEach { editor.remove("color_${it.name}") }; editor.apply() }
+ fun updatePuzzleSize(value: Int) { puzzleSize=value.coerceIn(2,7);storage.edit().putInt("puzzleSize",puzzleSize).apply() }
+ fun completeLesson(index: Int) { completedLessons=completedLessons+index;storage.edit().putStringSet("completedLessons",completedLessons.map { it.toString() }.toSet()).apply() }
+ fun timerRecords(size: Int): List<Long> = timerRecordsBySize[size].orEmpty()
+ fun addTimerRecord(size: Int,milliseconds: Long) { if(milliseconds<100) return;val records=(listOf(milliseconds)+timerRecords(size)).take(20);timerRecordsBySize=timerRecordsBySize+(size to records);storage.edit().putString("timerRecords_$size",records.joinToString(",")).apply() }
+ fun clearTimerRecords(size: Int) { timerRecordsBySize=timerRecordsBySize+(size to emptyList());storage.edit().remove("timerRecords_$size").apply() }
  fun updateSound(value: Boolean) { sound=value; storage.edit().putBoolean("sound",value).apply() }
  fun updateKeepAwake(value: Boolean) { keepAwake=value; storage.edit().putBoolean("keepAwake",value).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }

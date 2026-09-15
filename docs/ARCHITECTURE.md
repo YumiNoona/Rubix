@@ -75,3 +75,11 @@ Animation progress belongs to the cube/move pair and is initialized during compo
 Independent nearest-center decisions can create impossible color totals under glare. Balanced classification expands each color into its remaining physical capacity and uses square minimum-cost matching across sticker-to-color distances. Six centers are fixed labels. A full scan assigns eight more stickers per color; a face rescan derives capacity from the 45 preserved stickers. The assigned color confidence compares its cost with the best alternative, so a capacity-forced choice remains highlighted. The algorithm is O(n^3) for n=48 and runs off the main thread as part of the existing scan flow.
 
 Color sampling uses the 90th-percentile saturation to detect chromatic stickers and excludes desaturated specular pixels before the LAB/HSV median. Neutral stickers retain their pixels. The solver requests max depth 20 and 1,000 minimum phase-two probes, then combines same-face turns separated only by a commuting opposite-face move. All resulting moves are replay-verified.
+
+## Product shell and virtual puzzles (2.0.0)
+
+The Compose shell separates Home, Play, Timer and Learn into saved destinations with a shared compact navigation bar. Solver screens remain a linear capture-review-setup-guide flow, so utility navigation cannot accidentally mutate an active solve. Settings uses a full-width sheet, and manual entry keeps its solve action visible while the cube and editor scroll on short displays.
+
+`app/play/VirtualCube` reuses the core integer sticker geometry for outer-layer moves on 2x2 through 7x7 cubes. It has no second cube rules engine. A compact encoded sticker/history value restores the playground after navigation or activity recreation. Tests verify every face and inverse, four-turn identity, scramble reversal and serialization for all supported sizes. The Canvas renderer projects sticker planes with perspective, depth sorting, highlights, a soft backdrop and drag-controlled yaw/pitch.
+
+Timer results, selected puzzle size and completed lessons live in `AppPreferences`. Camera recognition and the two-phase solver remain scoped to 3x3 cubes; the catalog labels that boundary rather than implying unsupported camera solving for larger puzzles.

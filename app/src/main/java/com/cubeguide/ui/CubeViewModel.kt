@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, SCAN, REVIEW, CORRECT, SETUP, GUIDE, DONE }
+enum class Screen { HOME, VIRTUAL, TIMER, LEARN, PUZZLES, SCAN, REVIEW, CORRECT, SETUP, GUIDE, DONE }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
  private val editHistory=java.util.ArrayDeque<CubeState>()
@@ -40,6 +40,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
  private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray(); saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
+ fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.VIRTUAL,Screen.TIMER,Screen.LEARN,Screen.PUZZLES));solvingGeneration++;busy=false;this.screen=screen;save() }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
  fun scan(face: Face?=null) {

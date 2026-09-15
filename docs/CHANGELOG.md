@@ -1,3 +1,12 @@
+# 2.0.0
+
+- Rebuilt the app shell around distinct Home, Play, Timer and Learn destinations with compact persistent navigation.
+- Added a touch-rotatable virtual cube for 2x2 through 7x7 puzzles, including face controls, scrambles, state restoration and animated undo.
+- Added a cube timer with generated scrambles, saved last/best/average-of-five results and size selection.
+- Added seven beginner lessons with saved progress and virtual-cube practice.
+- Added a puzzle library and a focused manual color editor with a larger 3D preview, face navigation, direct painting, counts and undo.
+- Moved display and interaction settings into a full-width bottom sheet and refreshed the dark visual system, cards, buttons, selection states and transitions.
+
 # 1.3.0
 
 - Globally assign scanned stickers to exactly nine of each center-calibrated color.

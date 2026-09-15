@@ -17,6 +17,7 @@ import com.cubeguide.core.*
 import com.cubeguide.rendering.CubeView
 
 @Composable internal fun Review(vm: CubeViewModel) {
+ if(vm.manualEntry && vm.screen!=Screen.CORRECT) { ManualEditor(vm);return }
  val preferences=LocalAppPreferences.current
  val feedback=rememberTouchFeedback()
  val correcting=vm.screen==Screen.CORRECT

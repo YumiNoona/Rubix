@@ -74,15 +74,13 @@ class AppFlowTest {
   compose.onNodeWithText("Enter colors").performScrollTo().performClick()
   compose.onAllNodesWithContentDescription("front row 1 column 1, Green",useUnmergedTree=true).onFirst().performClick()
   compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
-  compose.onNodeWithText("Check the scan before solving").assertIsDisplayed()
-  compose.onNodeWithText("Check colors").assertIsDisplayed()
-  compose.onNodeWithText("Rescan cube").assertIsDisplayed()
+  compose.onNodeWithText("This cube needs a check").assertIsDisplayed()
   compose.onAllNodesWithText("exactly 9",substring=true).onLast().assertIsDisplayed()
  }
  @Test fun deniedCameraStillOffersManualEntry() {
-  compose.onNodeWithText("Scan your cube").performScrollTo().performClick()
+  compose.onNodeWithText("Start camera scan").performScrollTo().performClick()
   compose.onNodeWithText("Enter colors instead").performScrollTo().assertExists().performClick()
-  compose.onNodeWithText("Paint your cube.").assertExists()
+  compose.onNodeWithText("Manual colors").assertExists()
  }
 }
 
