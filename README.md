@@ -2,8 +2,8 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.2.1-2463BB)
-![JVM checks](https://img.shields.io/badge/JVM_tests-22_passed-15824F)
+![Version](https://img.shields.io/badge/version-1.3.0-2463BB)
+![JVM checks](https://img.shields.io/badge/JVM_tests-23_passed-15824F)
 
 
 An offline Android app that scans a 3x3 Rubik's Cube and guides you through solving it, one turn at a time.
@@ -83,9 +83,13 @@ dist/      One phone APK and its SHA-256 checksum
 
 The UI is split by screen under `app/src/main/java/com/cubeguide/ui`. `CubeViewModel` owns navigation, scan review, background solving, corrections and confirmed guide state. `AppPreferences` stores display and feedback choices.
 
+## Solution quality
+
+Rubix searches within the 20 face-turn bound and spends extra probes improving its first result. It also merges same-face turns across commuting opposite faces. Under 10 cannot be guaranteed for arbitrary scrambles: some states require 20 face turns, and optimal random states are usually much closer to 18 than 10. A half turn such as `R2` counts as one solver step but two physical quarter-turns in the guide.
+
 ## Verification and limits
 
-JVM tests cover cube permutations, physical validity, solver replay, scan rotations, all 24 holding orientations, guide progression, undo, restoration and current-state correction. Android instrumentation covers the practice flow and synthetic vision fixtures. Circular hue sampling keeps reds around the HSV wrap point together; live capture uses a median across stable frames. Out-of-calibration colors receive lower confidence rather than a confident forced label. These changes need real-camera measurement. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
+JVM tests cover cube permutations, physical validity, solver replay, scan rotations, all 24 holding orientations, guide progression, undo, restoration and current-state correction. Android instrumentation covers the practice flow and synthetic vision fixtures. Final classification globally assigns exactly nine stickers to each center color, so glare cannot create three or four extra whites. Forced assignments stay highlighted when the image evidence is weak. Circular hue sampling keeps reds around the HSV wrap point together; live capture uses a median across stable frames. Out-of-calibration colors receive lower confidence rather than a confident forced label. These changes need real-camera measurement. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
 
 The latest layout, photo import, flash, sounds, haptics and real-camera behavior still need physical-device verification. Synthetic fixtures do not establish real-world scan accuracy. Lighting, glare, cube shades and capture orientation can require manual sticker correction.
 

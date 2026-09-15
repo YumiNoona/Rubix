@@ -33,3 +33,9 @@ Replace the sticker color list with an accessible labeled 3-by-2 color picker th
 Show a half turn as two numbered quarter-turns with a short pause; show an inverse as one counter-clockwise turn. Reset animation state synchronously with a changed cube, smoothly rewind an explicit replay, cull hidden faces and prevent confirming a move before its preview finishes.
 
 Use circular hue statistics for red wrap-around, stable-frame median sampling and distance-aware confidence for recognition. Test these edge cases without claiming measured camera accuracy. Split vision responsibilities into focused files, remove unused imports and dead source, refresh badges and retain one current APK.
+
+## Scan accuracy and solution-quality brief
+
+Eliminate recurring extra-white classifications by treating all six center samples as labeled calibration and solving one global minimum-cost assignment with exactly nine stickers per color. Keep centers fixed, preserve manual edits outside a rescanned face, reject glare inside chromatic samples, support tinted white centers, and highlight forced assignments when evidence is weak. Test the failure pattern directly.
+
+Search within the proven 20-face-turn bound, continue for a bounded number of probes after the first result, merge turns across commuting opposite faces, replay-verify every answer, and explain why under 10 moves is not generally possible. Keep all work offline and bounded for phone use.

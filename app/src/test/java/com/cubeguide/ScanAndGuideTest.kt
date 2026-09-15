@@ -19,6 +19,18 @@ class ScanAndGuideTest {
   CubeColor.ORANGE to Sample(65.0,40.0,65.0,15.0,225.0,240.0),
   CubeColor.BLUE to Sample(40.0,20.0,-65.0,115.0,220.0,200.0)
  )
+ @Test fun balancedClassificationPreventsExtraWhiteStickers() {
+  val samples=CubeState.solved().stickers.map { anchors.getValue(it) }.toMutableList()
+  val glare=listOf(10,19,28,37)
+  glare.forEach { samples[it]=anchors.getValue(CubeColor.WHITE) }
+  val independent=samples.mapIndexed { index,sample -> if(index%9==4) CubeColor.entries[index/9] else ColorClassifier.classify(sample,anchors).first }
+  assertEquals(13,independent.count { it==CubeColor.WHITE })
+  val centers=Face.entries.associate { it.ordinal*9+4 to CubeColor.entries[it.ordinal] }
+  val result=ColorClassifier.balanced(samples,anchors,centers,CubeColor.entries.associateWith { 9 })
+  CubeColor.entries.forEach { color -> assertEquals(9,result.count { it.color==color },color.label) }
+  centers.forEach { (index,color) -> assertEquals(color,result[index].color) }
+  assertTrue(glare.all { result[it].confidence<0.18 })
+ }
  @Test fun redHueWrapAndTemporalNoiseStayRed() {
   val red=anchors.getValue(CubeColor.RED)
   val reds=listOf(red.copy(hue=179.0),red.copy(hue=1.0),red.copy(hue=178.0),red.copy(hue=2.0))

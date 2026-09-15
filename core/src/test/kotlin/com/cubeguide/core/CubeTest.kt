@@ -23,7 +23,9 @@ class CubeTest {
    val cube=CubeState.solved().apply(scramble)
    assertEquals(Tools.fromScramble(scramble.joinToString(" ") { it.notation }),cube.facelets())
    assertNull(Validator.validate(cube))
-   assertTrue(cube.apply(Solver.solve(cube)).solved)
+   val solution=Solver.solve(cube)
+   assertTrue(solution.size<=20,"${solution.size}: ${solution.joinToString { it.notation }}")
+   assertTrue(cube.apply(solution).solved)
   }
  }
  @Test fun impossibleStatesAreActionable() {
@@ -44,6 +46,8 @@ class CubeTest {
   assertEquals("R2",Solver.optimize(Move.parse("R R")).single().notation)
   assertEquals("R'",Solver.optimize(Move.parse("R R R")).single().notation)
   assertTrue(Solver.optimize(Move.parse("R U U' R'")).isEmpty())
+  assertEquals("R2 L2",Solver.optimize(Move.parse("R L R L")).joinToString(" ") { it.notation })
+  assertEquals("",Solver.optimize(Move.parse("U D U' D'")).joinToString(" ") { it.notation })
   val m=Move.parse("F R R U U' R' D2 D2 B B B B F'")
   assertEquals(CubeState.solved().apply(m),CubeState.solved().apply(Solver.optimize(m)))
  }

@@ -69,3 +69,9 @@ Display palette overrides are preferences only; solver identity and camera ancho
 Review focus is saved local UI state. Uncertainty affects outlines, not face selection; only explicit sticker/face selection or a requested error review changes focus. StickerColorPicker owns the bottom sheet. Vision now has separate sampling, detection, classification and stability files. Live capture classifies the stable window median, with circular hue aggregation and absolute-distance confidence attenuation.
 
 Animation progress belongs to the cube/move pair and is initialized during composition rather than reset after a new frame has drawn. Double turns use two animations separated by 180 ms. Explicit replay rewinds the same geometry. Back-face culling reduces hidden-face overdraw and depth-order artifacts. Guide progress observes the current animation and enables confirmation after completion.
+
+## Globally constrained classification (1.3.0)
+
+Independent nearest-center decisions can create impossible color totals under glare. Balanced classification expands each color into its remaining physical capacity and uses square minimum-cost matching across sticker-to-color distances. Six centers are fixed labels. A full scan assigns eight more stickers per color; a face rescan derives capacity from the 45 preserved stickers. The assigned color confidence compares its cost with the best alternative, so a capacity-forced choice remains highlighted. The algorithm is O(n^3) for n=48 and runs off the main thread as part of the existing scan flow.
+
+Color sampling uses the 90th-percentile saturation to detect chromatic stickers and excludes desaturated specular pixels before the LAB/HSV median. Neutral stickers retain their pixels. The solver requests max depth 20 and 1,000 minimum phase-two probes, then combines same-face turns separated only by a commuting opposite-face move. All resulting moves are replay-verified.

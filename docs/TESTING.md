@@ -3,7 +3,7 @@
 ## Executed locally
 
 - `:core:test`: 10 test methods passed, covering all 18 face moves against independent min2phase scrambles, inverses, doubles, four-turn identity, 60 seeded random scrambles and verified solver solutions, invalid color/center counts, impossible/mirrored pieces, flips, twists, parity, optimizer preservation, strict parsing and solved states.
-- `:app:testDebugUnitTest`: 12 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
+- `:app:testDebugUnitTest`: 13 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -72,4 +72,8 @@ Two further JVM regressions cover photo-face acceptance (wrong/missing centers r
 
 ## 1.2.1 recognition and interaction regressions
 
-JVM regressions cover red hue wrap-around, stable-frame median sampling, reset behavior and reduced confidence for distant calibration outliers. Total JVM test methods: 22. The face-focus/color-sheet and animation changes require Android runtime checks, especially double turns, fast taps, replay, hidden-face rendering and process restoration. Real camera accuracy remains unmeasured.
+JVM regressions cover red hue wrap-around, stable-frame median sampling, reset behavior and reduced confidence for distant calibration outliers. Total JVM test methods: 23. The face-focus/color-sheet and animation changes require Android runtime checks, especially double turns, fast taps, replay, hidden-face rendering and process restoration. Real camera accuracy remains unmeasured.
+
+## 1.3.0 white-glare and solution bounds
+
+A regression reproduces 13 independently classified white stickers and verifies that global center-anchored assignment restores nine of every color while leaving forced choices uncertain. Sixty seeded scrambles now assert verified solutions of at most 20 face turns. Synthetic fixtures and compilation pass; physical camera tests remain required to tune glare thresholds against real cubes and phones.

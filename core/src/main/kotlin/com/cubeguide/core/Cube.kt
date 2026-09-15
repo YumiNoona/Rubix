@@ -105,9 +105,9 @@ object Solver {
   if(cube.solved) return emptyList()
   Search.init()
   val search=Search()
-  var result=search.solution(cube.facelets(),21,100000,0,0)
+  var result=search.solution(cube.facelets(),20,5000000,1000,0)
   var attempts=0
-  while(result=="Error 8" && attempts++<10) result=search.next(100000,0,0)
+  while(result=="Error 8" && attempts++<10) result=search.next(5000000,1000,0)
   check(!result.startsWith("Error")) { "Could not finish solving. Please try again. ($result)" }
   val moves=optimize(Move.parse(result))
   check(cube.apply(moves).solved) { "Solution verification failed. Rescan the cube." }
@@ -115,11 +115,21 @@ object Solver {
  }
  fun optimize(moves: List<Move>): List<Move> {
   val out=mutableListOf<Move>()
+  fun opposite(a: Face,b: Face)=kotlin.math.abs(a.ordinal-b.ordinal)==3
   moves.forEach { move ->
-   if(out.lastOrNull()?.face==move.face) {
-    val sum=(out.removeAt(out.lastIndex).turns+move.turns)%4
-    if(sum!=0) out+=Move(move.face,sum)
-   } else out+=move
+   when {
+    out.lastOrNull()?.face==move.face -> {
+     val turns=(out.removeAt(out.lastIndex).turns+move.turns)%4
+     if(turns!=0) out+=Move(move.face,turns)
+    }
+    out.lastOrNull()?.let { opposite(it.face,move.face) }==true && out.getOrNull(out.lastIndex-1)?.face==move.face -> {
+     val other=out.removeAt(out.lastIndex)
+     val turns=(out.removeAt(out.lastIndex).turns+move.turns)%4
+     if(turns!=0) out+=Move(move.face,turns)
+     out+=other
+    }
+    else -> out+=move
+   }
   }
   return out
  }

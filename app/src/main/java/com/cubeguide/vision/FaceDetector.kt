@@ -42,15 +42,18 @@ class FaceDetector {
    Imgproc.warpPerspective(rgb,warp,transform,Size(300.0,300.0))
    Imgproc.cvtColor(warp,lab,Imgproc.COLOR_RGB2Lab); Imgproc.cvtColor(warp,hsv,Imgproc.COLOR_RGB2HSV)
    val samples=(0..8).map { i ->
-    val l=mutableListOf<Double>(); val a=mutableListOf<Double>(); val b=mutableListOf<Double>(); val h=mutableListOf<Double>(); val s=mutableListOf<Double>(); val v=mutableListOf<Double>()
+    val pixels=mutableListOf<DoubleArray>()
     for(y in (i/3*100+28)..(i/3*100+72) step 4) for(x in (i%3*100+28)..(i%3*100+72) step 4) {
-     val hp=hsv.get(y,x); val lp=lab.get(y,x)
-     if(hp[2]<35 || (hp[1]<15 && hp[2]>250)) continue
-     l+=lp[0]*100/255; a+=lp[1]-128; b+=lp[2]-128; h+=hp[0]; s+=hp[1]; v+=hp[2]
+     if(i==4 && x%100 in 40..60 && y%100 in 40..60) continue // Avoid center logos in calibration.
+     val hp=hsv.get(y,x);val lp=lab.get(y,x)
+     if(hp[2]>=35) pixels+=doubleArrayOf(lp[0]*100/255,lp[1]-128,lp[2]-128,hp[0],hp[1],hp[2])
     }
-    if(l.size<25) return Detection(emptyList(),ordered.map { (it.x/bitmap.width).toFloat() to (it.y/bitmap.height).toFloat() },"Glare or shadow hides a sticker. Tilt the cube slightly.")
-    fun median(values: List<Double>)=values.sorted()[values.size/2]
-    Sample(median(l),median(a),median(b),Sample.circularMedian(h),median(s),median(v))
+    val saturation90=pixels.map { it[4] }.sorted().let { values -> if(values.isEmpty()) 0.0 else values[(values.lastIndex*0.9).toInt()] }
+    // Colored stickers keep enough saturated pixels to discard white specular highlights.
+    val useful=if(saturation90>=70) pixels.filter { it[4]>=max(35.0,saturation90*0.35) } else pixels
+    if(useful.size<25) return Detection(emptyList(),ordered.map { (it.x/bitmap.width).toFloat() to (it.y/bitmap.height).toFloat() },"Glare or shadow hides a sticker. Tilt the cube slightly.")
+    fun median(component: Int)=useful.map { it[component] }.sorted().let { it[it.size/2] }
+    Sample(median(0),median(1),median(2),Sample.circularMedian(useful.map { it[3] }),median(4),median(5))
    }
    // A uniform square surface is not evidence of a sticker grid. Require internal seams.
    var gap=0.0; var inside=0.0; var count=0

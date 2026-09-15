@@ -30,6 +30,7 @@ import com.cubeguide.rendering.CubeView
  val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback(); faceOrdinal=index/9; if(vm.manualEntry && index%9==4) Unit else if(paint) vm.edit(index,brush) else selected=index } }
  val issue=vm.validationIssue
  val highlighted=vm.lowConfidence+(issue?.suspectStickers ?: emptyList())
+ val uncertainCount=vm.lowConfidence.size
  Column(Modifier.fillMaxSize()) {
   Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
    Heading(if(correcting) "CURRENT STATE" else if(vm.manualEntry) "COLOR ENTRY" else "SIX SIDES CAPTURED",if(correcting) "Match your cube." else if(vm.manualEntry) "Paint your cube." else "Does it match?",if(vm.manualEntry) "Choose a color, then tap stickers. Centers stay fixed." else "Check the stickers against the cube in your hands.")
@@ -60,9 +61,9 @@ import com.cubeguide.rendering.CubeView
   }
   Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()) {
    Column(Modifier.padding(14.dp)) {
-    Text(if(vm.busy) "Preparing your guide..." else if(issue==null) " Ready to solve" else "Your scan needs a check",fontWeight=FontWeight.SemiBold,color=if(issue==null || vm.busy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+    Text(if(vm.busy) "Preparing your guide..." else if(issue!=null) "Your scan needs a check" else if(uncertainCount>0) "$uncertainCount sticker${if(uncertainCount==1) "" else "s"} need a closer look" else "Ready to solve",fontWeight=FontWeight.SemiBold,color=if(issue==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
     Spacer(Modifier.height(4.dp))
-    Text(if(vm.busy) vm.message else issue?.message ?: if(correcting) "Colors are valid. Recalculate from your current cube." else "All six faces checked. Choose your starting position next.",style=MaterialTheme.typography.bodySmall,modifier=Modifier.heightIn(max=120.dp).verticalScroll(rememberScrollState()))
+    Text(if(vm.busy) vm.message else issue?.message ?: if(uncertainCount>0) "Glare made the outlined colors less certain. Check them, or solve if the cube preview matches." else if(correcting) "Colors are valid. Recalculate from your current cube." else "All six faces checked. Choose your starting position next.",style=MaterialTheme.typography.bodySmall,modifier=Modifier.heightIn(max=120.dp).verticalScroll(rememberScrollState()))
     if(vm.busy) { Spacer(Modifier.height(8.dp)); LinearProgressIndicator(modifier=Modifier.fillMaxWidth()) }
    }
   }

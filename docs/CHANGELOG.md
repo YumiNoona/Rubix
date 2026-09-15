@@ -1,3 +1,13 @@
+# 1.3.0
+
+- Globally assign scanned stickers to exactly nine of each center-calibrated color.
+- Keep forced color decisions visibly uncertain instead of producing extra whites.
+- Reject low-saturation glare from otherwise colorful sticker samples and recognize tinted neutral whites.
+- Apply balanced capacities when rescanning one face while preserving all other reviewed stickers.
+- Search for verified solutions within 20 face turns and continue through 1,000 probes for shorter candidates.
+- Merge compatible same-axis turns across commuting opposite faces.
+- Add false-white, capacity, confidence and 20-move regression coverage.
+
 # 1.2.1
 
 - Replace the sticker color list with a labeled six-color bottom sheet and current-color selection.

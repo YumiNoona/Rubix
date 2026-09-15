@@ -70,13 +70,23 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   captures[pose.face]=d.samples; stability.reset(); progress=0f
   if(captures.size==6) {
    val anchors=Face.entries.associate { f -> CubeColor.entries[f.ordinal] to captures.getValue(f)[4] }
+   val previousCube=beforeRescan;val changedFace=rescanFace
    val confidence=mutableSetOf<Int>()
-   val classified=Face.entries.flatMap { f -> captures.getValue(f).mapIndexed { i,s ->
-    if(i==4) CubeColor.entries[f.ordinal] else ColorClassifier.classify(s,anchors).let { (c,p) -> if(p<0.18) confidence+=f.ordinal*9+i; c }
-   } }
-   val previousCube=beforeRescan; val changedFace=rescanFace
-   cube=if(previousCube!=null && changedFace!=null) CubeState(previousCube.stickers.mapIndexed { i,c -> if(i/9==changedFace.ordinal) classified[i] else c }) else CubeState(classified)
-   lowConfidence=if(changedFace!=null) lowConfidence.filter { it/9!=changedFace.ordinal }.toSet()+confidence.filter { it/9==changedFace.ordinal } else confidence
+   if(previousCube!=null && changedFace!=null) {
+    val offset=changedFace.ordinal*9
+    val outside=previousCube.stickers.filterIndexed { index,_ -> index/9!=changedFace.ordinal }
+    val capacity=CubeColor.entries.associateWith { color -> 9-outside.count { it==color } }
+    val decisions=ColorClassifier.balanced(captures.getValue(changedFace),anchors,mapOf(4 to CubeColor.entries[changedFace.ordinal]),capacity)
+    cube=CubeState(previousCube.stickers.toMutableList().also { stickers -> decisions.forEachIndexed { i,decision -> stickers[offset+i]=decision.color;if(decision.confidence<0.18) confidence+=offset+i } })
+    lowConfidence=lowConfidence.filter { it/9!=changedFace.ordinal }.toSet()+confidence
+   } else {
+    val samples=Face.entries.flatMap { captures.getValue(it) }
+    val centers=Face.entries.associate { it.ordinal*9+4 to CubeColor.entries[it.ordinal] }
+    val capacity=CubeColor.entries.associateWith { 9 }
+    val decisions=ColorClassifier.balanced(samples,anchors,centers,capacity)
+    decisions.forEachIndexed { index,decision -> if(decision.confidence<0.18) confidence+=index }
+    cube=CubeState(decisions.map { it.color });lowConfidence=confidence
+   }
    rescanFace=null; beforeRescan=null; screen=Screen.REVIEW
    message=Validator.validate(cube)?.message ?: if(lowConfidence.isEmpty()) "All six faces captured. Your cube is valid." else "Check the outlined stickers: their colors were uncertain."
    save()
@@ -109,7 +119,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   val needsSetup=screen==Screen.REVIEW
   val generation=++solvingGeneration
   busy=true
-  message=if(issue==null) "Calculating and verifying your solution…" else "Checking the orientation of your six scans…"
+  message=if(issue==null) "Searching for a shorter verified solution..." else "Checking the orientation of your six scans…"
   viewModelScope.launch {
    val result=withContext(Dispatchers.Default) { runCatching {
     val aligned=if(issue==null) ScanOrientationResult.Unique(state,emptyList()) else ScanOrientationResolver.resolve(state)
@@ -125,7 +135,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
     lowConfidence=emptySet()
     if(needsSetup) startingFace=Face.entries.first { aligned.cube.stickers[it.ordinal*9+4]==CubeColor.WHITE }
     screen=if(solution.isEmpty()) Screen.DONE else if(needsSetup) Screen.SETUP else Screen.GUIDE
-    message=if(aligned.rotatedFaces.isEmpty()) "" else "Aligned the ${aligned.rotatedFaces.joinToString { it.label }} scan orientation. Match your cube to the model before beginning."
+    message=if(aligned.rotatedFaces.isEmpty()) "Found a verified ${solution.size}-step solution." else "Aligned the ${aligned.rotatedFaces.joinToString { it.label }} scan orientation and found a verified ${solution.size}-step solution. Match your cube to the model."
     correctionOriginal=null; saved.remove<String>("correctionOriginal")
     save()
    }.onFailure {
