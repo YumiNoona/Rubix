@@ -3,8 +3,12 @@ package com.cubeguide.ui
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -17,6 +21,7 @@ import com.cubeguide.rendering.CubeView
 
 @Composable internal fun Guide(vm: CubeViewModel) {
  val feedback=rememberTouchFeedback()
+ val preferences=LocalAppPreferences.current
  var viewReset by remember { mutableIntStateOf(0) }
  var settings by remember { mutableStateOf(false) }
  var replay by remember { mutableIntStateOf(0) }
@@ -29,14 +34,25 @@ import com.cubeguide.rendering.CubeView
  var recoveryFace by remember { mutableStateOf(Face.F) }
  var recoveryKind by remember { mutableStateOf("direction") }
  var animationProgress by remember(vm.cube,vm.step) { mutableFloatStateOf(0f) }
+ var autoPlay by rememberSaveable { mutableStateOf(true) }
+ val autoAdvance=remember { Animatable(0f) }
  val move=vm.moves.getOrNull(vm.step) ?: return
+ LaunchedEffect(vm.step,animationProgress,autoPlay,vm.busy) {
+  if(autoPlay && !vm.busy && animationProgress>=0.99f) {
+   autoAdvance.snapTo(0f)
+   autoAdvance.animateTo(1f,tween(preferences.guideDelayMillis,easing=LinearEasing))
+   if(autoPlay && !vm.busy && animationProgress>=0.99f) { feedback();vm.next() }
+  } else autoAdvance.snapTo(0f)
+ }
  BoxWithConstraints(Modifier.fillMaxSize()) {
   val cubeHeight=(maxHeight*0.44f).coerceIn(160.dp,280.dp)
   Column(Modifier.fillMaxSize()) {
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
     Text("${if(vm.isReplay) "REPLAY / " else ""}STEP ${vm.step+1} OF ${vm.moves.size}",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary,modifier=Modifier.weight(1f))
+    Row(verticalAlignment=Alignment.CenterVertically) {
+     TextButton(onClick={autoPlay=!autoPlay}) { Text(if(autoPlay) "Pause" else "Auto play",maxLines=1) }
     Box {
-     TextButton(onClick={menu=true}) { Text("More") }
+     TextButton(onClick={autoPlay=false;menu=true}) { Text("More",maxLines=1) }
      DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
       DropdownMenuItem(text={Text("Replay animation")},onClick={menu=false;replay++})
       DropdownMenuItem(text={Text("Reset cube view")},onClick={menu=false;viewReset++})
@@ -46,9 +62,10 @@ import com.cubeguide.rendering.CubeView
       DropdownMenuItem(text={Text("Restart guide")},onClick={menu=false;if(vm.isReplay) vm.restart() else restart=true})
       if(!vm.isReplay) DropdownMenuItem(text={Text("I made a mistake")},onClick={menu=false;recovery="kind"},enabled=!vm.busy)
      }
-    }
+    } }
    }
    LinearProgressIndicator(progress={vm.step.toFloat()/vm.moves.size},modifier=Modifier.fillMaxWidth(),color=MaterialTheme.colorScheme.primary,trackColor=MaterialTheme.colorScheme.surfaceContainerHighest)
+   if(autoPlay && animationProgress>=0.99f) LinearProgressIndicator(progress={autoAdvance.value},modifier=Modifier.fillMaxWidth().padding(top=4.dp),color=MaterialTheme.colorScheme.secondary,trackColor=MaterialTheme.colorScheme.surface)
    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
     CubeView(vm.cube,Modifier.fillMaxWidth().height(cubeHeight).semantics { contentDescription=move.instruction+". Drag to inspect the cube." },move,replay,viewReset,onAnimationProgress={animationProgress=it})
     Text("${vm.cube.stickers[move.face.ordinal*9+4].label.uppercase()} / ${move.face.label.uppercase()} FACE",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary,textAlign=TextAlign.Center)
@@ -77,8 +94,8 @@ import com.cubeguide.rendering.CubeView
     Text("${vm.initial.stickers[22].label} facing you / ${vm.initial.stickers[4].label} on top",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,textAlign=TextAlign.Center)
     Spacer(Modifier.height(10.dp))
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-     OutlinedButton(onClick={feedback();if(vm.isReplay) vm.back() else previous=true},enabled=vm.step>0 && !vm.busy,modifier=Modifier.weight(1f).heightIn(min=56.dp),shape=RoundedCornerShape(18.dp)) { Text("Previous") }
-     Button(onClick={feedback();vm.next()},enabled=!vm.busy && animationProgress>=0.99f,modifier=Modifier.weight(1f).heightIn(min=56.dp),shape=RoundedCornerShape(18.dp)) { Text("Next") }
+     OutlinedButton(onClick={feedback();val wasAuto=autoPlay;autoPlay=false;if(vm.isReplay || wasAuto) vm.back() else previous=true},enabled=vm.step>0 && !vm.busy,modifier=Modifier.weight(1f).heightIn(min=54.dp),shape=RoundedCornerShape(17.dp)) { Text("Previous",maxLines=1) }
+     Button(onClick={feedback();autoPlay=false;vm.next()},enabled=!vm.busy && animationProgress>=0.99f,modifier=Modifier.weight(1f).heightIn(min=54.dp),shape=RoundedCornerShape(17.dp)) { Text("Next",maxLines=1) }
     }
    }
   }

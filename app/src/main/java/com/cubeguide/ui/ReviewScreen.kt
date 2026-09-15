@@ -18,46 +18,49 @@ import com.cubeguide.rendering.CubeView
 
 @Composable internal fun Review(vm: CubeViewModel) {
  if(vm.manualEntry && vm.screen!=Screen.CORRECT) { ManualEditor(vm);return }
- val preferences=LocalAppPreferences.current
  val feedback=rememberTouchFeedback()
  val correcting=vm.screen==Screen.CORRECT
  var selected by rememberSaveable { mutableStateOf<Int?>(null) }
  var faceOrdinal by rememberSaveable { mutableIntStateOf(vm.lowConfidence.firstOrNull()?.div(9) ?: Face.U.ordinal) }
  val face=Face.entries[faceOrdinal]
- var editing by rememberSaveable { mutableStateOf(vm.manualEntry || correcting) }
- var paint by rememberSaveable { mutableStateOf(vm.manualEntry) }
- var brushOrdinal by rememberSaveable { mutableIntStateOf(CubeColor.WHITE.ordinal) }
- val brush=CubeColor.entries[brushOrdinal]
- val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback(); faceOrdinal=index/9; if(vm.manualEntry && index%9==4) Unit else if(paint) vm.edit(index,brush) else selected=index } }
+ var editing by rememberSaveable { mutableStateOf(correcting) }
+ var show3D by rememberSaveable { mutableStateOf(false) }
+ val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback();faceOrdinal=index/9;if(editing && index%9!=4) selected=index else editing=true } }
  val issue=vm.validationIssue
  val highlighted=vm.lowConfidence+(issue?.suspectStickers ?: emptyList())
  val uncertainCount=vm.lowConfidence.size
  Column(Modifier.fillMaxSize()) {
   Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-   Heading(if(correcting) "CURRENT STATE" else if(vm.manualEntry) "COLOR ENTRY" else "SIX SIDES CAPTURED",if(correcting) "Match your cube." else if(vm.manualEntry) "Paint your cube." else "Does it match?",if(vm.manualEntry) "Choose a color, then tap stickers. Centers stay fixed." else "Check the stickers against the cube in your hands.")
-   CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(210.dp).semantics { contentDescription="3D preview of your scanned cube. Drag to inspect all sides." })
-   CubeNet(vm.cube,highlighted,selectSticker)
-   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text("Color initials",modifier=Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium); Switch(checked=preferences.initials,onCheckedChange={feedback(); preferences.updateInitials(it)}) }
-   Spacer(Modifier.height(16.dp))
-   TextButton(onClick={editing=!editing},enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text(if(editing) "Done editing" else "Edit colors") }
-   if(editing) {
-    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text("Paint stickers",modifier=Modifier.weight(1f)); Switch(checked=paint,onCheckedChange={paint=it}) }
-    if(paint) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-     CubeColor.entries.forEach { color -> Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(color)),RoundedCornerShape(8.dp)).border(if(brush==color) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable(enabled=!vm.busy) { brushOrdinal=color.ordinal;feedback() }.semantics { contentDescription="Paint ${color.label.lowercase()} stickers" },contentAlignment=Alignment.Center) { Text(color.initial,color=Color(preferences.ink(color)),fontWeight=FontWeight.Bold) } }
+   Text(if(correcting) "Match this state to the cube in your hands." else "Check all six sides before solving.",color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)
+   Spacer(Modifier.height(12.dp))
+   if(!editing) {
+    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {
+     FilterChip(selected=!show3D,onClick={show3D=false},label={Text("Net")})
+     Spacer(Modifier.width(8.dp))
+     FilterChip(selected=show3D,onClick={show3D=true},label={Text("3D")})
     }
-    TextButton(onClick=vm::undoEdit,enabled=vm.canUndoEdit && !vm.busy) { Text("Undo color change") }
+    if(show3D) CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(290.dp).semantics { contentDescription="3D preview of your scanned cube. Drag to inspect all sides." })
+    else CubeNet(vm.cube,highlighted,selectSticker)
+    TextButton(onClick={editing=true},enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Edit colors") }
+   } else {
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+     Text("Edit one face",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f))
+     TextButton(onClick={editing=false}) { Text("Done") }
+    }
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
      Face.entries.forEach { f -> FilterChip(selected=face==f,onClick={faceOrdinal=f.ordinal},enabled=!vm.busy,label={Text("${f.name} / ${vm.cube.stickers[f.ordinal*9+4].label}")}) }
     }
     Spacer(Modifier.height(8.dp))
     LargeFace(vm.cube,face,highlighted,selectSticker)
+    Text("Tap a sticker to choose its color. Centers stay fixed.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(vertical=8.dp))
+    TextButton(onClick=vm::undoEdit,enabled=vm.canUndoEdit && !vm.busy) { Text("Undo color change") }
     if(!correcting) Row {
      TextButton(onClick={vm.rotateFace(face)},enabled=!vm.busy,modifier=Modifier.weight(1f)) { Text("Rotate scan") }
      TextButton(onClick={vm.scan(face)},enabled=!vm.busy,modifier=Modifier.weight(1f)) { Text("Rescan face") }
     }
    }
    Spacer(Modifier.height(12.dp))
-   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) { CubeColor.entries.forEach { color -> val count=vm.cube.stickers.count { it==color }; Text("${color.initial} $count/9",style=MaterialTheme.typography.labelSmall,color=if(count==9) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error) } }
+   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) { CubeColor.entries.forEach { color -> val count=vm.cube.stickers.count { it==color }; Text("${color.initial} $count",style=MaterialTheme.typography.labelSmall,color=if(count==9) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,maxLines=1) } }
    Spacer(Modifier.height(16.dp))
   }
   Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()) {

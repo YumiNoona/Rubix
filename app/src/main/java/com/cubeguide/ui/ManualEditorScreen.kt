@@ -33,8 +33,8 @@ internal fun ManualEditor(vm: CubeViewModel) {
     Column(Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Manual colors", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("Face ${faceIndex + 1} of 6", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Face ${faceIndex + 1} of 6", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("Choose a color, then paint the face.", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
             TextButton(
                 onClick = { feedback(); vm.undoEdit() },

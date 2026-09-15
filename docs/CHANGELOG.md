@@ -1,3 +1,15 @@
+# 2.1.0
+
+- Replaced duplicated root/detail navigation with Home, Practice, Learn and Progress roots; virtual cube, timer and solver flows now use focused detail navigation.
+- Simplified Home to one cube, one primary scan action, manual entry and a compact demo action.
+- Rebuilt virtual-cube face visibility around transformed outward normals and solid backing faces, eliminating the exploded sticker rendering.
+- Reworked virtual controls into compact single-line move, direction and action rows.
+- Made timer text responsive and kept every statistic on one line.
+- Simplified scan review to a Net/3D switch and a focused one-face color editor.
+- Added a dedicated analyzing screen and a clearer starting-position solution overview.
+- Added solver autoplay with Pause, Previous and Next controls and a configurable 1–2 second interval between animated steps.
+- Added per-size progress and lesson completion to the new Progress screen.
+
 # 2.0.0
 
 - Rebuilt the app shell around distinct Home, Play, Timer and Learn destinations with compact persistent navigation.

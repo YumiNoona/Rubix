@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.*
 
@@ -25,7 +26,7 @@ import com.cubeguide.core.*
 }
 @Composable internal fun Primary(text: String,enabled: Boolean=true,onClick: ()->Unit) {
  val feedback=rememberTouchFeedback()
- Button({ feedback(); onClick() },Modifier.fillMaxWidth().heightIn(min=56.dp),enabled=enabled,shape=RoundedCornerShape(18.dp)) { Text(text,style=MaterialTheme.typography.titleMedium) }
+ Button({ feedback(); onClick() },Modifier.fillMaxWidth().heightIn(min=54.dp),enabled=enabled,shape=RoundedCornerShape(17.dp)) { Text(text,style=MaterialTheme.typography.titleMedium,maxLines=1,overflow=TextOverflow.Ellipsis) }
 }
 @Composable internal fun CubeNet(cube: CubeState,uncertain: Set<Int>,select: (Int)->Unit) {
  val initials=LocalAppPreferences.current.initials
@@ -131,7 +132,11 @@ import com.cubeguide.core.*
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Guide animation",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)
-  Text("Fast to slow. Feedback respects phone settings.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Text("Turn speed",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Spacer(Modifier.height(10.dp))
+  Text("Autoplay pause · ${"%.1f".format(preferences.guideDelayMillis/1000f)} seconds",style=MaterialTheme.typography.labelLarge)
+  Slider(value=preferences.guideDelayMillis.toFloat(),onValueChange={preferences.updateGuideDelay(it.toInt())},valueRange=1000f..2000f,steps=3)
+  Text("Time to copy each move before the guide continues.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(24.dp))
  } }
 }

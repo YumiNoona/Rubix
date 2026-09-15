@@ -6,7 +6,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 
-enum class FeatureIcon { HOME,SCAN,CUBE,TIMER,LEARN,PUZZLES,SETTINGS }
+enum class FeatureIcon { HOME,SCAN,CUBE,TIMER,LEARN,STATS,PUZZLES,SETTINGS }
 @androidx.compose.runtime.Composable internal fun FeatureGlyph(icon: FeatureIcon,modifier: Modifier=Modifier) {
  val color=androidx.compose.material3.MaterialTheme.colorScheme.primary
  Canvas(modifier) {
@@ -17,6 +17,7 @@ enum class FeatureIcon { HOME,SCAN,CUBE,TIMER,LEARN,PUZZLES,SETTINGS }
    FeatureIcon.CUBE,FeatureIcon.PUZZLES -> { drawRect(color,Offset(w*.2f,h*.2f),androidx.compose.ui.geometry.Size(w*.6f,h*.6f),style=stroke);for(i in 1..2) { drawLine(color,Offset(w*(.2f+i*.2f),h*.2f),Offset(w*(.2f+i*.2f),h*.8f),stroke.width);drawLine(color,Offset(w*.2f,h*(.2f+i*.2f)),Offset(w*.8f,h*(.2f+i*.2f)),stroke.width) } }
    FeatureIcon.TIMER -> { drawCircle(color,w*.32f,Offset(w*.5f,h*.55f),style=stroke);drawLine(color,Offset(w*.5f,h*.55f),Offset(w*.5f,h*.34f),stroke.width);drawLine(color,Offset(w*.5f,h*.55f),Offset(w*.67f,h*.62f),stroke.width);drawLine(color,Offset(w*.4f,h*.12f),Offset(w*.6f,h*.12f),stroke.width) }
    FeatureIcon.LEARN -> { val p=androidx.compose.ui.graphics.Path().apply { moveTo(w*.16f,h*.3f);lineTo(w*.5f,h*.14f);lineTo(w*.84f,h*.3f);lineTo(w*.5f,h*.47f);close() };drawPath(p,color,style=stroke);drawLine(color,Offset(w*.28f,h*.38f),Offset(w*.28f,h*.7f),stroke.width);drawLine(color,Offset(w*.72f,h*.38f),Offset(w*.72f,h*.7f),stroke.width);drawLine(color,Offset(w*.28f,h*.7f),Offset(w*.72f,h*.7f),stroke.width) }
+   FeatureIcon.STATS -> { drawRoundRect(color,Offset(w*.15f,h*.62f),androidx.compose.ui.geometry.Size(w*.16f,h*.22f),style=stroke);drawRoundRect(color,Offset(w*.42f,h*.4f),androidx.compose.ui.geometry.Size(w*.16f,h*.44f),style=stroke);drawRoundRect(color,Offset(w*.69f,h*.18f),androidx.compose.ui.geometry.Size(w*.16f,h*.66f),style=stroke) }
    FeatureIcon.SETTINGS -> { drawCircle(color,w*.3f,Offset(w*.5f,h*.5f),style=stroke);drawCircle(color,w*.1f,Offset(w*.5f,h*.5f),style=stroke) }
   }
  }

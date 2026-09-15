@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, VIRTUAL, TIMER, LEARN, PUZZLES, SCAN, REVIEW, CORRECT, SETUP, GUIDE, DONE }
+enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN, REVIEW, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
  private val editHistory=java.util.ArrayDeque<CubeState>()
@@ -36,11 +36,11 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  private var rescanFace: Face?=null
  private var beforeRescan: CubeState?=null
  private var solvingGeneration=0
- init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube }; if(screen==Screen.SCAN) screen=Screen.HOME; if(step !in 0..moves.size) { screen=Screen.HOME; step=0 } }
+ init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube }; if(screen==Screen.SCAN) screen=Screen.HOME; if(screen==Screen.ANALYZING) screen=Screen.REVIEW; if(step !in 0..moves.size) { screen=Screen.HOME; step=0 } }
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
  private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray(); saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
- fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.VIRTUAL,Screen.TIMER,Screen.LEARN,Screen.PUZZLES));solvingGeneration++;busy=false;this.screen=screen;save() }
+ fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;this.screen=screen;save() }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
  fun scan(face: Face?=null) {
@@ -121,6 +121,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   val generation=++solvingGeneration
   busy=true
   message=if(issue==null) "Searching for a shorter verified solution..." else "Checking the orientation of your six scans…"
+  if(needsSetup) { screen=Screen.ANALYZING;save() }
   viewModelScope.launch {
    val result=withContext(Dispatchers.Default) { runCatching {
     val aligned=if(issue==null) ScanOrientationResult.Unique(state,emptyList()) else ScanOrientationResolver.resolve(state)
@@ -140,11 +141,13 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
     correctionOriginal=null; saved.remove<String>("correctionOriginal")
     save()
    }.onFailure {
-    message=it.message ?: "Solving failed. Try again."
-    solveError=message
-    lowConfidence=lowConfidence+(issue?.suspectStickers ?: emptyList())
+   message=it.message ?: "Solving failed. Try again."
+   solveError=message
+   lowConfidence=lowConfidence+(issue?.suspectStickers ?: emptyList())
+   if(needsSetup) screen=Screen.REVIEW
    }
    busy=false
+   save()
   }
  }
 

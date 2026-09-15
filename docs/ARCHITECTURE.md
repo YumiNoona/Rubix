@@ -83,3 +83,11 @@ The Compose shell separates Home, Play, Timer and Learn into saved destinations 
 `app/play/VirtualCube` reuses the core integer sticker geometry for outer-layer moves on 2x2 through 7x7 cubes. It has no second cube rules engine. A compact encoded sticker/history value restores the playground after navigation or activity recreation. Tests verify every face and inverse, four-turn identity, scramble reversal and serialization for all supported sizes. The Canvas renderer projects sticker planes with perspective, depth sorting, highlights, a soft backdrop and drag-controlled yaw/pitch.
 
 Timer results, selected puzzle size and completed lessons live in `AppPreferences`. Camera recognition and the two-phase solver remain scoped to 3x3 cubes; the catalog labels that boundary rather than implying unsupported camera solving for larger puzzles.
+
+## Focused navigation and autoplay (2.1.0)
+
+Only Home, Practice, Learn and Progress are root destinations and receive bottom navigation. Virtual cube, timer, scanning, review, analysis, setup and guidance are detail flows with one toolbar. This prevents a screen from combining a root title, detail title, back action and duplicate destination card.
+
+Virtual-cube visibility uses each face's transformed outward normal against the camera vector. The renderer draws a dark backing plane just behind each sticker grid, then depth-sorts only the three visible faces. This avoids winding-dependent culling and closes the gaps that previously exposed stickers from the opposite side.
+
+Guide autoplay begins after the current layer-turn animation reaches completion. A second linear progress animation provides a configurable 1,000–2,000 ms physical-turn interval before committing the move and starting the next step. Pause, More and manual navigation cancel the pending advance. Previous immediately revisits a missed autoplay step; manual confirmed-step recovery retains the explicit physical undo dialog.

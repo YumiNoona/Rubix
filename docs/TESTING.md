@@ -77,6 +77,13 @@ JVM regressions cover red hue wrap-around, stable-frame median sampling, reset b
 ## 1.3.0 white-glare and solution bounds
 
 A regression reproduces 13 independently classified white stickers and verifies that global center-anchored assignment restores nine of every color while leaving forced choices uncertain. Sixty seeded scrambles now assert verified solutions of at most 20 face turns. Synthetic fixtures and compilation pass; physical camera tests remain required to tune glare thresholds against real cubes and phones.
+# 2.1.0 navigation, rendering and autoplay checks
+
+- Android Compose tests cover the updated root labels, focused manual editor, solving transition and automatic advancement while Previous and Next remain present.
+- Virtual rendering visibility was checked at the default camera transform: exactly the top, right and front sticker planes pass the outward-normal camera test.
+- Layout constraints now force action labels, timer values, statistics and navigation labels to one line.
+- The Android UI suite compiles. Runtime screenshot and camera acceptance still require a physical device because the installed x86_64 image cannot start without a Windows hypervisor.
+
 # 2.0.0 UI shell and virtual puzzle checks
 
 - `VirtualCubeTest` covers every outer face and inverse on 2x2 through 7x7 cubes, four quarter-turn identity, non-repeating scramble generation, full scramble reversal, and encoded state/history restoration.

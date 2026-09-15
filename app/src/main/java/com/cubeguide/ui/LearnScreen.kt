@@ -29,7 +29,6 @@ internal fun LearnScreen(onPractice: () -> Unit) {
     var selected by remember { mutableStateOf<Int?>(null) }
 
     Column(Modifier.fillMaxSize()) {
-        Text("Learn to solve", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text("Seven short lessons. Move at your pace.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         LinearProgressIndicator(
             progress = { preferences.completedLessons.size / lessons.size.toFloat() },

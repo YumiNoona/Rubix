@@ -54,13 +54,14 @@ class AppFlowTest {
  }
  @Test fun practiceFlowReachesSolved() {
   screenshot("home")
-  compose.onNodeWithText("Try a demo").performScrollTo().performClick()
+  compose.onNodeWithText("Try a guided demo").performScrollTo().performClick()
   screenshot("review")
   compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
-  compose.waitUntil(30000) { compose.onAllNodesWithText("Cube is in position").fetchSemanticsNodes().isNotEmpty() }
+  compose.waitUntil(30000) { compose.onAllNodesWithText("Start solving").fetchSemanticsNodes().isNotEmpty() }
   compose.onNodeWithText("FACING YOU").assertIsDisplayed()
   compose.onNodeWithText("White").assertIsDisplayed()
-  compose.onNodeWithText("Cube is in position").performClick()
+  compose.onNodeWithText("Start solving").performClick()
+  compose.onNodeWithText("Pause").performClick()
   compose.waitForIdle(); screenshot("guide")
   repeat(30) {
    if(compose.onAllNodesWithText("Order restored.").fetchSemanticsNodes().isNotEmpty()) return@repeat
@@ -80,7 +81,21 @@ class AppFlowTest {
  @Test fun deniedCameraStillOffersManualEntry() {
   compose.onNodeWithText("Start camera scan").performScrollTo().performClick()
   compose.onNodeWithText("Enter colors instead").performScrollTo().assertExists().performClick()
-  compose.onNodeWithText("Manual colors").assertExists()
+  compose.onNodeWithText("Manual input").assertExists()
+ }
+
+ @Test fun guideAutoplayAdvancesAndManualControlsRemainAvailable() {
+  val vm=CubeViewModel(SavedStateHandle())
+  compose.activity.runOnUiThread {
+   vm.demo()
+   vm.solve()
+   compose.activity.setContent { CubeApp(vm) }
+  }
+  compose.waitUntil(30000) { vm.screen==com.cubeguide.ui.Screen.SETUP }
+  compose.onNodeWithText("Start solving").performClick()
+  compose.onNodeWithText("Previous").assertExists()
+  compose.onNodeWithText("Next").assertExists()
+  compose.waitUntil(8000) { vm.step>0 || vm.screen==com.cubeguide.ui.Screen.DONE }
  }
 }
 

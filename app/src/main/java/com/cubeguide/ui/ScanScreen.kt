@@ -92,7 +92,7 @@ import com.cubeguide.core.*
      if(vm.corners.size==4) {
       val points=vm.corners.map { Offset(left+it.first*w,topOffset+it.second*h) }
       val path=Path().apply { moveTo(points[0].x,points[0].y); points.drop(1).forEach { lineTo(it.x,it.y) }; close() }
-      drawPath(path,Mint,style=Stroke(3.dp.toPx()))
+      drawPath(path,AccentBlue,style=Stroke(3.dp.toPx()))
      } else {
       val edge=minOf(size.width,size.height)*0.7f
       drawRoundRect(Color.White.copy(alpha=0.55f),Offset((size.width-edge)/2,(size.height-edge)/2),androidx.compose.ui.geometry.Size(edge,edge),androidx.compose.ui.geometry.CornerRadius(18.dp.toPx()),style=Stroke(2.dp.toPx()))

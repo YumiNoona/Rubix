@@ -18,6 +18,7 @@ class AppPreferences(context: Context) {
   storage.getString("timerRecords_$size",if(size==3) storage.getString("timerRecords","") else "")!!.split(",").mapNotNull { it.toLongOrNull() }.take(20)
  })
  var animationMillis by mutableIntStateOf(storage.getInt("animationMillis",1300)); private set
+ var guideDelayMillis by mutableIntStateOf(storage.getInt("guideDelayMillis",1600).coerceIn(1000,2000)); private set
  private val colors=mutableStateMapOf<com.cubeguide.core.CubeColor,Int>().apply {
   com.cubeguide.core.CubeColor.entries.forEach { if(storage.contains("color_${it.name}")) put(it,storage.getInt("color_${it.name}",it.argb.toInt())) }
  }
@@ -33,6 +34,7 @@ class AppPreferences(context: Context) {
  fun updateSound(value: Boolean) { sound=value; storage.edit().putBoolean("sound",value).apply() }
  fun updateKeepAwake(value: Boolean) { keepAwake=value; storage.edit().putBoolean("keepAwake",value).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }
+ fun updateGuideDelay(value: Int) { guideDelayMillis=value.coerceIn(1000,2000);storage.edit().putInt("guideDelayMillis",guideDelayMillis).apply() }
  fun updateInitials(value: Boolean) { initials=value; storage.edit().putBoolean("initials",value).apply() }
  fun updateHaptics(value: Boolean) { haptics=value; storage.edit().putBoolean("haptics",value).apply() }
 }
