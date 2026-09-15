@@ -105,6 +105,14 @@ class ScanAndGuideTest {
   restored.open(Screen.PRACTICE);restored.open(Screen.VIRTUAL)
   assertNull(restored.virtualLessonTitle)
  }
+ @Test fun scanPickerPersistsAndDispatchesVerifiedThreeByThreeScanner() {
+  val saved=SavedStateHandle();val vm=CubeViewModel(saved)
+  vm.openScanPicker()
+  assertEquals(Screen.SCAN_PICKER,vm.screen)
+  assertEquals(Screen.SCAN_PICKER,CubeViewModel(saved).screen)
+  vm.scanPuzzle(PuzzleId.THREE_BY_THREE)
+  assertEquals(Screen.SCAN,vm.screen)
+ }
  @Test fun colorsUseCentersAndFlagAmbiguity() {
   anchors.forEach { (color,s) ->
    assertEquals(color,ColorClassifier.nominal(s))

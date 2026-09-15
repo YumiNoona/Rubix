@@ -77,11 +77,23 @@ class AppFlowTest {
   compose.onAllNodesWithText("exactly 9",substring=true).onLast().assertIsDisplayed()
  }
  @Test fun scanKeepsGalleryAndBackWithoutDuplicatingManualEntry() {
-  compose.onNodeWithText("Start camera scan").performScrollTo().performClick()
+  compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
+  compose.onNodeWithText("Scan and solve").assertExists()
+  compose.onNodeWithText("3×3").performClick()
+  compose.onNodeWithText("Scan and solve 3×3").performScrollTo().performClick()
   compose.onNodeWithText("Gallery").performScrollTo().assertExists()
   compose.onNodeWithText("Enter colors instead").assertDoesNotExist()
   compose.onNodeWithContentDescription("Back").performClick()
-  compose.onNodeWithText("Solve. Play. Improve.").assertExists()
+  compose.onNodeWithText("Scan. Solve. Learn.").assertExists()
+ }
+
+ @Test fun homePreviewIsLabelFreeAndScanUsesPuzzlePicker() {
+  compose.onNodeWithContentDescription("Scrambled Rubix cube solving itself").assertExists()
+  compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
+  compose.onNodeWithText("Choose puzzle").assertExists()
+  compose.onNodeWithText("2×2").assertExists()
+  compose.onNodeWithText("Clock").assertExists()
+  compose.onNodeWithText("Square-1").assertExists()
  }
 
  @Test fun guideAutoplayAdvancesAndManualControlsRemainAvailable() {

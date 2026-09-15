@@ -22,12 +22,12 @@ import androidx.compose.ui.unit.dp
 import com.cubeguide.core.*
 import kotlin.math.*
 
-@Composable internal fun PuzzleCatalogScreen(onPlay:()->Unit,onScan:()->Unit) {
+@Composable internal fun PuzzleCatalogScreen(onPlay:()->Unit,onScan:(PuzzleId)->Unit,scanMode:Boolean=false) {
  val preferences=LocalAppPreferences.current
  val selected=PuzzleRegistry.get(preferences.puzzleId)
  Column(Modifier.fillMaxSize()) {
-  Text("Choose a puzzle",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
-  Text("Every solver is enabled only after its moves can be replay-verified.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Text(if(scanMode) "Scan and solve" else "Choose a puzzle",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
+  Text(if(scanMode) "Choose the puzzle in your hands. Verified scanners can be opened below." else "Every solver is enabled only after its moves can be replay-verified.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(14.dp))
   LazyVerticalGrid(
    columns=GridCells.Adaptive(102.dp),modifier=Modifier.weight(1f),
@@ -59,11 +59,11 @@ import kotlin.math.*
   }
   Spacer(Modifier.height(10.dp))
   if(selected.solverState==SolverState.AVAILABLE) {
-   Button(onClick=onScan,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
+   Button(onClick={onScan(selected.id)},modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
     Icon(Icons.Rounded.PhotoCamera,null);Spacer(Modifier.width(8.dp));Text("Scan and solve ${selected.shortName}")
    }
   } else Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) { Text("Verified solver in progress") }
-  if(selected.supportsCubePlayground) {
+  if(!scanMode && selected.supportsCubePlayground) {
    TextButton(onClick=onPlay,modifier=Modifier.fillMaxWidth()) { Icon(Icons.Rounded.PlayArrow,null);Spacer(Modifier.width(6.dp));Text("Open ${selected.shortName} playground") }
   } else Spacer(Modifier.height(12.dp))
  }

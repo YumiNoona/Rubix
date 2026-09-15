@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
+enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN_PICKER, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
  private val editHistory=java.util.ArrayDeque<CubeState>()
@@ -48,6 +48,13 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
  private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray();saved["manualEntry"]=manualEntry;saved["screen"]=screen.name;saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() };saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() };saved["moves"]=moves.joinToString(" ") { it.notation };saved["step"]=step;saved["replay"]=isReplay;saved["startingFace"]=startingFace.ordinal;saved["editorFace"]=editorFace;saved["virtualLessonTitle"]=virtualLessonTitle;saved["virtualLessonScramble"]=virtualLessonScramble;editOriginal?.let { original -> saved["editOriginal"]=original.stickers.joinToString("") { it.ordinal.toString() } } ?: saved.remove<String>("editOriginal") }
  fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;if(screen==Screen.VIRTUAL){virtualLessonTitle=null;virtualLessonScramble=""};this.screen=screen;save() }
+ fun openScanPicker() { solvingGeneration++;busy=false;screen=Screen.SCAN_PICKER;save() }
+ fun scanPuzzle(puzzleId: PuzzleId) {
+  when(puzzleId) {
+   PuzzleId.THREE_BY_THREE -> scan()
+   else -> error("${PuzzleRegistry.get(puzzleId).name} scanning is not verified yet.")
+  }
+ }
  fun startLessonPractice(title:String,scramble:String) { virtualLessonTitle=title;virtualLessonScramble=scramble;screen=Screen.VIRTUAL;save() }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }

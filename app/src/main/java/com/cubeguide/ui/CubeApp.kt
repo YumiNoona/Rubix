@@ -28,7 +28,7 @@ private val rootScreens=setOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PR
   var settings by remember { mutableStateOf(false) };var exit by remember { mutableStateOf(false) };val holder=rememberSaveableStateHolder()
   MaterialTheme(colorScheme=scheme,typography=Typography(headlineLarge=MaterialTheme.typography.headlineLarge.copy(fontWeight=FontWeight.Bold),headlineMedium=MaterialTheme.typography.headlineMedium.copy(fontWeight=FontWeight.Bold))) {
    Surface(Modifier.fillMaxSize()) { Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-    if(vm.screen!=Screen.GUIDE) AppTopBar(vm,onBack={when(vm.screen) { Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES -> vm.open(Screen.PRACTICE);Screen.EDIT -> vm.cancelEdit();Screen.CORRECT -> vm.cancelCorrection();Screen.REVIEW -> if(vm.manualEntry) vm.home() else vm.scan(vm.pose.face);Screen.ANALYZING,Screen.SETUP -> vm.returnToReview();Screen.SCAN,Screen.DONE -> vm.home();else -> exit=true }},onSettings={settings=true})
+    if(vm.screen!=Screen.GUIDE) AppTopBar(vm,onBack={when(vm.screen) { Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES -> vm.open(Screen.PRACTICE);Screen.SCAN_PICKER -> vm.home();Screen.EDIT -> vm.cancelEdit();Screen.CORRECT -> vm.cancelCorrection();Screen.REVIEW -> if(vm.manualEntry) vm.home() else vm.scan(vm.pose.face);Screen.ANALYZING,Screen.SETUP -> vm.returnToReview();Screen.SCAN,Screen.DONE -> vm.home();else -> exit=true }},onSettings={settings=true})
     AnimatedContent(vm.screen,modifier=Modifier.weight(1f).padding(horizontal=18.dp),transitionSpec={fadeIn(tween(180))+slideInHorizontally { it/10 } togetherWith fadeOut(tween(120))},label="screen") { screen ->
      holder.SaveableStateProvider(screen.name) { when(screen) {
       Screen.HOME -> Home(vm)
@@ -37,13 +37,14 @@ private val rootScreens=setOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PR
       Screen.TIMER -> TimerScreen()
       Screen.LEARN -> LearnScreen(vm)
       Screen.PROGRESS -> ProgressScreen(preferences)
-      Screen.PUZZLES -> PuzzleCatalogScreen(onPlay={vm.open(Screen.VIRTUAL)},onScan=vm::scan)
+      Screen.PUZZLES -> PuzzleCatalogScreen(onPlay={vm.open(Screen.VIRTUAL)},onScan=vm::scanPuzzle)
+      Screen.SCAN_PICKER -> PuzzleCatalogScreen(onPlay={},onScan=vm::scanPuzzle,scanMode=true)
       Screen.SCAN -> Scan(vm);Screen.REVIEW,Screen.CORRECT -> Review(vm);Screen.EDIT -> ColorEditorScreen(vm);Screen.ANALYZING -> AnalyzingScreen(vm);Screen.SETUP -> HoldingSetup(vm);Screen.GUIDE -> Guide(vm) { exit=true };Screen.DONE -> Done(vm)
      } }
     }
     if(vm.screen in rootScreens) MainNavigation(vm.screen) { vm.open(it) }
    } }
-   BackHandler(vm.screen!=Screen.HOME) { when { vm.screen in rootScreens -> vm.open(Screen.HOME);vm.screen in setOf(Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES) -> vm.open(Screen.PRACTICE);vm.screen==Screen.EDIT -> vm.cancelEdit();vm.screen==Screen.CORRECT && !vm.busy -> vm.cancelCorrection();vm.screen==Screen.REVIEW -> if(vm.manualEntry) vm.home() else vm.scan(vm.pose.face);vm.screen in setOf(Screen.ANALYZING,Screen.SETUP) -> vm.returnToReview();vm.screen in setOf(Screen.SCAN,Screen.DONE) -> vm.home();else -> exit=true } }
+   BackHandler(vm.screen!=Screen.HOME) { when { vm.screen in rootScreens -> vm.open(Screen.HOME);vm.screen in setOf(Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES) -> vm.open(Screen.PRACTICE);vm.screen==Screen.SCAN_PICKER -> vm.home();vm.screen==Screen.EDIT -> vm.cancelEdit();vm.screen==Screen.CORRECT && !vm.busy -> vm.cancelCorrection();vm.screen==Screen.REVIEW -> if(vm.manualEntry) vm.home() else vm.scan(vm.pose.face);vm.screen in setOf(Screen.ANALYZING,Screen.SETUP) -> vm.returnToReview();vm.screen in setOf(Screen.SCAN,Screen.DONE) -> vm.home();else -> exit=true } }
    if(settings) DisplaySettings { settings=false }
    if(exit) AlertDialog(onDismissRequest={exit=false},title={Text("Leave this solve?")},text={Text("Your cube will stay as it is. This guide will close.")},confirmButton={TextButton(onClick={exit=false;vm.home()}) { Text("Leave") }},dismissButton={TextButton(onClick={exit=false}) { Text("Keep solving") }})
   }
@@ -54,7 +55,7 @@ private val rootScreens=setOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PR
  val screen=vm.screen
  Row(Modifier.fillMaxWidth().height(58.dp).padding(horizontal=12.dp),verticalAlignment=Alignment.CenterVertically) {
   if(screen !in rootScreens) IconButton(onClick={feedback();onBack()},modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
-  Text(when(screen) { Screen.HOME->"rubix";Screen.PRACTICE->"Practice";Screen.LEARN->"Learn";Screen.PROGRESS->"Progress";Screen.VIRTUAL->"Virtual cube";Screen.TIMER->"Cube timer";Screen.PUZZLES->"Cube sizes";Screen.SCAN->"Scan cube";Screen.REVIEW->if(vm.manualEntry) "Manual input" else "Review colors";Screen.EDIT->"Edit face";Screen.CORRECT->"Correct colors";Screen.ANALYZING->"Analyzing";Screen.SETUP->"Starting position";Screen.GUIDE->"Solve";Screen.DONE->"Complete" },style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,maxLines=1,modifier=Modifier.weight(1f).padding(start=if(screen in rootScreens)6.dp else 4.dp))
+  Text(when(screen) { Screen.HOME->"rubix";Screen.PRACTICE->"Practice";Screen.LEARN->"Learn";Screen.PROGRESS->"Progress";Screen.VIRTUAL->"Virtual cube";Screen.TIMER->"Cube timer";Screen.PUZZLES->"Cube sizes";Screen.SCAN_PICKER->"Choose puzzle";Screen.SCAN->"Scan cube";Screen.REVIEW->if(vm.manualEntry) "Manual input" else "Review colors";Screen.EDIT->"Edit face";Screen.CORRECT->"Correct colors";Screen.ANALYZING->"Analyzing";Screen.SETUP->"Starting position";Screen.GUIDE->"Solve";Screen.DONE->"Complete" },style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,maxLines=1,modifier=Modifier.weight(1f).padding(start=if(screen in rootScreens)6.dp else 4.dp))
   if(screen in rootScreens) IconButton(onClick={feedback();onSettings()},modifier=Modifier.size(48.dp)) { Icon(Icons.Rounded.Settings,"Settings",Modifier.size(25.dp),tint=MaterialTheme.colorScheme.primary) }
  }
 }

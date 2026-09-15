@@ -26,9 +26,9 @@ private data class P(val x: Float,val y: Float,val z: Float) {
 }
 private fun Vec.p()=P(x.toFloat(),y.toFloat(),z.toFloat())
 private data class Quad(val vertices: List<P>,val color: Color,val letter: String?=null,val ink: Int=0)
-@Composable fun CubeView(cube: CubeState, modifier: Modifier=Modifier, move: Move?=null, replay: Int=0,viewReset: Int=0,onAnimationProgress: (Float)->Unit={}) {
+@Composable fun CubeView(cube: CubeState, modifier: Modifier=Modifier, move: Move?=null, replay: Int=0,viewReset: Int=0,showInitials: Boolean?=null,onAnimationProgress: (Float)->Unit={}) {
  val preferences=LocalAppPreferences.current
- val initials=preferences.initials
+ val initials=showInitials ?: preferences.initials
  val letterPaint=remember { android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textAlign=android.graphics.Paint.Align.CENTER; typeface=android.graphics.Typeface.DEFAULT_BOLD } }
  val animation=remember(cube,move) { Animatable(0f) }
  val progressCallback by rememberUpdatedState(onAnimationProgress)
