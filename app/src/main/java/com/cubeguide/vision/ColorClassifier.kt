@@ -24,6 +24,8 @@ object ColorClassifier {
   samples: List<Sample>,anchors: Map<CubeColor,Sample>,fixed: Map<Int,CubeColor>,capacities: Map<CubeColor,Int>
  ): List<ColorDecision> {
   require(fixed.keys.all { it in samples.indices })
+  val allowed=capacities.filterValues { it>0 }.keys
+  require(allowed.size>=2 && allowed.all { it in anchors })
   val remaining=CubeColor.entries.associateWith { color ->
    (capacities[color] ?: 0)-fixed.values.count { it==color }
   }
@@ -39,7 +41,7 @@ object ColorClassifier {
   variable.forEachIndexed { row,index ->
    val assigned=slots[slotForRow[row]]
    val assignedDistance=samples[index].distance(anchors.getValue(assigned))
-   val alternative=CubeColor.entries.filter { it!=assigned }.minOf { samples[index].distance(anchors.getValue(it)) }
+   val alternative=allowed.filter { it!=assigned }.minOf { samples[index].distance(anchors.getValue(it)) }
    result[index]=ColorDecision(assigned,confidence(assignedDistance,alternative))
   }
   return result.map { checkNotNull(it) }
