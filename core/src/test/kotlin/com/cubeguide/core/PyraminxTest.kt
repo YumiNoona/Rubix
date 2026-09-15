@@ -30,4 +30,16 @@ class PyraminxTest {
    assertTrue(state.apply(result.moves.flatMap(PyraminxMove::parse)).solved)
   }
  }
+ @Test fun scannedFaceletsReconstructTheSameMechanicalState() {
+  val random=Random(123);repeat(60) {
+   val moves=List(25) { PyraminxMove(PyraminxAxis.entries.random(random),random.nextInt(1,3),random.nextInt(5)==0) }
+   val coordinates=PyraminxState.solved().apply(moves)
+   val facelets=PyraminxFacelets.solved().apply(moves)
+   assertEquals(coordinates,facelets.toState())
+  }
+ }
+ @Test fun faceletReconstructionRejectsBadCountsAndPieces() {
+  val bad=PyraminxFacelets.solved().stickers.toMutableList().also { it[0]=PyraminxColor.RED }
+  assertNull(PyraminxFacelets(bad).toState())
+ }
 }

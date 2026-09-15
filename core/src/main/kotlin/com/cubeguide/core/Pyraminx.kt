@@ -30,8 +30,8 @@ data class PyraminxState(
  fun apply(moves:List<PyraminxMove>)=moves.fold(this) { state,move -> state.apply(move) }
  private fun quarter(axis:PyraminxAxis,tipOnly:Boolean):PyraminxState {
   val index=axis.ordinal
-  val tips=tipOrientation.toMutableList().also { it[index]=(it[index]+1)%3 }
-  if(tipOnly) return copy(tipOrientation=tips)
+  val tips=tipOrientation.toMutableList()
+  if(tipOnly) { tips[index]=(tips[index]+1)%3;return copy(tipOrientation=tips) }
   val axial=axialOrientation.toMutableList().also { it[index]=(it[index]+1)%3 }
   val permutation=edgePermutation.toMutableList();val orientation=edgeOrientation.toMutableList()
   val cycle=when(axis) { PyraminxAxis.U->intArrayOf(5,3,1);PyraminxAxis.L->intArrayOf(2,1,0);PyraminxAxis.R->intArrayOf(0,3,4);PyraminxAxis.B->intArrayOf(2,4,5) }
