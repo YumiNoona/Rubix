@@ -49,6 +49,15 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray();saved["manualEntry"]=manualEntry;saved["screen"]=screen.name;saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() };saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() };saved["moves"]=moves.joinToString(" ") { it.notation };saved["step"]=step;saved["replay"]=isReplay;saved["startingFace"]=startingFace.ordinal;saved["editorFace"]=editorFace;saved["virtualLessonTitle"]=virtualLessonTitle;saved["virtualLessonScramble"]=virtualLessonScramble;editOriginal?.let { original -> saved["editOriginal"]=original.stickers.joinToString("") { it.ordinal.toString() } } ?: saved.remove<String>("editOriginal") }
  fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;if(screen==Screen.VIRTUAL){virtualLessonTitle=null;virtualLessonScramble=""};this.screen=screen;save() }
  fun openScanPicker() { solvingGeneration++;busy=false;screen=Screen.SCAN_PICKER;save() }
+ fun leaveScan() {
+  solvingGeneration++;busy=false;stability.reset();progress=0f;corners=emptyList();message=""
+  if(rescanFace!=null && beforeRescan!=null) {
+   cube=beforeRescan!!;rescanFace=null;beforeRescan=null;screen=Screen.REVIEW
+  } else {
+   captures.clear();scanIndex=0;screen=Screen.SCAN_PICKER
+  }
+  save()
+ }
  fun scanPuzzle(puzzleId: PuzzleId) {
   when(puzzleId) {
    PuzzleId.THREE_BY_THREE -> scan()
@@ -65,8 +74,9 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   rescanFace=if(face!=null && captures.size==6) face else null
   beforeRescan=if(rescanFace!=null) cube else null
   if(face==null) { captures.clear(); scanIndex=0 } else scanIndex=scanSequence.indexOfFirst { it.face==face }
-  if(face!=null && captures.size!=6) message="Calibration is needed; scan all six faces in the guided order."
-  stability.reset(); progress=0f; message=""; screen=Screen.SCAN; save()
+  stability.reset(); progress=0f
+  message=if(face!=null && captures.size!=6) "Calibration is needed; scan all six faces in the guided order." else ""
+  screen=Screen.SCAN; save()
  }
  fun manual() { manualEntry=true;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;solveError=null;captures.clear();cube=CubeState.solved();lowConfidence=emptySet();message="Tap a sticker to change its color. Centers define the six faces.";screen=Screen.REVIEW;save() }
  fun detection(d: Detection) {

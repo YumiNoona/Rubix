@@ -66,7 +66,7 @@ class AppFlowTest {
    compose.waitUntil(5000) { compose.onAllNodesWithText("Next").fetchSemanticsNodes().any { !it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled) } }
   compose.onNodeWithText("Next").assertIsDisplayed().performClick()
   }
-  compose.onNodeWithText("Order restored.").assertExists()
+  compose.onNodeWithText("Cube solved").assertExists()
   screenshot("solved")
  }
  @Test fun manualCorrectionRejectsBadCounts() {
@@ -84,7 +84,7 @@ class AppFlowTest {
   compose.onNodeWithText("Gallery").performScrollTo().assertExists()
   compose.onNodeWithText("Enter colors instead").assertDoesNotExist()
   compose.onNodeWithContentDescription("Back").performClick()
-  compose.onNodeWithText("Scan. Solve. Learn.").assertExists()
+  compose.onNodeWithText("Choose puzzle").assertExists()
  }
 
  @Test fun homePreviewIsLabelFreeAndScanUsesPuzzlePicker() {

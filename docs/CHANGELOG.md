@@ -1,3 +1,9 @@
+# 2.2.1
+
+- Polished the complete 3x3 flow for release: fresh scans now return to puzzle selection, while cancelling a one-face rescan returns to the existing review without losing edits.
+- Removed the reverse rewind from move replay to prevent a misleading flicker, and made the solution progress bar track the current animated turn.
+- Added touch feedback to autoplay controls and refreshed completion with a quieter verified-solve summary.
+
 # 2.2.0
 
 - Replaced the broken 3x3 virtual rendering path with the same solid, draggable cube used by Home and the solve guide; single-step undo now reverses exactly one move.

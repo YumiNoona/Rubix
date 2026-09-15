@@ -56,7 +56,7 @@ import com.cubeguide.rendering.CubeView
     IconButton(onClick={feedback();autoPlay=false;onBack()},modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
     Text("${vm.step+1} of ${vm.moves.size}",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f),textAlign=TextAlign.Center)
     Row(verticalAlignment=Alignment.CenterVertically) {
-     IconButton(onClick={autoPlay=!autoPlay}) { Icon(if(autoPlay) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(autoPlay) "Pause autoplay" else "Start autoplay") }
+     IconButton(onClick={feedback();autoPlay=!autoPlay}) { Icon(if(autoPlay) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(autoPlay) "Pause autoplay" else "Start autoplay") }
     Box {
      IconButton(onClick={autoPlay=false;menu=true}) { Icon(Icons.Rounded.MoreVert,"More options") }
      DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
@@ -70,7 +70,7 @@ import com.cubeguide.rendering.CubeView
      }
     } }
    }
-   LinearProgressIndicator(progress={vm.step.toFloat()/vm.moves.size},modifier=Modifier.fillMaxWidth(),color=MaterialTheme.colorScheme.primary,trackColor=MaterialTheme.colorScheme.surfaceContainerHighest)
+   LinearProgressIndicator(progress={((vm.step+animationProgress)/vm.moves.size).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth(),color=MaterialTheme.colorScheme.primary,trackColor=MaterialTheme.colorScheme.surfaceContainerHighest)
    if(autoPlay && animationProgress>=0.99f) LinearProgressIndicator(progress={autoAdvance.value},modifier=Modifier.fillMaxWidth().padding(top=4.dp),color=MaterialTheme.colorScheme.secondary,trackColor=MaterialTheme.colorScheme.surface)
    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
     CubeView(vm.cube,Modifier.fillMaxWidth().height(cubeHeight).semantics { contentDescription=move.instruction+". Drag to inspect the cube." },move,replay,viewReset,onAnimationProgress={animationProgress=it})

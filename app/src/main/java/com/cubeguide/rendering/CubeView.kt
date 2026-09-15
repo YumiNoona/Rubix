@@ -37,7 +37,9 @@ private data class Quad(val vertices: List<P>,val color: Color,val letter: Strin
  LaunchedEffect(viewReset) { yaw=-0.55f; pitch=0.45f }
  LaunchedEffect(animation,replay) {
   if(move!=null) {
-   if(animation.value>0f) animation.animateTo(0f,tween(300))
+   // A replay starts cleanly at the beginning of the turn. Animating backwards here
+   // looked like a second, incorrect move and caused a visible flash on some devices.
+   if(animation.value>0f) animation.snapTo(0f)
    if(move.turns==2) {
     animation.animateTo(0.5f,tween(preferences.animationMillis)); delay(180)
    }

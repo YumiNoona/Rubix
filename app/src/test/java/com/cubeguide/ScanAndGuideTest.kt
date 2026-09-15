@@ -113,6 +113,22 @@ class ScanAndGuideTest {
   vm.scanPuzzle(PuzzleId.THREE_BY_THREE)
   assertEquals(Screen.SCAN,vm.screen)
  }
+ @Test fun scanBackReturnsToItsActualParentWithoutLosingReviewedCube() {
+  val vm=CubeViewModel(SavedStateHandle())
+  vm.openScanPicker();vm.scanPuzzle(PuzzleId.THREE_BY_THREE);vm.leaveScan()
+  assertEquals(Screen.SCAN_PICKER,vm.screen)
+
+  vm.scan()
+  val target=CubeState.solved().apply(Move.parse("R U F2 L D"))
+  repeat(6) {
+   val face=vm.pose.face
+   assertTrue(vm.importFace(Detection(target.stickers.drop(face.ordinal*9).take(9).map(anchors::getValue),emptyList(),"")))
+  }
+  assertEquals(Screen.REVIEW,vm.screen)
+  vm.scan(Face.F);vm.leaveScan()
+  assertEquals(Screen.REVIEW,vm.screen)
+  assertEquals(target,vm.cube)
+ }
  @Test fun colorsUseCentersAndFlagAmbiguity() {
   anchors.forEach { (color,s) ->
    assertEquals(color,ColorClassifier.nominal(s))

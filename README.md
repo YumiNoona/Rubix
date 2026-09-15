@@ -2,8 +2,8 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.2.0-2F8CFF)
-![JVM checks](https://img.shields.io/badge/JVM_tests-30_passed-15824F)
+![Version](https://img.shields.io/badge/version-2.2.1-2F8CFF)
+![JVM checks](https://img.shields.io/badge/JVM_tests-65_passed-15824F)
 
 
 An offline Android cube workspace for solving a scanned 3x3, practising on virtual 2x2–7x7 cubes, timing solves and learning the beginner method.

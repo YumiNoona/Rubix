@@ -2,6 +2,7 @@ package com.cubeguide.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,9 +24,15 @@ import com.cubeguide.rendering.CubeView
    drawLine(checkColor,Offset(size.width*0.18f,size.height*0.52f),Offset(size.width*0.42f,size.height*0.75f),6.dp.toPx())
    drawLine(checkColor,Offset(size.width*0.42f,size.height*0.75f),Offset(size.width*0.85f,size.height*0.25f),6.dp.toPx())
   }
-  Text(if(vm.moves.isEmpty()) "Already solved." else "Order restored.",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.SemiBold)
+  Text(if(vm.moves.isEmpty()) "Already solved" else "Cube solved",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.SemiBold)
+  Text(if(vm.isReplay) "Solution replay complete." else "Every face is back in order.",color=MaterialTheme.colorScheme.onSurfaceVariant)
   CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(280.dp))
-  Text("${vm.moves.size} moves  /  one solved cube",style=MaterialTheme.typography.titleMedium)
+  Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer) {
+   Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+    Column { Text("MOVES",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(vm.moves.size.toString(),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) }
+    Column(horizontalAlignment=Alignment.End) { Text("STATUS",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant);Text("Verified",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold) }
+   }
+  }
   Spacer(Modifier.height(26.dp)); Primary("Solve another cube") { vm.scan() }
   TextButton(onClick={vm.viewSolution()},enabled=vm.moves.isNotEmpty()) { Text("View solution again") }
  }
