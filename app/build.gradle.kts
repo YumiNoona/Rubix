@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace = "com.cubeguide"; compileSdk = 36
- defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 9; versionName = "2.1.0"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 10; versionName = "2.2.0"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
 
  buildFeatures { compose = true }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
@@ -14,6 +14,7 @@ dependencies {
  implementation(platform("androidx.compose:compose-bom:2026.03.00"))
  implementation("androidx.compose.ui:ui"); implementation("androidx.compose.ui:ui-tooling-preview")
  implementation("androidx.compose.material3:material3")
+ implementation("androidx.compose.material:material-icons-extended")
  implementation("androidx.activity:activity-compose:1.12.4")
  implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")

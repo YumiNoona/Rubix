@@ -42,6 +42,12 @@ A native custom pipeline or Filament engine would add build and rendering comple
 
 Existing scanner projects were considered as reference categories. No scanner code from an unverified-license application was copied. This implementation uses the documented OpenCV geometry/color APIs and the licensed solver.
 
+## Focused interaction shell (2.2.0)
+
+The 3x3 virtual playground converts its `VirtualCube` sticker list directly into the shared `CubeState` renderer used by Home and Guide. Larger practice sizes retain the generalized outer-layer renderer. Learn lesson definitions contain a valid scramble, an automatically derived inverse solution, a recognition cue and a plan; opening practice persists the exact lesson state through recreation.
+
+Scan capture exposes six compact face states while the camera remains automatic. Review and editing are separate navigation states: review owns Net/3D inspection and the final decision, while the editor owns face selection, painting, initials and bounded undo/redo histories. Cancel restores the complete pre-edit cube. Detail Back actions return to their actual parent screen; the guide owns its Back, numbered step, play/pause and overflow controls in one header.
+
 ## Scan review and guidance update (1.0.1)
 
 The review content scrolls separately from a fixed solve/status panel. Color errors always produce a correction dialog. The guide uses a fixed Previous/Next footer, a projected animated cube, and a 2D preview of the affected face viewed straight on.

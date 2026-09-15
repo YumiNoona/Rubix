@@ -23,9 +23,9 @@ import com.cubeguide.rendering.CubeView
  var selected by rememberSaveable { mutableStateOf<Int?>(null) }
  var faceOrdinal by rememberSaveable { mutableIntStateOf(vm.lowConfidence.firstOrNull()?.div(9) ?: Face.U.ordinal) }
  val face=Face.entries[faceOrdinal]
- var editing by rememberSaveable { mutableStateOf(correcting) }
+ val editing=correcting
  var show3D by rememberSaveable { mutableStateOf(false) }
- val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback();faceOrdinal=index/9;if(editing && index%9!=4) selected=index else editing=true } }
+ val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback();faceOrdinal=index/9;if(correcting && index%9!=4) selected=index else if(!correcting) vm.beginEdit(Face.entries[index/9]) } }
  val issue=vm.validationIssue
  val highlighted=vm.lowConfidence+(issue?.suspectStickers ?: emptyList())
  val uncertainCount=vm.lowConfidence.size
@@ -41,11 +41,10 @@ import com.cubeguide.rendering.CubeView
     }
     if(show3D) CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(290.dp).semantics { contentDescription="3D preview of your scanned cube. Drag to inspect all sides." })
     else CubeNet(vm.cube,highlighted,selectSticker)
-    TextButton(onClick={editing=true},enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Edit colors") }
    } else {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
      Text("Edit one face",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f))
-     TextButton(onClick={editing=false}) { Text("Done") }
+     Spacer(Modifier.width(1.dp))
     }
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
      Face.entries.forEach { f -> FilterChip(selected=face==f,onClick={faceOrdinal=f.ordinal},enabled=!vm.busy,label={Text("${f.name} / ${vm.cube.stickers[f.ordinal*9+4].label}")}) }
@@ -72,8 +71,13 @@ import com.cubeguide.rendering.CubeView
    }
   }
   Spacer(Modifier.height(10.dp))
-  Primary(if(vm.busy) "Preparing your guide..." else if(correcting) "Update solution" else "Solve this cube",!vm.busy) { selected=null; vm.solve() }
-  if(correcting) TextButton(onClick=vm::cancelCorrection,enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Cancel changes") }
+  if(correcting) {
+   Primary(if(vm.busy) "Preparing your guide..." else "Update solution",!vm.busy) { selected=null;vm.solve() }
+   TextButton(onClick=vm::cancelCorrection,enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Cancel changes") }
+  } else Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+   OutlinedButton(onClick={vm.beginEdit(Face.entries[faceOrdinal])},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)) { Text("Edit colors",maxLines=1) }
+   Button(onClick={selected=null;vm.solve()},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)) { Text(if(vm.busy) "Checking…" else "Looks good",maxLines=1) }
+  }
   Spacer(Modifier.height(12.dp))
  }
  vm.solveError?.let { error ->
@@ -81,7 +85,7 @@ import com.cubeguide.rendering.CubeView
    onDismissRequest=vm::dismissSolveError,
    title={Text("Check the scan before solving")},
    text={Text(error)},
-   confirmButton={TextButton(onClick={vm.dismissSolveError(); editing=true; highlighted.firstOrNull()?.let { faceOrdinal=it/9 }}) { Text("Check colors") }},
+   confirmButton={TextButton(onClick={vm.dismissSolveError();val target=highlighted.firstOrNull()?.div(9) ?: faceOrdinal;if(correcting) faceOrdinal=target else vm.beginEdit(Face.entries[target])}) { Text("Check colors") }},
    dismissButton={TextButton(onClick={vm.dismissSolveError(); vm.scan()}) { Text("Rescan cube") }}
   )
  }

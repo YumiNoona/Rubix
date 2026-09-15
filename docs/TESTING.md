@@ -3,7 +3,7 @@
 ## Executed locally
 
 - `:core:test`: 10 test methods passed, covering all 18 face moves against independent min2phase scrambles, inverses, doubles, four-turn identity, 60 seeded random scrambles and verified solver solutions, invalid color/center counts, impossible/mirrored pieces, flips, twists, parity, optimizer preservation, strict parsing and solved states.
-- `:app:testDebugUnitTest`: 13 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
+- `:app:testDebugUnitTest`: 20 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, focused editor undo/redo/cancel, lesson-practice restoration, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -77,6 +77,13 @@ JVM regressions cover red hue wrap-around, stable-frame median sampling, reset b
 ## 1.3.0 white-glare and solution bounds
 
 A regression reproduces 13 independently classified white stickers and verifies that global center-anchored assignment restores nine of every color while leaving forced choices uncertain. Sixty seeded scrambles now assert verified solutions of at most 20 face turns. Synthetic fixtures and compilation pass; physical camera tests remain required to tune glare thresholds against real cubes and phones.
+# 2.2.0 focused editing, learning and solid-cube checks
+
+- JVM tests cover dedicated editor restoration, face navigation, undo/redo/cancel and saved lesson practice context. Total JVM test methods: 30.
+- The default 3x3 virtual playground directly renders the solver's `CubeView` from the virtual sticker state, eliminating the separate exploded 3x3 geometry path.
+- Compose UI tests compile against the new Material icon controls, scan progress states, review actions, editor screen, consolidated guide header and autoplay semantics.
+- Physical camera, touch and responsive-layout acceptance remains pending because this Windows host has no connected device and cannot boot the installed emulator without a hypervisor driver.
+
 # 2.1.0 navigation, rendering and autoplay checks
 
 - Android Compose tests cover the updated root labels, focused manual editor, solving transition and automatic advancement while Previous and Next remain present.

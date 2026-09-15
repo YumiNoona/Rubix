@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -14,37 +16,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.Face
 import com.cubeguide.core.Move
+import com.cubeguide.core.CubeState
 import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.virtualScramble
-import kotlinx.coroutines.delay
+import com.cubeguide.rendering.CubeView
 
 @Composable
-internal fun VirtualCubeScreen() {
+internal fun VirtualCubeScreen(vm: CubeViewModel) {
     val preferences = LocalAppPreferences.current
     val feedback = rememberTouchFeedback()
-    val size = preferences.puzzleSize
+    val lessonTitle = vm.virtualLessonTitle
+    val lessonScramble = vm.virtualLessonScramble
+    val size = if (lessonTitle != null) 3 else preferences.puzzleSize
     val cubeSaver = remember(size) {
         Saver<VirtualCube, String>(
             save = { it.encode() },
             restore = { VirtualCube.decode(it)?.takeIf { cube -> cube.size == size } ?: VirtualCube.solved(size) },
         )
     }
-    var cube by rememberSaveable(size, stateSaver = cubeSaver) { mutableStateOf(VirtualCube.solved(size)) }
-    var inverse by rememberSaveable { mutableStateOf(false) }
-    var solving by remember { mutableStateOf(false) }
-
-    LaunchedEffect(solving) {
-        if (solving) {
-            cube.history.asReversed().map { it.inverse() }.forEach { move ->
-                cube = cube.apply(move, record = false)
-                delay(170)
-            }
-            cube = cube.copy(history = emptyList())
-            solving = false
-        }
+    var cube by rememberSaveable(size, lessonTitle, lessonScramble, stateSaver = cubeSaver) {
+        val start = Move.parse(lessonScramble).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
+        mutableStateOf(start)
     }
+    var inverse by rememberSaveable { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize()) {
+        if (lessonTitle != null) {
+            Surface(
+                color = if (cube.solved) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.CheckCircle, null, tint = if (cube.solved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(10.dp))
+                    Column { Text(lessonTitle, fontWeight = FontWeight.SemiBold); Text(if (cube.solved) "Practice complete" else "Try the idea from the lesson", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 if (cube.solved) "Solved · drag to rotate" else "${cube.history.size} moves · drag to rotate",
@@ -55,7 +64,8 @@ internal fun VirtualCubeScreen() {
             )
             PuzzleSizeMenu(size, preferences::updatePuzzleSize)
         }
-        VirtualCubeView(cube, Modifier.fillMaxWidth().weight(1f).heightIn(min = 250.dp))
+        if (size == 3) CubeView(CubeState(cube.stickers), Modifier.fillMaxWidth().weight(1f).heightIn(min = 250.dp))
+        else VirtualCubeView(cube, Modifier.fillMaxWidth().weight(1f).heightIn(min = 250.dp))
         Surface(
             shape = RoundedCornerShape(22.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -66,7 +76,7 @@ internal fun VirtualCubeScreen() {
                     Face.entries.forEach { face ->
                         OutlinedButton(
                             onClick = { feedback(); cube = cube.apply(Move(face, if (inverse) 3 else 1)) },
-                            enabled = !solving,
+                            enabled = true,
                             modifier = Modifier.weight(1f).aspectRatio(1f),
                             shape = CircleShape,
                             contentPadding = PaddingValues(0.dp),
@@ -82,14 +92,14 @@ internal fun VirtualCubeScreen() {
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CompactAction("Scramble", false, !solving, Modifier.weight(1f)) {
+                    CompactAction("Scramble", false, true, Modifier.weight(1f)) {
                         feedback()
                         cube = virtualScramble(size).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
                     }
-                    CompactAction("Undo", true, !solving && cube.history.isNotEmpty(), Modifier.weight(1f)) {
-                        feedback(); solving = true
+                    CompactAction("Undo", true, cube.history.isNotEmpty(), Modifier.weight(1f)) {
+                        feedback(); val last=cube.history.last();cube=cube.apply(last.inverse(),record=false).copy(history=cube.history.dropLast(1))
                     }
-                    CompactAction("Reset", false, !solving && !cube.solved, Modifier.weight(1f)) {
+                    CompactAction("Reset", false, !cube.solved, Modifier.weight(1f)) {
                         feedback(); cube = cube.reset()
                     }
                 }

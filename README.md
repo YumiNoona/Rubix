@@ -2,8 +2,8 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.1.0-2463BB)
-![JVM checks](https://img.shields.io/badge/JVM_tests-28_passed-15824F)
+![Version](https://img.shields.io/badge/version-2.2.0-2F8CFF)
+![JVM checks](https://img.shields.io/badge/JVM_tests-30_passed-15824F)
 
 
 An offline Android cube workspace for solving a scanned 3x3, practising on virtual 2x2–7x7 cubes, timing solves and learning the beginner method.
@@ -12,9 +12,9 @@ An offline Android cube workspace for solving a scanned 3x3, practising on virtu
 
 - **Solve** — camera capture, gallery import, manual color entry, scan review and a step-by-step animated 3x3 guide.
 - **Practice** — playable 2x2 through 7x7 cubes, the cube timer and puzzle-size selection in one focused area.
-- **Virtual cube** — a solid touch-rotatable cube with face controls, scrambles, reset and animated undo.
+- **Virtual cube** — the same solid touch-rotatable 3D cube used by the solver, with face controls, scrambles, reset and single-move undo.
 - **Cube timer** — size-aware scrambles, a responsive tap target, non-wrapping last/best/average-of-five statistics and saved sessions.
-- **Learn** — seven compact lessons with progress tracking and a direct path into the virtual cube.
+- **Learn** — Rookie, Experienced and Veteran tracks with visual problem/solved examples, recognition cues, plans and playable practice states.
 - **Progress** — timer records by puzzle size and lesson completion.
 
 Rubix uses a quiet dark theme, compact navigation, clear pressed and selected states, optional color initials, system-aware haptics, and display colors that can be tuned for a particular physical cube.
@@ -34,8 +34,8 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 ## Solve your cube
 
 1. Select **Start camera scan** and follow the face and top-center instructions for all six sides. Manual entry and a practice cube are also available.
-2. Review your scan in the cube net or optional 3D view. Open the focused face editor to correct a sticker, rotate a scanned face, or rescan it.
-3. Tap **Solve this cube**. Rubix shows a dedicated analyzing screen while validating and finding the solution.
+2. Review your scan in the cube net or optional 3D view. **Edit colors** opens a dedicated face editor with face navigation, initials, undo, redo, Cancel and Done.
+3. Tap **Looks good**. Rubix shows a dedicated analyzing screen while validating and finding the solution.
 4. Match the **Starting position**: white center facing you and blue center on top by default. The solution overview shows the move count and lets you select another front center.
 5. Follow the animated cube. Autoplay advances after a configurable 1–2 second pause; Pause, Previous and Next remain available when you want to control the pace.
 
@@ -45,7 +45,7 @@ Keep the same holding orientation while following the guide. Clockwise is viewed
 
 The scanner supports a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and the expected center is checked before acceptance. Gallery access does not require broad storage permission. Check every imported sticker in review.
 
-Manual entry uses a large 3D preview, one focused face at a time, persistent brush selection, fixed centers, live per-color counts and undo. Sticker selection opens a labeled six-color bottom sheet with the current color outlined. The selected face, brush and virtual cube survive UI restoration.
+Manual entry uses a large 3D preview, one focused face at a time, persistent brush selection, fixed centers, live per-color counts and undo. Scan review uses a separate editor with a labeled six-color palette, initials, undo and redo. Face selection and virtual lesson context survive UI restoration.
 
 Settings is available from the four root areas in a spacious bottom sheet. Customize hue, saturation and brightness for each display color, reset the palette, toggle initials, haptics, touch sounds and screen-awake handling, or adjust animation and autoplay timing. Display colors do not alter camera classification.
 
@@ -60,10 +60,6 @@ Settings is available from the four root areas in a spacious bottom sheet. Custo
 - **Correct cube colors** in the guide lets you enter the actual current stickers and calculate a fresh verified solution. Cancel restores the original guide. Match the holding orientation before editing.
 - Known-turn mistake recovery, restart, replay, holding help, and cube-view reset.
 - Screen stays awake during scanning and active guidance. Confirmed progress survives saved-state restoration.
-
-## Privacy
-
-Scanning, image processing, validation and solving run on your device. Camera frames are not saved or uploaded. The app has no Internet permission, account, analytics, or remote solver. Camera permission is optional.
 
 ## Build
 

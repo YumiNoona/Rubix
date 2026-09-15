@@ -84,6 +84,27 @@ class ScanAndGuideTest {
   assertTrue(CubeViewModel(saved).manualEntry)
   vm.demo(); assertFalse(vm.manualEntry)
  }
+ @Test fun focusedEditorSupportsFaceNavigationUndoRedoAndCancel() {
+  val vm=CubeViewModel(SavedStateHandle());vm.demo();val original=vm.cube
+  vm.beginEdit(Face.F);assertEquals(Screen.EDIT,vm.screen);assertEquals(Face.F.ordinal,vm.editorFace)
+  val index=Face.F.ordinal*9
+  val replacement=CubeColor.entries.first { it!=vm.cube.stickers[index] }
+  vm.edit(index,replacement);assertEquals(replacement,vm.cube.stickers[index])
+  vm.undoEdit();assertEquals(original.stickers[index],vm.cube.stickers[index]);assertTrue(vm.canRedoEdit)
+  vm.redoEdit();assertEquals(replacement,vm.cube.stickers[index])
+  vm.selectEditorFace(Face.R);assertEquals(Face.R.ordinal,vm.editorFace)
+  vm.cancelEdit();assertEquals(Screen.REVIEW,vm.screen);assertEquals(original,vm.cube)
+ }
+ @Test fun lessonPracticeContextSurvivesStateRestoration() {
+  val saved=SavedStateHandle();val vm=CubeViewModel(saved)
+  vm.startLessonPractice("White cross","F R U")
+  val restored=CubeViewModel(saved)
+  assertEquals(Screen.VIRTUAL,restored.screen)
+  assertEquals("White cross",restored.virtualLessonTitle)
+  assertEquals("F R U",restored.virtualLessonScramble)
+  restored.open(Screen.PRACTICE);restored.open(Screen.VIRTUAL)
+  assertNull(restored.virtualLessonTitle)
+ }
  @Test fun colorsUseCentersAndFlagAmbiguity() {
   anchors.forEach { (color,s) ->
    assertEquals(color,ColorClassifier.nominal(s))

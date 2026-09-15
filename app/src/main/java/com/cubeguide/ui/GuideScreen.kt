@@ -7,6 +7,11 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -19,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.cubeguide.core.*
 import com.cubeguide.rendering.CubeView
 
-@Composable internal fun Guide(vm: CubeViewModel) {
+@Composable internal fun Guide(vm: CubeViewModel,onBack:()->Unit) {
  val feedback=rememberTouchFeedback()
  val preferences=LocalAppPreferences.current
  var viewReset by remember { mutableIntStateOf(0) }
@@ -48,11 +53,12 @@ import com.cubeguide.rendering.CubeView
   val cubeHeight=(maxHeight*0.44f).coerceIn(160.dp,280.dp)
   Column(Modifier.fillMaxSize()) {
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-    Text("${if(vm.isReplay) "REPLAY / " else ""}STEP ${vm.step+1} OF ${vm.moves.size}",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary,modifier=Modifier.weight(1f))
+    IconButton(onClick={feedback();autoPlay=false;onBack()},modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
+    Text("${vm.step+1} of ${vm.moves.size}",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f),textAlign=TextAlign.Center)
     Row(verticalAlignment=Alignment.CenterVertically) {
-     TextButton(onClick={autoPlay=!autoPlay}) { Text(if(autoPlay) "Pause" else "Auto play",maxLines=1) }
+     IconButton(onClick={autoPlay=!autoPlay}) { Icon(if(autoPlay) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(autoPlay) "Pause autoplay" else "Start autoplay") }
     Box {
-     TextButton(onClick={autoPlay=false;menu=true}) { Text("More",maxLines=1) }
+     IconButton(onClick={autoPlay=false;menu=true}) { Icon(Icons.Rounded.MoreVert,"More options") }
      DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
       DropdownMenuItem(text={Text("Replay animation")},onClick={menu=false;replay++})
       DropdownMenuItem(text={Text("Reset cube view")},onClick={menu=false;viewReset++})

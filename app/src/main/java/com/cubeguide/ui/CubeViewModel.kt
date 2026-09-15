@@ -10,11 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN, REVIEW, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
+enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
  private val editHistory=java.util.ArrayDeque<CubeState>()
+ private val redoHistory=java.util.ArrayDeque<CubeState>()
  var canUndoEdit by mutableStateOf(false); private set
+ var canRedoEdit by mutableStateOf(false); private set
+ var editorFace by mutableIntStateOf(saved.get<Int>("editorFace")?.coerceIn(0,5) ?: Face.U.ordinal); private set
  var screen by mutableStateOf(Screen.valueOf(saved.get<String>("screen") ?: "HOME")); private set
  var cube by mutableStateOf(decode(saved["cube"]) ?: CubeState.solved()); private set
  var initial by mutableStateOf(decode(saved["initial"]) ?: cube); private set
@@ -22,6 +25,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var step by mutableIntStateOf(saved.get<Int>("step") ?: 0); private set
  var isReplay by mutableStateOf(saved.get<Boolean>("replay") ?: false); private set
  private var correctionOriginal: CubeState? = null
+ private var editOriginal: CubeState? = decode(saved["editOriginal"])
  var startingFace by mutableStateOf(Face.entries[saved.get<Int>("startingFace")?.coerceIn(0,5) ?: Face.U.ordinal]); private set
  var busy by mutableStateOf(false); private set
  var solveError by mutableStateOf<String?>(null); private set
@@ -32,19 +36,24 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var corners by mutableStateOf(emptyList<Pair<Float,Float>>()); private set
  var lowConfidence by mutableStateOf(saved.get<IntArray>("lowConfidence")?.toSet() ?: emptySet()); private set
  private val captures=mutableMapOf<Face,List<Sample>>()
+ val capturedFaces: Set<Face> get()=captures.keys.toSet()
+ var virtualLessonTitle by mutableStateOf<String?>(saved.get<String>("virtualLessonTitle")); private set
+ var virtualLessonScramble by mutableStateOf(saved.get<String>("virtualLessonScramble") ?: ""); private set
  private val stability=Stability()
  private var rescanFace: Face?=null
  private var beforeRescan: CubeState?=null
  private var solvingGeneration=0
- init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube }; if(screen==Screen.SCAN) screen=Screen.HOME; if(screen==Screen.ANALYZING) screen=Screen.REVIEW; if(step !in 0..moves.size) { screen=Screen.HOME; step=0 } }
+ init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube };if(screen==Screen.EDIT && editOriginal==null) screen=Screen.REVIEW;if(screen==Screen.SCAN) screen=Screen.HOME;if(screen==Screen.ANALYZING) screen=Screen.REVIEW;if(step !in 0..moves.size) { screen=Screen.HOME;step=0 } }
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
- private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray(); saved["manualEntry"]=manualEntry; saved["screen"]=screen.name; saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() }; saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() }; saved["moves"]=moves.joinToString(" ") { it.notation }; saved["step"]=step; saved["replay"]=isReplay; saved["startingFace"]=startingFace.ordinal }
- fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;this.screen=screen;save() }
+ private fun save() { saved["lowConfidence"]=lowConfidence.toIntArray();saved["manualEntry"]=manualEntry;saved["screen"]=screen.name;saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() };saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() };saved["moves"]=moves.joinToString(" ") { it.notation };saved["step"]=step;saved["replay"]=isReplay;saved["startingFace"]=startingFace.ordinal;saved["editorFace"]=editorFace;saved["virtualLessonTitle"]=virtualLessonTitle;saved["virtualLessonScramble"]=virtualLessonScramble;editOriginal?.let { original -> saved["editOriginal"]=original.stickers.joinToString("") { it.ordinal.toString() } } ?: saved.remove<String>("editOriginal") }
+ fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;if(screen==Screen.VIRTUAL){virtualLessonTitle=null;virtualLessonScramble=""};this.screen=screen;save() }
+ fun startLessonPractice(title:String,scramble:String) { virtualLessonTitle=title;virtualLessonScramble=scramble;screen=Screen.VIRTUAL;save() }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
+ fun returnToReview() { solvingGeneration++;busy=false;solveError=null;screen=Screen.REVIEW;save() }
  fun scan(face: Face?=null) {
-  manualEntry=false; editHistory.clear();canUndoEdit=false
+  manualEntry=false;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false
   solveError=null; solvingGeneration++; busy=false
   rescanFace=if(face!=null && captures.size==6) face else null
   beforeRescan=if(rescanFace!=null) cube else null
@@ -52,7 +61,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   if(face!=null && captures.size!=6) message="Calibration is needed; scan all six faces in the guided order."
   stability.reset(); progress=0f; message=""; screen=Screen.SCAN; save()
  }
- fun manual() { manualEntry=true;editHistory.clear();canUndoEdit=false; solveError=null; captures.clear(); cube=CubeState.solved(); lowConfidence=emptySet(); message="Tap a sticker to change its color. Centers define the six faces."; screen=Screen.REVIEW; save() }
+ fun manual() { manualEntry=true;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;solveError=null;captures.clear();cube=CubeState.solved();lowConfidence=emptySet();message="Tap a sticker to change its color. Centers define the six faces.";screen=Screen.REVIEW;save() }
  fun detection(d: Detection) {
   if(screen!=Screen.SCAN) return
   corners=d.corners; cameraAspect=d.aspectRatio; message=d.message
@@ -93,8 +102,13 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
    save()
   } else { scanIndex=(0..5).first { scanSequence[it].face !in captures }; save() }
  }
- fun edit(index: Int,color: CubeColor) { if(busy) return; if(cube.stickers[index]==color) { lowConfidence=lowConfidence-index;save();return }; editHistory.addLast(cube); if(editHistory.size>54) editHistory.removeFirst(); canUndoEdit=true; cube=CubeState(cube.stickers.toMutableList().also { it[index]=color }); lowConfidence=lowConfidence-index; message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve."; save() }
- fun undoEdit() { if(busy || editHistory.isEmpty()) return; cube=editHistory.removeLast();canUndoEdit=editHistory.isNotEmpty();save() }
+ fun edit(index: Int,color: CubeColor) { if(busy) return;if(cube.stickers[index]==color) { lowConfidence=lowConfidence-index;save();return };editHistory.addLast(cube);if(editHistory.size>54) editHistory.removeFirst();redoHistory.clear();canUndoEdit=true;canRedoEdit=false;cube=CubeState(cube.stickers.toMutableList().also { it[index]=color });lowConfidence=lowConfidence-index;message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve.";save() }
+ fun undoEdit() { if(busy || editHistory.isEmpty()) return;redoHistory.addLast(cube);cube=editHistory.removeLast();canUndoEdit=editHistory.isNotEmpty();canRedoEdit=true;save() }
+ fun redoEdit() { if(busy || redoHistory.isEmpty()) return;editHistory.addLast(cube);cube=redoHistory.removeLast();canUndoEdit=true;canRedoEdit=redoHistory.isNotEmpty();save() }
+ fun beginEdit(face: Face=Face.U) { if(screen!=Screen.REVIEW || busy) return;editorFace=face.ordinal;editOriginal=cube;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;screen=Screen.EDIT;save() }
+ fun selectEditorFace(face: Face) { if(screen==Screen.EDIT) { editorFace=face.ordinal;save() } }
+ fun cancelEdit() { if(screen!=Screen.EDIT) return;editOriginal?.let { cube=it };editOriginal=null;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;screen=Screen.REVIEW;save() }
+ fun finishEdit() { if(screen!=Screen.EDIT) return;editOriginal=null;editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;screen=Screen.REVIEW;save() }
  val validationIssue: ValidationIssue? get() = Validator.validate(cube)
 
  fun rotateFace(face: Face) {
@@ -153,7 +167,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
 
  fun beginCorrection() {
   if(screen!=Screen.GUIDE || busy || isReplay) return
-  editHistory.clear();canUndoEdit=false; correctionOriginal=cube; solveError=null; message=""
+  editHistory.clear();redoHistory.clear();canUndoEdit=false;canRedoEdit=false;correctionOriginal=cube;solveError=null;message=""
   saved["correctionOriginal"]=cube.stickers.joinToString("") { it.ordinal.toString() }
   screen=Screen.CORRECT; save()
  }

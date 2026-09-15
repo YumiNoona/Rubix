@@ -44,24 +44,22 @@ class AppFlowTest {
    }
    compose.activity.setContent { CubeApp(vm) }
   }
-  compose.onNodeWithText("Edit colors").performScrollTo().performClick()
-  compose.onNodeWithText("F / Green").performScrollTo().performClick()
-  compose.onAllNodesWithContentDescription("front row 1 column 1",substring=true,useUnmergedTree=true).onLast().performScrollTo().performClick()
-  compose.onNodeWithText("Choose a color").assertIsDisplayed()
+  compose.onAllNodesWithContentDescription("front row 1 column 1",substring=true,useUnmergedTree=true).onFirst().performScrollTo().performClick()
+  compose.onNodeWithText("Front · Green").assertIsDisplayed()
   compose.onNodeWithContentDescription("Green").performClick()
-  compose.onNodeWithText("F / Green").assertIsSelected()
-  compose.onNodeWithText("R / Red").assertIsNotSelected()
+  compose.onAllNodesWithContentDescription("front row 1 column 1",substring=true,useUnmergedTree=true).onFirst().performScrollTo().performClick()
+  compose.onNodeWithText("Front · Green").assertIsDisplayed()
  }
  @Test fun practiceFlowReachesSolved() {
   screenshot("home")
   compose.onNodeWithText("Try a guided demo").performScrollTo().performClick()
   screenshot("review")
-  compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
+  compose.onNodeWithText("Looks good").assertIsDisplayed().performClick()
   compose.waitUntil(30000) { compose.onAllNodesWithText("Start solving").fetchSemanticsNodes().isNotEmpty() }
   compose.onNodeWithText("FACING YOU").assertIsDisplayed()
   compose.onNodeWithText("White").assertIsDisplayed()
   compose.onNodeWithText("Start solving").performClick()
-  compose.onNodeWithText("Pause").performClick()
+  compose.onNodeWithContentDescription("Pause autoplay").performClick()
   compose.waitForIdle(); screenshot("guide")
   repeat(30) {
    if(compose.onAllNodesWithText("Order restored.").fetchSemanticsNodes().isNotEmpty()) return@repeat
@@ -78,10 +76,12 @@ class AppFlowTest {
   compose.onNodeWithText("This cube needs a check").assertIsDisplayed()
   compose.onAllNodesWithText("exactly 9",substring=true).onLast().assertIsDisplayed()
  }
- @Test fun deniedCameraStillOffersManualEntry() {
+ @Test fun scanKeepsGalleryAndBackWithoutDuplicatingManualEntry() {
   compose.onNodeWithText("Start camera scan").performScrollTo().performClick()
-  compose.onNodeWithText("Enter colors instead").performScrollTo().assertExists().performClick()
-  compose.onNodeWithText("Manual input").assertExists()
+  compose.onNodeWithText("Gallery").performScrollTo().assertExists()
+  compose.onNodeWithText("Enter colors instead").assertDoesNotExist()
+  compose.onNodeWithContentDescription("Back").performClick()
+  compose.onNodeWithText("Solve. Play. Improve.").assertExists()
  }
 
  @Test fun guideAutoplayAdvancesAndManualControlsRemainAvailable() {

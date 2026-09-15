@@ -22,7 +22,7 @@ internal fun ProgressScreen(preferences: AppPreferences) {
             ProgressCard("Best time", allTimes.minOrNull()?.let(::formatTime) ?: "—", Modifier.weight(1f))
         }
         Spacer(Modifier.height(10.dp))
-        ProgressCard("Lessons", "${preferences.completedLessons.size} of 7 complete", Modifier.fillMaxWidth())
+        ProgressCard("Lessons", "${preferences.completedLessons.size.coerceAtMost(14)} of 14 complete", Modifier.fillMaxWidth())
         Spacer(Modifier.height(22.dp))
         Text("By cube size", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(10.dp))

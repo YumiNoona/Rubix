@@ -11,6 +11,11 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.FlashOff
+import androidx.compose.material.icons.rounded.FlashOn
+import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,7 +82,23 @@ import com.cubeguide.core.*
    Column(Modifier.weight(1f)) { Text("${color.label} face",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold); Text("${top.label} center on top",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant) }
    Text("${vm.scanIndex+1} / 6",style=MaterialTheme.typography.labelLarge)
   }
-  Spacer(Modifier.height(18.dp))
+  Spacer(Modifier.height(14.dp))
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(7.dp)) {
+   scanSequence.forEachIndexed { index,item ->
+    val done=item.face in vm.capturedFaces
+    val current=index==vm.scanIndex
+    Surface(
+     modifier=Modifier.weight(1f).aspectRatio(1f),
+     shape=RoundedCornerShape(11.dp),
+     color=if(done) Color(LocalAppPreferences.current.color(CubeColor.entries[item.face.ordinal])) else MaterialTheme.colorScheme.surfaceContainer,
+     border=BorderStroke(if(current) 2.dp else 1.dp,if(current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
+    ) { Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) {
+     if(done) Icon(Icons.Rounded.Check,"Face captured",tint=Color(LocalAppPreferences.current.ink(CubeColor.entries[item.face.ordinal])),modifier=Modifier.size(18.dp))
+     else Text(CubeColor.entries[item.face.ordinal].initial,style=MaterialTheme.typography.labelMedium,color=if(current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+    } }
+   }
+  }
+  Spacer(Modifier.height(14.dp))
   if(importing) {
    if(loading) Box(Modifier.fillMaxWidth().height(280.dp),contentAlignment=Alignment.Center) { CircularProgressIndicator() }
    photo?.let { bitmap -> androidx.compose.foundation.Image(bitmap=bitmap.asImageBitmap(),contentDescription="Selected cube face photo",modifier=Modifier.fillMaxWidth().height(280.dp),contentScale=androidx.compose.ui.layout.ContentScale.Fit) }
@@ -103,13 +124,13 @@ import com.cubeguide.core.*
    Text(vm.message.ifBlank { "Fit one face inside the frame and hold steady." },modifier=Modifier.padding(vertical=12.dp),style=MaterialTheme.typography.bodyMedium)
   } else {
    Surface(Modifier.fillMaxWidth().padding(vertical=24.dp),shape=RoundedCornerShape(24.dp),color=MaterialTheme.colorScheme.surfaceContainer) {
-    Column(Modifier.padding(24.dp)) { Text("Ready when you are",style=MaterialTheme.typography.titleLarge); Spacer(Modifier.height(12.dp)); Text("Allow camera access, choose a photo, or enter your colors."); Spacer(Modifier.height(20.dp)); Primary("Allow camera") { request.launch(Manifest.permission.CAMERA) } }
+    Column(Modifier.padding(24.dp)) { Text("Ready when you are",style=MaterialTheme.typography.titleLarge); Spacer(Modifier.height(12.dp)); Text("Allow camera access or choose a clear face photo from your gallery."); Spacer(Modifier.height(20.dp)); Primary("Allow camera") { request.launch(Manifest.permission.CAMERA) } }
    }
   }
   if(!importing) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-   OutlinedButton(onClick={feedback();torch=!torch},enabled=permission && flashAvailable,modifier=Modifier.weight(1f)) { Text(if(torch) "Flash on" else "Flash off") }
-   OutlinedButton(onClick={feedback();torch=false;importing=true;photoMessage="";picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},modifier=Modifier.weight(1f)) { Text("Gallery") }
+   OutlinedButton(onClick={feedback();torch=!torch},enabled=permission && flashAvailable,modifier=Modifier.weight(1f)) { Icon(if(torch) Icons.Rounded.FlashOn else Icons.Rounded.FlashOff,null);Spacer(Modifier.width(7.dp));Text(if(torch) "Flash on" else "Flash") }
+   OutlinedButton(onClick={feedback();torch=false;importing=true;photoMessage="";picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},modifier=Modifier.weight(1f)) { Icon(Icons.Rounded.PhotoLibrary,null);Spacer(Modifier.width(7.dp));Text("Gallery") }
   }
-  TextButton(onClick={vm.manual()},enabled=!loading,modifier=Modifier.fillMaxWidth()) { Text("Enter colors instead") }
+  Spacer(Modifier.height(12.dp))
  }
 }

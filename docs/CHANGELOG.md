@@ -1,3 +1,13 @@
+# 2.2.0
+
+- Replaced the broken 3x3 virtual rendering path with the same solid, draggable cube used by Home and the solve guide; single-step undo now reverses exactly one move.
+- Rebuilt Learn into Rookie, Experienced and Veteran tracks with a visual cube on every lesson, problem/solved comparison, recognition cues, plans, move examples and lesson-specific virtual practice.
+- Added a dedicated scan color editor with persistent face navigation, a compact labeled palette, initials, undo, redo, Cancel and Done.
+- Simplified review to Net/3D inspection plus fixed Edit colors and Looks good actions.
+- Added six visible scan states with current-face emphasis, color-coded completion checks, and Material flash/gallery actions; removed the duplicate manual-entry action.
+- Moved guide Back, step count, play/pause and overflow into one top row while retaining timed 1–2 second advancement and manual Previous/Next.
+- Replaced remaining hand-drawn navigation glyphs with Material icons, enlarged detail Back targets, fixed parent-aware back navigation, and removed redundant puzzle selection text.
+
 # 2.1.0
 
 - Replaced duplicated root/detail navigation with Home, Practice, Learn and Progress roots; virtual cube, timer and solver flows now use focused detail navigation.
