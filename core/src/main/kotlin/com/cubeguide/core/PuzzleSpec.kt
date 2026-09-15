@@ -44,7 +44,7 @@ object PuzzleRegistry {
   PuzzleSpec(PuzzleId.FIVE_BY_FIVE,"Professor's Cube","5×5",ScanShape.SQUARE_GRID,6,25,MoveFamily.CUBE,SolverState.ENGINE_PENDING,5),
   PuzzleSpec(PuzzleId.CLOCK,"Clock","Clock",ScanShape.CLOCK_FACE,2,9,MoveFamily.CLOCK,SolverState.ENGINE_PENDING),
   PuzzleSpec(PuzzleId.MEGAMINX,"Megaminx","Mega",ScanShape.PENTAGON,12,11,MoveFamily.MEGAMINX,SolverState.ENGINE_PENDING),
-  PuzzleSpec(PuzzleId.PYRAMINX,"Pyraminx","Pyra",ScanShape.TRIANGLE_GRID,4,9,MoveFamily.PYRAMINX,SolverState.ENGINE_PENDING),
+  PuzzleSpec(PuzzleId.PYRAMINX,"Pyraminx","Pyra",ScanShape.TRIANGLE_GRID,4,9,MoveFamily.PYRAMINX,SolverState.ENGINE_READY),
   PuzzleSpec(PuzzleId.SKEWB,"Skewb","Skewb",ScanShape.SKEWB_FACE,6,5,MoveFamily.SKEWB,SolverState.ENGINE_PENDING),
   PuzzleSpec(PuzzleId.SQUARE_ONE,"Square-1","SQ-1",ScanShape.SQUARE_ONE,3,8,MoveFamily.SQUARE_ONE,SolverState.ENGINE_PENDING),
  )
