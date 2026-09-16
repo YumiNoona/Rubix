@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import com.cubeguide.camera.CameraPreview
 import com.cubeguide.core.*
 import com.cubeguide.play.VirtualCube
+import com.cubeguide.play.VirtualMove
 import com.cubeguide.rendering.FourByFourView
 import com.cubeguide.vision.*
 import kotlinx.coroutines.*
@@ -246,7 +247,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text(session.instruction(notation),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));IconButton(onClick={feedback();auto=!auto}){Icon(if(auto) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(auto) "Pause autoplay" else "Start autoplay")};Box { IconButton(onClick={auto=false;menu=true}){Icon(Icons.Rounded.MoreVert,"More options")};DropdownMenu(menu,{menu=false}) { DropdownMenuItem({Text("Replay move")},{menu=false;replay++;progress=0f},leadingIcon={Icon(Icons.Rounded.Replay,null)});DropdownMenuItem({Text("Correct current colors")},{menu=false;session.beginEdit()},leadingIcon={Icon(Icons.Rounded.Edit,null)});DropdownMenuItem({Text("Restart guide")},{menu=false;session.restart()},leadingIcon={Icon(Icons.Rounded.RestartAlt,null)}) } } }
   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) {
    when(session.puzzle) {
-    PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize(),Move.parse(notation).single(),replay){progress=it}
+    PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize(),VirtualMove.from(Move.parse(notation).single()),replay){progress=it}
     PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize(),FourByFourMove.parse(notation).single(),replay){progress=it}
     PuzzleId.PYRAMINX -> PyraminxGuideModel(session,Modifier.fillMaxSize(),pyrProgress.value)
     else -> Unit

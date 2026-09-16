@@ -3,6 +3,7 @@ package com.cubeguide
 import com.cubeguide.core.Face
 import com.cubeguide.core.Move
 import com.cubeguide.play.VirtualCube
+import com.cubeguide.play.VirtualMove
 import com.cubeguide.play.virtualScramble
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -43,6 +44,25 @@ class VirtualCubeTest {
 
     @Test fun encodedCubeRestoresItsStickersAndUndoHistory() {
         val cube = virtualScramble(4, 12).fold(VirtualCube.solved(4)) { state, move -> state.apply(move) }
+        assertEquals(cube, VirtualCube.decode(cube.encode()))
+    }
+
+    @Test fun innerLayersAndWideTurnsRoundTripOnLargeCubes() {
+        for (size in 4..7) {
+            for (face in Face.entries) {
+                val inner = VirtualMove(face, depth = 1)
+                val wide = VirtualMove(face, width = 2, turns = 3)
+                val start = VirtualCube.solved(size)
+                assertEquals(start.stickers, start.apply(inner).apply(inner.inverse()).stickers)
+                assertEquals(start.stickers, start.apply(wide).apply(wide.inverse()).stickers)
+            }
+        }
+    }
+
+    @Test fun encodedCubePreservesLayerAwareMoveHistory() {
+        val cube = VirtualCube.solved(7)
+            .apply(VirtualMove(Face.R, depth = 2, turns = 3))
+            .apply(VirtualMove(Face.U, width = 3, turns = 2))
         assertEquals(cube, VirtualCube.decode(cube.encode()))
     }
 }

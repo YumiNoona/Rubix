@@ -2,8 +2,8 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.3.0-2F8CFF)
-![JVM checks](https://img.shields.io/badge/JVM_tests-68_passed-15824F)
+![Version](https://img.shields.io/badge/version-2.4.0-2F8CFF)
+![JVM checks](https://img.shields.io/badge/JVM_tests-70_passed-15824F)
 
 
 An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and Pyraminx puzzles, practising on virtual cubes, timing solves and learning the beginner method.
@@ -12,7 +12,7 @@ An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and P
 
 - **Solve** — dedicated camera geometry, gallery import, color review/editing, physical validation and replay-verified animated guides for 2x2, 3x3, 4x4 and Pyraminx.
 - **Practice** — playable 2x2 through 7x7 cubes, the cube timer and puzzle-size selection in one focused area.
-- **Virtual cube** — the same solid touch-rotatable 3D cube used by the solver, with face controls, scrambles, reset and single-move undo.
+- **Virtual cube** — one clip-safe 3D renderer for 2x2 through 7x7, with animated outer, inner and wide turns, free play, guided challenges, hints, undo and redo.
 - **Cube timer** — size-aware scrambles, a responsive tap target, non-wrapping last/best/average-of-five statistics and saved sessions.
 - **Learn** — Rookie, Experienced and Veteran tracks with visual problem/solved examples, recognition cues, plans and playable practice states.
 - **Progress** — timer records by puzzle size and lesson completion.

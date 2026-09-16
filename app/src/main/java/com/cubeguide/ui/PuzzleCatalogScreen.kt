@@ -25,11 +25,7 @@ import kotlin.math.*
 @Composable internal fun PuzzleCatalogScreen(onPlay:()->Unit,onScan:(PuzzleId)->Unit,scanMode:Boolean=false) {
  val preferences=LocalAppPreferences.current
  val selected=PuzzleRegistry.get(preferences.puzzleId)
- val capturePlan=PuzzleCapturePlans.get(selected.id)
  Column(Modifier.fillMaxSize()) {
-  Text(if(scanMode) "Scan and solve" else "Choose a puzzle",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
-  Text(if(scanMode) "Choose the puzzle in your hands. Verified scanners can be opened below." else "Every solver is enabled only after its moves can be replay-verified.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-  Spacer(Modifier.height(14.dp))
   LazyVerticalGrid(
    columns=GridCells.Adaptive(102.dp),modifier=Modifier.weight(1f),
    horizontalArrangement=Arrangement.spacedBy(10.dp),verticalArrangement=Arrangement.spacedBy(10.dp),
@@ -48,23 +44,11 @@ import kotlin.math.*
     }
    }
   }
-  Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()) {
-   Column(Modifier.padding(14.dp)) {
-    Text(selected.name,fontWeight=FontWeight.SemiBold)
-    Text("${capturePlan.steps.size} guided captures · ${capturePlan.steps.first().title} first",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
-    Text(when(selected.solverState) {
-     SolverState.AVAILABLE -> "Camera scan, color review, verified solve and guided playback are ready."
-     SolverState.ENGINE_READY -> "The verified solver is ready. Camera review and 2D/3D guidance are next."
-     SolverState.ENGINE_PENDING -> "Its dedicated scanner, validator and replay-verified solver are being built."
-    },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-   }
-  }
-  Spacer(Modifier.height(10.dp))
   if(selected.solverState==SolverState.AVAILABLE) {
    Button(onClick={onScan(selected.id)},modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
-    Icon(Icons.Rounded.PhotoCamera,null);Spacer(Modifier.width(8.dp));Text("Scan and solve ${selected.shortName}")
+    Icon(Icons.Rounded.PhotoCamera,null);Spacer(Modifier.width(8.dp));Text("Scan ${selected.shortName}")
    }
-  } else Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) { Text("Verified solver in progress") }
+  } else Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) { Text("${selected.shortName} scanner unavailable") }
   if(!scanMode && selected.supportsCubePlayground) {
    TextButton(onClick=onPlay,modifier=Modifier.fillMaxWidth()) { Icon(Icons.Rounded.PlayArrow,null);Spacer(Modifier.width(6.dp));Text("Open ${selected.shortName} playground") }
   } else Spacer(Modifier.height(12.dp))
