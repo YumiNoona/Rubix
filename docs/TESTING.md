@@ -2,8 +2,8 @@
 
 ## Executed locally
 
-- `:core:test`: 10 test methods passed, covering all 18 face moves against independent min2phase scrambles, inverses, doubles, four-turn identity, 60 seeded random scrambles and verified solver solutions, invalid color/center counts, impossible/mirrored pieces, flips, twists, parity, optimizer preservation, strict parsing and solved states.
-- `:app:testDebugUnitTest`: 20 test methods passed, covering all six LAB/HSV anchor classifications, uncertain red/orange colors, minimum capture time/frame count, moved-corner and changed-color resets, focused editor undo/redo/cancel, lesson-practice restoration, manual invalid-state rejection, full guide progression, inverse Back, saved-state restoration, known-turn recovery and replay.
+- `:core:test`: 37 test cases passed, covering the 2x2, 3x3, Pyraminx and 4x4 state models, inverses, doubles, wide turns, physical validators, randomized scrambles and replay-verified solver output.
+- `:app:testDebugUnitTest`: 31 test cases passed, covering color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2x2, Pyraminx and 4x4.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -77,6 +77,10 @@ JVM regressions cover red hue wrap-around, stable-frame median sampling, reset b
 ## 1.3.0 white-glare and solution bounds
 
 A regression reproduces 13 independently classified white stickers and verifies that global center-anchored assignment restores nine of every color while leaving forced choices uncertain. Sixty seeded scrambles now assert verified solutions of at most 20 face turns. Synthetic fixtures and compilation pass; physical camera tests remain required to tune glare thresholds against real cubes and phones.
+
+## 2.3.0 multi-puzzle solve gates
+
+Synthetic end-to-end sessions capture all six 2x2 faces, all four Pyraminx faces and all six 4x4 faces. Each session asserts successful review validation, runs the puzzle-specific solver through `PuzzleSolverGate`, applies every guide move and checks the final state is solved. Editor undo, redo and cancel restoration are covered in the 2x2 session. Android UI tests compile against the enabled catalog routes and shared flow; physical-device acceptance remains required for camera geometry, face-order instructions, flash, gallery orientation and responsive rendering.
 # 2.2.0 focused editing, learning and solid-cube checks
 
 - JVM tests cover dedicated editor restoration, face navigation, undo/redo/cancel and saved lesson practice context. Total JVM test methods: 30.

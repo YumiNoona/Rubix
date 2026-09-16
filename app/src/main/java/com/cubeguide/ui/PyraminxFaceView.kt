@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import com.cubeguide.core.*
 import kotlin.math.*
@@ -18,6 +19,8 @@ import kotlin.math.*
  face:Int,
  modifier:Modifier=Modifier,
  selected:Int?=null,
+ palette:Map<PyraminxColor,CubeColor> = mapOf(PyraminxColor.GREEN to CubeColor.GREEN,PyraminxColor.RED to CubeColor.RED,PyraminxColor.BLUE to CubeColor.BLUE,PyraminxColor.YELLOW to CubeColor.YELLOW),
+ showInitials:Boolean=false,
  onStickerClick:((Int)->Unit)?=null,
 ) {
  val preferences=LocalAppPreferences.current
@@ -39,9 +42,13 @@ import kotlin.math.*
     else { moveTo(center.x-half,center.y-h);lineTo(center.x+half,center.y-h);lineTo(center.x,center.y+h) }
     close()
    }
-   val color=when(facelets.stickers[face*9+sticker]) { PyraminxColor.GREEN->CubeColor.GREEN;PyraminxColor.RED->CubeColor.RED;PyraminxColor.BLUE->CubeColor.BLUE;PyraminxColor.YELLOW->CubeColor.YELLOW }
+   val color=palette.getValue(facelets.stickers[face*9+sticker])
    drawPath(path,Color(preferences.color(color)))
    drawPath(path,if(selected==face*9+sticker) selectionColor else Color(0xFF071116),style=Stroke(if(selected==face*9+sticker) 4f else 2f))
+   if(showInitials) {
+    val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { this.color=preferences.ink(color);textSize=min(edge,triangleHeight)*.28f;textAlign=android.graphics.Paint.Align.CENTER;typeface=android.graphics.Typeface.DEFAULT_BOLD }
+    drawContext.canvas.nativeCanvas.drawText(color.initial,center.x,center.y-(paint.ascent()+paint.descent())/2,paint)
+   }
   }
  }
 }

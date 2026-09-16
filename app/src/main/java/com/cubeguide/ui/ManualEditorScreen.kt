@@ -106,6 +106,10 @@ internal fun ManualEditor(vm: CubeViewModel) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                Text("Show color initials",modifier=Modifier.weight(1f))
+                Switch(preferences.initials,{preferences.updateInitials(it)})
+            }
             Spacer(Modifier.height(16.dp))
         }
 

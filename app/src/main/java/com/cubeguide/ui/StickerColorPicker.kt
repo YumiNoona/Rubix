@@ -29,7 +29,7 @@ import com.cubeguide.core.Face
      row.forEach { color ->
       Surface(onClick={onSelect(color)},enabled=enabled,modifier=Modifier.weight(1f).heightIn(min=104.dp).semantics { selected=color==current; contentDescription="${color.label}${if(color==current) ", current color" else ""}" },shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,border=BorderStroke(if(color==current) 2.dp else 1.dp,if(color==current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
        Column(Modifier.padding(12.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-        Box(Modifier.size(40.dp).background(Color(preferences.color(color)),RoundedCornerShape(10.dp)),contentAlignment=Alignment.Center) { Text(color.initial,color=Color(preferences.ink(color)),fontWeight=FontWeight.Bold) }
+        Box(Modifier.size(40.dp).background(Color(preferences.color(color)),RoundedCornerShape(10.dp)),contentAlignment=Alignment.Center) { if(preferences.initials) Text(color.initial,color=Color(preferences.ink(color)),fontWeight=FontWeight.Bold) }
         Spacer(Modifier.height(8.dp));Text(color.label,style=MaterialTheme.typography.labelLarge)
        }
       }

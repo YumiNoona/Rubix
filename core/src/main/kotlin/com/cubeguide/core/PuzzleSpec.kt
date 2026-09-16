@@ -38,13 +38,13 @@ data class PuzzleSpec(
 
 object PuzzleRegistry {
  val all=listOf(
-  PuzzleSpec(PuzzleId.TWO_BY_TWO,"Pocket Cube","2×2",ScanShape.SQUARE_GRID,6,4,MoveFamily.CUBE,SolverState.ENGINE_READY,2),
+  PuzzleSpec(PuzzleId.TWO_BY_TWO,"Pocket Cube","2×2",ScanShape.SQUARE_GRID,6,4,MoveFamily.CUBE,SolverState.AVAILABLE,2),
   PuzzleSpec(PuzzleId.THREE_BY_THREE,"Rubik's Cube","3×3",ScanShape.SQUARE_GRID,6,9,MoveFamily.CUBE,SolverState.AVAILABLE,3),
-  PuzzleSpec(PuzzleId.FOUR_BY_FOUR,"Rubik's Revenge","4×4",ScanShape.SQUARE_GRID,6,16,MoveFamily.CUBE,SolverState.ENGINE_READY,4),
+  PuzzleSpec(PuzzleId.FOUR_BY_FOUR,"Rubik's Revenge","4×4",ScanShape.SQUARE_GRID,6,16,MoveFamily.CUBE,SolverState.AVAILABLE,4),
   PuzzleSpec(PuzzleId.FIVE_BY_FIVE,"Professor's Cube","5×5",ScanShape.SQUARE_GRID,6,25,MoveFamily.CUBE,SolverState.ENGINE_PENDING,5),
   PuzzleSpec(PuzzleId.CLOCK,"Clock","Clock",ScanShape.CLOCK_FACE,2,9,MoveFamily.CLOCK,SolverState.ENGINE_PENDING),
   PuzzleSpec(PuzzleId.MEGAMINX,"Megaminx","Mega",ScanShape.PENTAGON,12,11,MoveFamily.MEGAMINX,SolverState.ENGINE_PENDING),
-  PuzzleSpec(PuzzleId.PYRAMINX,"Pyraminx","Pyra",ScanShape.TRIANGLE_GRID,4,9,MoveFamily.PYRAMINX,SolverState.ENGINE_READY),
+  PuzzleSpec(PuzzleId.PYRAMINX,"Pyraminx","Pyra",ScanShape.TRIANGLE_GRID,4,9,MoveFamily.PYRAMINX,SolverState.AVAILABLE),
   PuzzleSpec(PuzzleId.SKEWB,"Skewb","Skewb",ScanShape.SKEWB_FACE,6,5,MoveFamily.SKEWB,SolverState.ENGINE_PENDING),
   PuzzleSpec(PuzzleId.SQUARE_ONE,"Square-1","SQ-1",ScanShape.SQUARE_ONE,3,8,MoveFamily.SQUARE_ONE,SolverState.ENGINE_PENDING),
  )

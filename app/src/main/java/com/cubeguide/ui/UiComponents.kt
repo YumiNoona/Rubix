@@ -29,21 +29,20 @@ import com.cubeguide.core.*
  Button({ feedback(); onClick() },Modifier.fillMaxWidth().heightIn(min=54.dp),enabled=enabled,shape=RoundedCornerShape(17.dp)) { Text(text,style=MaterialTheme.typography.titleMedium,maxLines=1,overflow=TextOverflow.Ellipsis) }
 }
 @Composable internal fun CubeNet(cube: CubeState,uncertain: Set<Int>,select: (Int)->Unit) {
- val initials=LocalAppPreferences.current.initials
  val rows=listOf(listOf(null,Face.U,null,null),listOf(Face.L,Face.F,Face.R,Face.B),listOf(null,Face.D,null,null))
  Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(5.dp)) { rows.forEach { faces ->
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) { faces.forEach { face ->
    Box(Modifier.weight(1f).aspectRatio(1f)) { if(face!=null) Column(verticalArrangement=Arrangement.spacedBy(2.dp)) { (0..2).forEach { r ->
     Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(2.dp)) { (0..2).forEach { c ->
      val index=face.ordinal*9+r*3+c
-     Box(Modifier.weight(1f).fillMaxHeight().background(Color(LocalAppPreferences.current.color(cube.stickers[index])),RoundedCornerShape(3.dp)).border(if(index in uncertain) 2.dp else 0.5.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.2f),RoundedCornerShape(3.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" },contentAlignment=Alignment.Center) { if(initials || r==1 && c==1) Text(if(initials) cube.stickers[index].initial else face.name,color=Color(LocalAppPreferences.current.ink(cube.stickers[index])),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold) }
+     Box(Modifier.weight(1f).fillMaxHeight().background(Color(LocalAppPreferences.current.color(cube.stickers[index])),RoundedCornerShape(3.dp)).border(if(index in uncertain) 2.dp else 0.5.dp,if(index in uncertain) Color.Magenta else Color.Black.copy(alpha=0.2f),RoundedCornerShape(3.dp)).clickable { select(index) }.semantics { contentDescription="${face.label} row ${r+1} column ${c+1}, ${cube.stickers[index].label}" })
     } }
    } } }
   } }
  } }
 }
-@Composable internal fun LargeFace(cube: CubeState,face: Face,uncertain: Set<Int>,select: (Int)->Unit) {
- val initials=LocalAppPreferences.current.initials
+@Composable internal fun LargeFace(cube: CubeState,face: Face,uncertain: Set<Int>,showInitials:Boolean=LocalAppPreferences.current.initials,select: (Int)->Unit) {
+ val initials=showInitials
  Column(Modifier.fillMaxWidth().padding(horizontal=40.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) { (0..2).forEach { r ->
   Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) { (0..2).forEach { c ->
    val index=face.ordinal*9+r*3+c
@@ -111,7 +110,7 @@ import com.cubeguide.core.*
   Spacer(Modifier.height(12.dp))
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
    CubeColor.entries.forEach { c ->
-    Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(c)),RoundedCornerShape(8.dp)).border(if(c==selected) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable { selected=c; feedback() }.semantics { contentDescription="${c.label} display color" },contentAlignment=Alignment.Center) { Text(c.initial,color=Color(preferences.ink(c)),fontWeight=FontWeight.Bold) }
+    Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(c)),RoundedCornerShape(8.dp)).border(if(c==selected) 3.dp else 0.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(8.dp)).clickable { selected=c; feedback() }.semantics { contentDescription="${c.label} display color" })
    }
   }
   Spacer(Modifier.height(12.dp)); Text(selected.label,style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
@@ -125,7 +124,6 @@ import com.cubeguide.core.*
   Text("Changes apply to the display, not camera recognition.",style=MaterialTheme.typography.bodySmall)
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Interaction",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
-  SettingsToggle("Color initials",preferences.initials) { preferences.updateInitials(it) }
   SettingsToggle("Haptic feedback",preferences.haptics) { preferences.updateHaptics(it) }
   SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
   SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }

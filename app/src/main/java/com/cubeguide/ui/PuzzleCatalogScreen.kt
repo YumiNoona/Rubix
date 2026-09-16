@@ -53,7 +53,7 @@ import kotlin.math.*
     Text(selected.name,fontWeight=FontWeight.SemiBold)
     Text("${capturePlan.steps.size} guided captures · ${capturePlan.steps.first().title} first",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
     Text(when(selected.solverState) {
-     SolverState.AVAILABLE -> "Camera scan, verified solve, 3D guide and timer are ready."
+     SolverState.AVAILABLE -> "Camera scan, color review, verified solve and guided playback are ready."
      SolverState.ENGINE_READY -> "The verified solver is ready. Camera review and 2D/3D guidance are next."
      SolverState.ENGINE_PENDING -> "Its dedicated scanner, validator and replay-verified solver are being built."
     },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)

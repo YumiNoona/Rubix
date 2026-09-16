@@ -25,7 +25,7 @@ private data class FQuad(val points:List<FPoint>,val color:Color)
  val preferences=LocalAppPreferences.current;val animation=remember(state,move){Animatable(0f)};val callback by rememberUpdatedState(onAnimationProgress)
  var yaw by remember { mutableFloatStateOf(-.55f) };var pitch by remember { mutableFloatStateOf(.45f) }
  LaunchedEffect(animation) { snapshotFlow { animation.value }.collect { callback(it) } }
- LaunchedEffect(animation,replay) { if(move!=null) animation.animateTo(1f,tween(preferences.animationMillis)) }
+ LaunchedEffect(animation,replay) { if(move!=null) { if(animation.value>0f) animation.snapTo(0f);animation.animateTo(1f,tween(preferences.animationMillis*(if(move.turns==2) 2 else 1))) } }
  Canvas(modifier.clipToBounds().pointerInput(Unit){detectDragGestures { change,drag -> change.consume();yaw+=drag.x*.008f;pitch=(pitch+drag.y*.008f).coerceIn(-1.3f,1.3f) }}) {
   val axis=move?.face?.let { Geometry.normals[it.ordinal].fp() };val angle=if(move==null) 0f else -animation.value*(if(move.turns==3)-1 else move.turns)*PI.toFloat()/2
   fun rotating(position:Vec)=axis!=null && position.fp().dot(axis)>=if(move!!.wide) .32f else .98f

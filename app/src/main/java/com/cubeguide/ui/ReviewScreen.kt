@@ -19,6 +19,7 @@ import com.cubeguide.rendering.CubeView
 @Composable internal fun Review(vm: CubeViewModel) {
  if(vm.manualEntry && vm.screen!=Screen.CORRECT) { ManualEditor(vm);return }
  val feedback=rememberTouchFeedback()
+ val preferences=LocalAppPreferences.current
  val correcting=vm.screen==Screen.CORRECT
  var selected by rememberSaveable { mutableStateOf<Int?>(null) }
  var faceOrdinal by rememberSaveable { mutableIntStateOf(vm.lowConfidence.firstOrNull()?.div(9) ?: Face.U.ordinal) }
@@ -50,8 +51,9 @@ import com.cubeguide.rendering.CubeView
      Face.entries.forEach { f -> FilterChip(selected=face==f,onClick={faceOrdinal=f.ordinal},enabled=!vm.busy,label={Text("${f.name} / ${vm.cube.stickers[f.ordinal*9+4].label}")}) }
     }
     Spacer(Modifier.height(8.dp))
-    LargeFace(vm.cube,face,highlighted,selectSticker)
+    LargeFace(vm.cube,face,highlighted,select=selectSticker)
     Text("Tap a sticker to choose its color. Centers stay fixed.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(vertical=8.dp))
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text("Show color initials",modifier=Modifier.weight(1f));Switch(preferences.initials,{preferences.updateInitials(it)}) }
     TextButton(onClick=vm::undoEdit,enabled=vm.canUndoEdit && !vm.busy) { Text("Undo color change") }
     if(!correcting) Row {
      TextButton(onClick={vm.rotateFace(face)},enabled=!vm.busy,modifier=Modifier.weight(1f)) { Text("Rotate scan") }

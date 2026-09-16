@@ -2,7 +2,7 @@
 
 ## Boundaries
 
-`core` is a JVM Kotlin module: `CubeState`, `Face`, `CubeColor`, `Move`, integer sticker geometry, physical validator, scan poses, optimizer and min2phase adapter. Integer geometry maps a sticker's position and outward normal into a permutation for each clockwise layer turn. Each inverse and double turn uses the same engine. Independent reference scrambles in tests verify the mapping instead of comparing the engine only with itself.
+`core` is a JVM Kotlin module: 2x2, 3x3, 4x4 and Pyraminx state models, moves, physical validators, scan-orientation rules and solver adapters. Integer geometry maps a sticker's position and outward normal into a permutation for each clockwise layer turn. Each inverse and double turn uses the same engine. Independent reference scrambles in tests verify the mapping instead of comparing the engine only with itself.
 
 `app/camera` owns lifecycle binding, frame backpressure, RGBA bitmap conversion and rotation, frame throttling, executor cleanup and permission fallback. No frames are stored or uploaded.
 
@@ -25,6 +25,7 @@ Explicit piece validation is necessary because malformed input can fall back to 
 - CameraX 1.6.2: lifecycle camera management and bounded ImageAnalysis with KEEP_ONLY_LATEST.
 - OpenCV 4.13.0: packaged native contour, perspective and color conversion operations; no separate OpenCV Manager install required.
 - min2phase: pinned unmodified source, MIT grant in its README. No remote solver API or runtime table downloads.
+- WCA TNoodle threephase: pinned 4x4 reduction/search source under its GPLv3 license, with source headers and bundled notices preserved.
 
 A native custom pipeline or Filament engine would add build and rendering complexity without evidence of a benefit at this 300-pixel ROI / 26-cubie scale. K-means is unnecessary once six centers supply labeled anchors; ambiguous nearest-anchor assignments are surfaced for correction rather than forced to nine colors each.
 
@@ -88,7 +89,13 @@ The Compose shell separates Home, Play, Timer and Learn into saved destinations 
 
 `app/play/VirtualCube` reuses the core integer sticker geometry for outer-layer moves on 2x2 through 7x7 cubes. It has no second cube rules engine. A compact encoded sticker/history value restores the playground after navigation or activity recreation. Tests verify every face and inverse, four-turn identity, scramble reversal and serialization for all supported sizes. The Canvas renderer projects sticker planes with perspective, depth sorting, highlights, a soft backdrop and drag-controlled yaw/pitch.
 
-Timer results, selected puzzle size and completed lessons live in `AppPreferences`. Camera recognition and the two-phase solver remain scoped to 3x3 cubes; the catalog labels that boundary rather than implying unsupported camera solving for larger puzzles.
+Timer results, selected puzzle size and completed lessons live in `AppPreferences`.
+
+## Multi-puzzle solve flow (2.3.0)
+
+The scanner now dispatches by `PuzzleSpec`: square detectors sample 2x2, 3x3 or 4x4 grids, while the Pyraminx detector normalizes a triangular contour into nine ordered triangular samples. The 2x2 flow repairs independent face-image rotations after a guided white-red-green reference-corner setup. Pyraminx assigns exactly nine stickers to each of four session-derived colors and tests legal palette mappings. The 4x4 classifier assigns sixteen of every color and validates corner and wing inventories before the reduction solver runs.
+
+`MultiPuzzleSession` owns the non-3x3 capture, review, edit, setup and guide state. `PuzzleSolverGate` remains the enabling boundary: it validates the input, parses and applies every returned move with the matching puzzle engine, and exposes the guide only when replay reaches solved. The 2x2 guide reuses generalized cube geometry, 4x4 renders outer and wide layers, and Pyraminx keeps its 36-facelet model synchronized with every main-layer and tip move. Initials are consumed only by focused editors; renderers default to label-free output.
 
 ## Focused navigation and autoplay (2.1.0)
 

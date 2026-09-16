@@ -1,3 +1,12 @@
+# 2.3.0
+
+- Enabled complete scan, gallery, review, focused editing, validation, setup, solve, autoplay guide and completion flows for 2x2, Pyraminx and 4x4.
+- Added a centerless-cube reference-corner capture flow, a dedicated triangular Pyraminx capture/editor, adaptive per-puzzle color capacity, and low-confidence review outlines.
+- Added solid animated 2x2 layer turns, wide-turn 4x4 guidance and a face-accurate layered Pyraminx model with puzzle-specific notation help.
+- Added current-state color correction, undo/redo, replay, restart, Previous/Next and configurable autoplay to all three guides.
+- Restricted color initials to focused color editors. Home, review previews, virtual cubes, setup, guides and completion models are label-free.
+- Added end-to-end regressions that classify synthetic scans, solve through the replay gate and apply every move to a solved 2x2, Pyraminx and 4x4 state.
+
 # 2.2.1
 
 - Polished the complete 3x3 flow for release: fresh scans now return to puzzle selection, while cancelling a one-face rescan returns to the existing review without losing edits.
