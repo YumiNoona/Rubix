@@ -214,48 +214,59 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                     ) { Text("90° ↷") }
                 }
 
-                Spacer(Modifier.height(6.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TextButton(
+                Spacer(Modifier.height(8.dp))
+                Button(
                         enabled = pending == null,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(15.dp),
                         onClick = {
                             feedback()
                             cube = virtualScramble(size).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
                             redo = emptyList()
                             hintVisible = mode != PlaygroundMode.FREE
                         },
-                    ) { Text(if (mode == PlaygroundMode.CHALLENGE) "New challenge" else "Scramble") }
-                    TextButton(
+                    ) {
+                        Text(
+                            if (mode == PlaygroundMode.CHALLENGE) "New challenge" else "Scramble cube",
+                            maxLines = 1,
+                        )
+                    }
+                Spacer(Modifier.height(4.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
                         enabled = pending == null && cube.history.isNotEmpty(),
                         modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp),
                         onClick = {
                             val last = cube.history.last()
                             redo = redo + last
                             begin(last.inverse(), cube.apply(last.inverse(), record = false).withoutLastHistory())
                         },
-                    ) { Text("Undo") }
-                    TextButton(
+                    ) { Text("Undo", maxLines = 1) }
+                    OutlinedButton(
                         enabled = pending == null && redo.isNotEmpty(),
                         modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp),
                         onClick = {
                             val move = redo.last()
                             redo = redo.dropLast(1)
                             begin(move, cube.apply(move))
                         },
-                    ) { Text("Redo") }
+                    ) { Text("Redo", maxLines = 1) }
                     if (mode != PlaygroundMode.FREE) {
-                        TextButton(
+                        OutlinedButton(
                             enabled = pending == null && cube.history.isNotEmpty(),
                             modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp),
                             onClick = { hintVisible = !hintVisible; feedback() },
-                        ) { Text("Hint") }
+                        ) { Text("Hint", maxLines = 1) }
                     } else {
-                        TextButton(
+                        OutlinedButton(
                             enabled = pending == null && !cube.solved,
                             modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp),
                             onClick = { feedback(); cube = cube.reset(); redo = emptyList() },
-                        ) { Text("Reset") }
+                        ) { Text("Reset", maxLines = 1) }
                     }
                 }
             }

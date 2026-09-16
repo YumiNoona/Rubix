@@ -26,7 +26,7 @@ private data class VP(val x: Float, val y: Float, val z: Float) {
 }
 
 private fun Vec.vp() = VP(x.toFloat(), y.toFloat(), z.toFloat())
-private data class VQuad(val points: List<VP>, val normal: VP, val color: Color, val sticker: Boolean)
+private data class VQuad(val points: List<VP>, val color: Color, val sticker: Boolean)
 
 /**
  * One renderer for every regular cube size. It derives its scale from the projected
@@ -118,25 +118,47 @@ internal fun VirtualCubeView(
         }
 
         val quads = mutableListOf<VQuad>()
+        val coordinates = (0 until cube.size).map { -edge + it * 2f }
+
+        // Build actual cubies, just like the renderer used on Home. Drawing only six
+        // sticker planes made adjacent faces overlap like loose cards at some angles.
+        coordinates.forEach { x ->
+            coordinates.forEach { y ->
+                coordinates.forEach { z ->
+                    if (abs(x) == edge || abs(y) == edge || abs(z) == edge) {
+                        val position = VP(x, y, z)
+                        Face.entries.forEach { face ->
+                            val normal = Geometry.normals[face.ordinal].vp()
+                            val right = Geometry.rights[face.ordinal].vp()
+                            val down = Geometry.downs[face.ordinal].vp()
+                            val center = position + normal * .97f
+                            val points = listOf(
+                                center + right * -.97f + down * -.97f,
+                                center + right * .97f + down * -.97f,
+                                center + right * .97f + down * .97f,
+                                center + right * -.97f + down * .97f,
+                            ).map { camera(rotate(it, position)) }
+                            quads += VQuad(points, Color(0xFF151C1A), false)
+                        }
+                    }
+                }
+            }
+        }
+
         VirtualCube.geometry(cube.size).forEachIndexed { index, geometry ->
             val position = geometry.position.vp()
             val normal = geometry.normal.vp()
             val right = geometry.right.vp()
             val down = geometry.down.vp()
-
-            fun tile(center: VP, half: Float, color: Color, sticker: Boolean) {
-                val points = listOf(
-                    center + right * -half + down * -half,
-                    center + right * half + down * -half,
-                    center + right * half + down * half,
-                    center + right * -half + down * half,
-                ).map { camera(rotate(it, position)) }
-                quads += VQuad(points, camera(rotate(normal, position)), color, sticker)
-            }
-
-            // Separate backing tiles keep the cube solid while a layer is turning.
-            tile(position + normal * .025f, .995f, Color(0xFF101816), false)
-            tile(position + normal * .075f, .84f, Color(preferences.color(cube.stickers[index])), true)
+            val center = position + normal * .985f
+            val half = .80f
+            val points = listOf(
+                center + right * -half + down * -half,
+                center + right * half + down * -half,
+                center + right * half + down * half,
+                center + right * -half + down * half,
+            ).map { camera(rotate(it, position)) }
+            quads += VQuad(points, Color(preferences.color(cube.stickers[index])), true)
         }
 
         val cameraDistance = max(8f, edge * 3.2f + 7f)
@@ -167,7 +189,9 @@ internal fun VirtualCubeView(
         quads
             .filter { quad ->
                 val center = quad.points.reduce { a, b -> a + b } * .25f
-                quad.normal.dot(VP(0f, 0f, cameraDistance) + center * -1f) > .0001f
+                val inward = (quad.points[1] + quad.points[0] * -1f)
+                    .cross(quad.points[3] + quad.points[0] * -1f)
+                inward.dot(VP(0f, 0f, cameraDistance) + center * -1f) < -.0001f
             }
             .sortedBy { quad -> quad.points.map { it.z }.average() }
             .forEach { quad ->
