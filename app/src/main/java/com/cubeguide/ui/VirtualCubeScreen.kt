@@ -20,9 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.Face
 import com.cubeguide.core.Move
+import com.cubeguide.core.CubeState
 import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.VirtualMove
 import com.cubeguide.play.virtualScramble
+import com.cubeguide.rendering.CubeView
 
 private enum class PlaygroundMode(val label: String) {
     FREE("Free play"),
@@ -115,21 +117,34 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
             PuzzleSizeMenu(size, preferences::updatePuzzleSize)
         }
 
-        VirtualCubeView(
-            cube = cube,
-            modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 220.dp),
-            move = pending?.move,
-            replay = replay,
-            onAnimationProgress = { progress ->
-                if (progress >= .999f) {
-                    pending?.let {
-                        cube = it.result
-                        pending = null
-                        feedback()
-                    }
+        val finishTurn: (Float) -> Unit = { progress ->
+            if (progress >= .999f) {
+                pending?.let {
+                    cube = it.result
+                    pending = null
+                    feedback()
                 }
-            },
-        )
+            }
+        }
+        val cubeModifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 220.dp)
+        if (size == 3) {
+            CubeView(
+                cube = CubeState(cube.stickers),
+                modifier = cubeModifier,
+                move = pending?.move?.let { Move(it.face, it.turns) },
+                replay = replay,
+                showInitials = false,
+                onAnimationProgress = finishTurn,
+            )
+        } else {
+            VirtualCubeView(
+                cube = cube,
+                modifier = cubeModifier,
+                move = pending?.move,
+                replay = replay,
+                onAnimationProgress = finishTurn,
+            )
+        }
 
         if (hintVisible && cube.history.isNotEmpty()) {
             val hint = cube.history.last().inverse()
