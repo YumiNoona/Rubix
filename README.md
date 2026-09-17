@@ -2,8 +2,8 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.4.2-2F8CFF)
-![JVM checks](https://img.shields.io/badge/JVM_tests-70_passed-15824F)
+![Version](https://img.shields.io/badge/version-3.0.0-238BFF)
+![JVM checks](https://img.shields.io/badge/JVM_tests-71_passed-15824F)
 
 
 An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and Pyraminx puzzles, practising on virtual cubes, timing solves and learning the beginner method.
@@ -11,11 +11,10 @@ An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and P
 ## What is inside
 
 - **Solve** — dedicated camera geometry, gallery import, color review/editing, physical validation and replay-verified animated guides for 2x2, 3x3, 4x4 and Pyraminx.
-- **Practice** — playable 2x2 through 7x7 cubes, the cube timer and puzzle-size selection in one focused area.
-- **Virtual cube** — one clip-safe 3D renderer for 2x2 through 7x7, with animated outer, inner and wide turns, free play, guided challenges, hints, undo and redo.
-- **Cube timer** — size-aware scrambles, a responsive tap target, non-wrapping last/best/average-of-five statistics and saved sessions.
+- **Practice** — a focused home for the virtual cube and 3x3 timer.
+- **Virtual cube** — a mode hub for Free play, Challenge and Guided solve across 2x2 through 7x7, with animated outer, inner and wide turns.
+- **Cube timer** — a hold-to-ready 3x3 timer with valid scrambles, large stop target, personal records and responsive controls.
 - **Learn** — Rookie, Experienced and Veteran tracks with visual problem/solved examples, recognition cues, plans and playable practice states.
-- **Progress** — timer records by puzzle size and lesson completion.
 
 Rubix uses a quiet dark theme, compact navigation, clear pressed and selected states, system-aware haptics, and display colors that can be tuned for a particular physical puzzle. Color initials are available only inside color editors and stay off every cube preview and solving guide.
 
@@ -34,7 +33,7 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 ## Solve your cube
 
 1. Tap **Scan my cube** and choose 2x2, 3x3, 4x4 or Pyraminx.
-2. Match the preparation screen. Centerless 2x2 and 4x4 scans use the white-red-green reference corner; Pyraminx uses the guided green, red, blue and yellow face order.
+2. Match the preparation screen. The 3x3 tutorial begins white-up and green-front; centerless 2x2 and 4x4 scans use the white-red-green reference corner; Pyraminx uses the guided green, red, blue and yellow face order.
 3. Capture each face with the live camera or gallery. Rubix uses a 2x2, 3x3, 4x4 or triangular detector for the selected puzzle.
 4. Review the full net. **Edit colors** opens a focused face editor with counts, optional initials, undo, redo, Cancel and Done.
 5. Solve only after validation succeeds, match the starting position, then follow the animated model. Autoplay, Pause, Previous, Next, replay, restart and current-state correction remain available.
@@ -47,7 +46,7 @@ The scanner supports a live camera, hardware flash where available, and the Andr
 
 Manual entry uses a large 3D preview, one focused face at a time, persistent brush selection, fixed centers, live per-color counts and undo. Scan review uses a separate editor with a labeled six-color palette, initials, undo and redo. Face selection and virtual lesson context survive UI restoration.
 
-Settings is available from the four root areas in a spacious bottom sheet. Customize hue, saturation and brightness for each display color, reset the palette, toggle haptics, touch sounds and screen-awake handling, or adjust animation and autoplay timing. The initials switch lives only in color editors. Display colors do not alter camera classification.
+Settings is available from the three root areas in a spacious bottom sheet. Customize hue, saturation and brightness for each display color, reset the palette, toggle haptics, touch sounds and screen-awake handling, or adjust animation and autoplay timing. The initials switch lives only in color editors. Display colors do not alter camera classification.
 
 ## A clearer guide
 

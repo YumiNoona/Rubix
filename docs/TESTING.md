@@ -97,7 +97,7 @@ Synthetic end-to-end sessions capture all six 2x2 faces, all four Pyraminx faces
 
 # 2.0.0 UI shell and virtual puzzle checks
 
-- `VirtualCubeTest` covers every outer face and inverse on 2x2 through 7x7 cubes, four quarter-turn identity, non-repeating scramble generation, full scramble reversal, and encoded state/history restoration.
+- `VirtualCubeTest` covers every outer face and inverse on 2x2 through 7x7 cubes, inner and wide move round trips, four quarter-turn identity, non-repeating scramble generation, full scramble reversal, and encoded state/history restoration.
 - `TimerFormattingTest` covers zero, sub-minute and minute-plus stopwatch formatting.
 - Android Compose flow tests were updated for the new Home and focused manual-entry labels and compile against the redesigned navigation.
 - `lintDebug` and the dual-ABI debug APK build pass. A connected physical device or accelerated emulator is still required for camera, touch-layout and screenshot acceptance tests.

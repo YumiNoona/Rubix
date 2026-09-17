@@ -1,91 +1,149 @@
 package com.cubeguide.ui
 
 import android.os.SystemClock
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cubeguide.play.virtualScramble
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
+
+private enum class TimerReadyState { IDLE, HOLDING, READY }
 
 @Composable
 internal fun TimerScreen() {
     val preferences = LocalAppPreferences.current
     val feedback = rememberTouchFeedback()
-    val size = preferences.puzzleSize
     var start by rememberSaveable { mutableStateOf<Long?>(null) }
     var elapsed by rememberSaveable { mutableLongStateOf(0L) }
     var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
     var scrambleKey by rememberSaveable { mutableIntStateOf(0) }
-    val scramble = remember(size, scrambleKey) {
-        virtualScramble(size, if (size == 2) 9 else 20).joinToString(" ") { it.notation }
+    var readyState by remember { mutableStateOf(TimerReadyState.IDLE) }
+    val scramble = remember(scrambleKey) {
+        virtualScramble(3, 20).joinToString(" ") { it.notation }
     }
+    val records = preferences.timerRecords()
+
     LaunchedEffect(start) {
         while (start != null) {
             now = SystemClock.elapsedRealtime()
-            delay(31)
+            delay(16)
         }
     }
-    val display = elapsed + (start?.let { now - it } ?: 0L)
-    val records = preferences.timerRecords(size)
 
-    fun toggle() {
+    val display = elapsed + (start?.let { now - it } ?: 0L)
+
+    fun stopTimer() {
+        val started = start ?: return
+        elapsed += SystemClock.elapsedRealtime() - started
+        start = null
+        readyState = TimerReadyState.IDLE
+        preferences.addTimerRecord(elapsed)
         feedback()
-        if (start == null) {
-            elapsed = 0
-            now = SystemClock.elapsedRealtime()
-            start = now
-        } else {
-            elapsed += SystemClock.elapsedRealtime() - start!!
-            start = null
-            preferences.addTimerRecord(size, elapsed)
-        }
+    }
+
+    fun startTimer() {
+        elapsed = 0L
+        now = SystemClock.elapsedRealtime()
+        start = now
+        readyState = TimerReadyState.IDLE
+        feedback()
     }
 
     Column(Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                if (start == null) "Tap the timer to start" else "Tap anywhere below to stop",
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-            )
-            if (start == null) PuzzleSizeMenu(size, preferences::updatePuzzleSize)
-            else Text("${size}×${size}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-        }
+        Text(
+            if (start == null) "Hold until green, then release" else "Tap the timer to stop",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyLarge,
+        )
         Spacer(Modifier.height(14.dp))
         Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
-            Text(
-                scramble,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 2,
-            )
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("3×3 scramble", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.weight(1f))
+                    Icon(Icons.Rounded.Shuffle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                }
+                Spacer(Modifier.height(7.dp))
+                Text(
+                    scramble,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 2,
+                )
+            }
         }
         Spacer(Modifier.height(14.dp))
+        val timerColor = when {
+            start != null -> MaterialTheme.colorScheme.primaryContainer
+            readyState == TimerReadyState.READY -> Color(0xFF174F3A)
+            readyState == TimerReadyState.HOLDING -> Color(0xFF523B13)
+            else -> MaterialTheme.colorScheme.surfaceContainerHighest
+        }
         Surface(
-            onClick = ::toggle,
-            shape = RoundedCornerShape(24.dp),
-            color = if (start == null) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            shape = RoundedCornerShape(28.dp),
+            color = timerColor,
+            modifier = Modifier.fillMaxWidth().weight(1f).pointerInput(start) {
+                detectTapGestures(
+                    onPress = {
+                        if (start != null) {
+                            stopTimer()
+                            tryAwaitRelease()
+                        } else {
+                            readyState = TimerReadyState.HOLDING
+                            coroutineScope {
+                                val arm = launch {
+                                    delay(550)
+                                    readyState = TimerReadyState.READY
+                                    feedback()
+                                }
+                                val released = tryAwaitRelease()
+                                arm.cancel()
+                                if (released && readyState == TimerReadyState.READY) startTimer()
+                                else readyState = TimerReadyState.IDLE
+                            }
+                        }
+                    },
+                )
+            },
         ) {
             BoxWithConstraints(contentAlignment = Alignment.Center) {
-                Text(
-                    formatTime(display),
-                    fontSize = if (maxWidth < 340.dp) 46.sp else 56.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    softWrap = false,
-                    color = if (start == null) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary,
-                )
+                val timerFontSize = if (this.maxWidth < 340.dp) 46.sp else 58.sp
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        formatTime(display),
+                        fontSize = timerFontSize,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    Text(
+                        when {
+                            start != null -> "RUNNING"
+                            readyState == TimerReadyState.READY -> "RELEASE"
+                            readyState == TimerReadyState.HOLDING -> "KEEP HOLDING"
+                            else -> "HOLD TO READY"
+                        },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -94,11 +152,35 @@ internal fun TimerScreen() {
             StatCard("Best", records.minOrNull()?.let(::formatTime) ?: "—", Modifier.weight(1f))
             StatCard("Avg 5", records.take(5).takeIf { it.size == 5 }?.average()?.toLong()?.let(::formatTime) ?: "—", Modifier.weight(1f))
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = { feedback(); scrambleKey++ }, enabled = start == null) { Text("New scramble", maxLines = 1) }
-            TextButton(onClick = { feedback(); elapsed = 0; start = null }, enabled = start == null && elapsed > 0) { Text("Reset", maxLines = 1) }
+        Spacer(Modifier.height(10.dp))
+        TimerActions(
+            canScramble = start == null,
+            canReset = start == null && elapsed > 0,
+            onScramble = { feedback(); scrambleKey++ },
+            onReset = { feedback(); elapsed = 0; readyState = TimerReadyState.IDLE },
+        )
+        Spacer(Modifier.height(10.dp))
+    }
+}
+
+@Composable
+private fun TimerActions(canScramble:Boolean,canReset:Boolean,onScramble:()->Unit,onReset:()->Unit) {
+    @Composable fun Scramble(modifier:Modifier) {
+        Button(onClick=onScramble,enabled=canScramble,modifier=modifier.height(52.dp),shape=RoundedCornerShape(16.dp),contentPadding=PaddingValues(horizontal=10.dp)) {
+            Icon(Icons.Rounded.Shuffle,null,Modifier.size(20.dp));Spacer(Modifier.width(7.dp));Text("New scramble",maxLines=1)
         }
-        Spacer(Modifier.height(6.dp))
+    }
+    @Composable fun Reset(modifier:Modifier) {
+        OutlinedButton(onClick=onReset,enabled=canReset,modifier=modifier.height(52.dp),shape=RoundedCornerShape(16.dp),contentPadding=PaddingValues(horizontal=10.dp)) {
+            Icon(Icons.Rounded.RestartAlt,null,Modifier.size(20.dp));Spacer(Modifier.width(7.dp));Text("Reset timer",maxLines=1)
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if(maxWidth<390.dp) Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Scramble(Modifier.fillMaxWidth());Reset(Modifier.fillMaxWidth())
+        } else Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+            Scramble(Modifier.weight(1f));Reset(Modifier.weight(1f))
+        }
     }
 }
 

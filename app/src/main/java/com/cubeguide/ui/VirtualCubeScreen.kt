@@ -1,21 +1,34 @@
 package com.cubeguide.ui
 
+import android.os.SystemClock
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Redo
+import androidx.compose.material.icons.automirrored.rounded.RotateLeft
+import androidx.compose.material.icons.automirrored.rounded.RotateRight
+import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.Face
@@ -25,12 +38,7 @@ import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.VirtualMove
 import com.cubeguide.play.virtualScramble
 import com.cubeguide.rendering.CubeView
-
-private enum class PlaygroundMode(val label: String) {
-    FREE("Free play"),
-    CHALLENGE("Challenge"),
-    ASSIST("Solve"),
-}
+import kotlinx.coroutines.delay
 
 private data class PendingTurn(val move: VirtualMove, val result: VirtualCube)
 
@@ -40,6 +48,11 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
     val feedback = rememberTouchFeedback()
     val lessonTitle = vm.virtualLessonTitle
     val lessonScramble = vm.virtualLessonScramble
+    val mode = vm.virtualMode
+    if (mode == null) {
+        VirtualCubeHub(preferences.puzzleSize, preferences::updatePuzzleSize, vm::selectVirtualMode)
+        return
+    }
     val size = if (lessonTitle != null) 3 else preferences.puzzleSize
     val cubeSaver = remember(size) {
         Saver<VirtualCube, String>(
@@ -51,7 +64,6 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
         val start = Move.parse(lessonScramble).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
         mutableStateOf(start)
     }
-    var mode by rememberSaveable { mutableStateOf(if (lessonTitle == null) PlaygroundMode.FREE else PlaygroundMode.ASSIST) }
     var selectedFace by rememberSaveable { mutableStateOf(Face.R) }
     var layerDepth by rememberSaveable(size) { mutableIntStateOf(0) }
     var wideTurn by rememberSaveable(size) { mutableStateOf(false) }
@@ -59,6 +71,18 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
     var replay by remember { mutableIntStateOf(0) }
     var redo by remember(size) { mutableStateOf<List<VirtualMove>>(emptyList()) }
     var hintVisible by rememberSaveable { mutableStateOf(false) }
+    var challengeStart by rememberSaveable(size, mode) { mutableStateOf<Long?>(null) }
+    var challengeElapsed by rememberSaveable(size, mode) { mutableLongStateOf(0L) }
+    var challengeNow by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+    var challengeMoves by rememberSaveable(size, mode) { mutableIntStateOf(0) }
+    var challengeHints by rememberSaveable(size, mode) { mutableIntStateOf(0) }
+
+    LaunchedEffect(challengeStart) {
+        while (challengeStart != null) {
+            challengeNow = SystemClock.elapsedRealtime()
+            delay(31)
+        }
+    }
 
     fun begin(move: VirtualMove, result: VirtualCube) {
         if (pending != null) return
@@ -89,22 +113,15 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 }
             }
             Spacer(Modifier.height(8.dp))
-        } else {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                PlaygroundMode.entries.forEachIndexed { index, item ->
-                    SegmentedButton(
-                        selected = mode == item,
-                        onClick = { feedback(); mode = item; hintVisible = false },
-                        shape = SegmentedButtonDefaults.itemShape(index, PlaygroundMode.entries.size),
-                    ) { Text(item.label, maxLines = 1) }
-                }
-            }
-            Spacer(Modifier.height(8.dp))
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 when {
+                    mode == VirtualMode.CHALLENGE && challengeStart != null ->
+                        "${formatTime(challengeNow - challengeStart!!)}  ·  $challengeMoves moves"
+                    mode == VirtualMode.CHALLENGE && challengeElapsed > 0L ->
+                        "${formatTime(challengeElapsed)}  ·  $challengeMoves moves  ·  $challengeHints hints"
                     cube.solved -> "Solved · drag to inspect"
                     pending != null -> "Turning ${pending!!.move.notation}"
                     else -> "${cube.history.size} moves · drag to inspect"
@@ -122,6 +139,10 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 pending?.let {
                     cube = it.result
                     pending = null
+                    if (mode == VirtualMode.CHALLENGE && it.result.solved && challengeStart != null) {
+                        challengeElapsed = SystemClock.elapsedRealtime() - challengeStart!!
+                        challengeStart = null
+                    }
                     feedback()
                 }
             }
@@ -172,6 +193,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             onClick = {
                                 begin(hint, cube.apply(hint, record = false).withoutLastHistory())
                                 redo = emptyList()
+                                if (mode == VirtualMode.CHALLENGE) challengeHints++
                             },
                         ) { Text("Apply hint") }
                     }
@@ -213,20 +235,20 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
-                        onClick = { val move = selectedMove(3); begin(move, cube.apply(move)); redo = emptyList() },
+                        onClick = { val move = selectedMove(3); begin(move, cube.apply(move)); redo = emptyList();if(mode==VirtualMode.CHALLENGE && challengeStart!=null) challengeMoves++ },
                         enabled = pending == null,
                         modifier = Modifier.weight(1f),
-                    ) { Text("↶ 90°") }
+                    ) { Icon(Icons.AutoMirrored.Rounded.RotateLeft, null, Modifier.size(20.dp));Spacer(Modifier.width(5.dp));Text("90°",maxLines=1) }
                     OutlinedButton(
-                        onClick = { val move = selectedMove(2); begin(move, cube.apply(move)); redo = emptyList() },
+                        onClick = { val move = selectedMove(2); begin(move, cube.apply(move)); redo = emptyList();if(mode==VirtualMode.CHALLENGE && challengeStart!=null) challengeMoves++ },
                         enabled = pending == null,
                         modifier = Modifier.weight(1f),
-                    ) { Text("180°") }
+                    ) { Text("180°",maxLines=1) }
                     Button(
-                        onClick = { val move = selectedMove(1); begin(move, cube.apply(move)); redo = emptyList() },
+                        onClick = { val move = selectedMove(1); begin(move, cube.apply(move)); redo = emptyList();if(mode==VirtualMode.CHALLENGE && challengeStart!=null) challengeMoves++ },
                         enabled = pending == null,
                         modifier = Modifier.weight(1f),
-                    ) { Text("90° ↷") }
+                    ) { Text("90°",maxLines=1);Spacer(Modifier.width(5.dp));Icon(Icons.AutoMirrored.Rounded.RotateRight,null,Modifier.size(20.dp)) }
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -238,11 +260,17 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             feedback()
                             cube = virtualScramble(size).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
                             redo = emptyList()
-                            hintVisible = mode != PlaygroundMode.FREE
+                            hintVisible = mode != VirtualMode.FREE
+                            if(mode==VirtualMode.CHALLENGE) {
+                                challengeMoves=0;challengeHints=0;challengeElapsed=0L
+                                challengeNow=SystemClock.elapsedRealtime();challengeStart=challengeNow
+                            }
                         },
                     ) {
+                        Icon(Icons.Rounded.Shuffle, null, Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text(
-                            if (mode == PlaygroundMode.CHALLENGE) "New challenge" else "Scramble cube",
+                            if (mode == VirtualMode.CHALLENGE) "New challenge" else "Scramble cube",
                             maxLines = 1,
                         )
                     }
@@ -257,7 +285,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             redo = redo + last
                             begin(last.inverse(), cube.apply(last.inverse(), record = false).withoutLastHistory())
                         },
-                    ) { Text("Undo", maxLines = 1) }
+                    ) { Icon(Icons.AutoMirrored.Rounded.Undo,null,Modifier.size(19.dp));Spacer(Modifier.width(5.dp));Text("Undo", maxLines = 1) }
                     OutlinedButton(
                         enabled = pending == null && redo.isNotEmpty(),
                         modifier = Modifier.weight(1f),
@@ -267,26 +295,89 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             redo = redo.dropLast(1)
                             begin(move, cube.apply(move))
                         },
-                    ) { Text("Redo", maxLines = 1) }
-                    if (mode != PlaygroundMode.FREE) {
+                    ) { Icon(Icons.AutoMirrored.Rounded.Redo,null,Modifier.size(19.dp));Spacer(Modifier.width(5.dp));Text("Redo", maxLines = 1) }
+                    if (mode != VirtualMode.FREE) {
                         OutlinedButton(
                             enabled = pending == null && cube.history.isNotEmpty(),
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 8.dp),
                             onClick = { hintVisible = !hintVisible; feedback() },
-                        ) { Text("Hint", maxLines = 1) }
+                        ) { Icon(Icons.Rounded.Lightbulb,null,Modifier.size(19.dp));Spacer(Modifier.width(5.dp));Text("Hint", maxLines = 1) }
                     } else {
                         OutlinedButton(
                             enabled = pending == null && !cube.solved,
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 8.dp),
                             onClick = { feedback(); cube = cube.reset(); redo = emptyList() },
-                        ) { Text("Reset", maxLines = 1) }
+                        ) { Icon(Icons.Rounded.RestartAlt,null,Modifier.size(19.dp));Spacer(Modifier.width(5.dp));Text("Reset", maxLines = 1) }
                     }
                 }
             }
         }
         Spacer(Modifier.height(10.dp))
+    }
+}
+
+@Composable
+private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMode) -> Unit) {
+    val feedback = rememberTouchFeedback()
+    val preview = remember {
+        Move.parse("R U2 F' L D R2").fold(CubeState.solved()) { cube, move -> cube.apply(move) }
+    }
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Choose how to play", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("No physical cube needed", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            PuzzleSizeMenu(size, onSize)
+        }
+        CubeView(preview, Modifier.fillMaxWidth().height(205.dp), showInitials = false)
+        VirtualModeCard(
+            Icons.Rounded.TouchApp,
+            "Free play",
+            "Turn any face, experiment and undo moves.",
+        ) { feedback(); onMode(VirtualMode.FREE) }
+        Spacer(Modifier.height(10.dp))
+        VirtualModeCard(
+            Icons.Rounded.Timer,
+            "Challenge",
+            "Race an automatic scramble with time and move tracking.",
+        ) { feedback(); onMode(VirtualMode.CHALLENGE) }
+        Spacer(Modifier.height(10.dp))
+        VirtualModeCard(
+            Icons.Rounded.Lightbulb,
+            "Guided solve",
+            "Preview one correct move at a time and solve along.",
+        ) { feedback(); onMode(VirtualMode.GUIDED) }
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun VirtualModeCard(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 86.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(shape = RoundedCornerShape(15.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                Box(Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(27.dp))
+                }
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+            }
+            Icon(Icons.Rounded.ChevronRight, "Open", tint = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 

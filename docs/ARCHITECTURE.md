@@ -87,7 +87,7 @@ Color sampling uses the 90th-percentile saturation to detect chromatic stickers 
 
 The Compose shell separates Home, Play, Timer and Learn into saved destinations with a shared compact navigation bar. Solver screens remain a linear capture-review-setup-guide flow, so utility navigation cannot accidentally mutate an active solve. Settings uses a full-width sheet, and manual entry keeps its solve action visible while the cube and editor scroll on short displays.
 
-`app/play/VirtualCube` reuses the core integer sticker geometry for outer-layer moves on 2x2 through 7x7 cubes. It has no second cube rules engine. A compact encoded sticker/history value restores the playground after navigation or activity recreation. Tests verify every face and inverse, four-turn identity, scramble reversal and serialization for all supported sizes. The Canvas renderer projects sticker planes with perspective, depth sorting, highlights, a soft backdrop and drag-controlled yaw/pitch.
+`app/play/VirtualCube` reuses the core integer sticker geometry for outer, inner and wide moves on 2x2 through 7x7 cubes. It has no second cube rules engine. A compact encoded sticker/history value restores the playground after navigation or activity recreation. Tests verify outer, inner and wide inverses, four-turn identity, scramble reversal and serialization. The 3x3 uses the solver's proven solid renderer; the generalized Canvas renderer constructs solid cubies for every other size.
 
 Timer results, selected puzzle size and completed lessons live in `AppPreferences`.
 
@@ -99,7 +99,7 @@ The scanner now dispatches by `PuzzleSpec`: square detectors sample 2x2, 3x3 or 
 
 ## Focused navigation and autoplay (2.1.0)
 
-Only Home, Practice, Learn and Progress are root destinations and receive bottom navigation. Virtual cube, timer, scanning, review, analysis, setup and guidance are detail flows with one toolbar. This prevents a screen from combining a root title, detail title, back action and duplicate destination card.
+Only Home, Practice and Learn are root destinations and receive bottom navigation. Virtual cube, timer, scanning, review, analysis, setup and guidance are detail flows with one toolbar. Stored Progress and Puzzle Library routes migrate safely to Home or Practice.
 
 Virtual-cube visibility uses each face's transformed outward normal against the camera vector. The renderer draws a dark backing plane just behind each sticker grid, then depth-sorts only the three visible faces. This avoids winding-dependent culling and closes the gaps that previously exposed stickers from the opposite side.
 

@@ -10,7 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, PRACTICE, LEARN, PROGRESS, VIRTUAL, TIMER, PUZZLES, SCAN_PICKER, PUZZLE_SOLVE, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
+enum class Screen { HOME, PRACTICE, LEARN, VIRTUAL, TIMER, SCAN_PICKER, SCAN_PREPARE, PUZZLE_SOLVE, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
+enum class VirtualMode(val title:String) { FREE("Free play"), CHALLENGE("Challenge"), GUIDED("Guided solve") }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var activePuzzle by mutableStateOf(PuzzleId.fromStorage(saved.get<String>("activePuzzle")));private set
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
@@ -19,7 +20,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var canUndoEdit by mutableStateOf(false); private set
  var canRedoEdit by mutableStateOf(false); private set
  var editorFace by mutableIntStateOf(saved.get<Int>("editorFace")?.coerceIn(0,5) ?: Face.U.ordinal); private set
- var screen by mutableStateOf(Screen.valueOf(saved.get<String>("screen") ?: "HOME")); private set
+ var screen by mutableStateOf(restoreScreen(saved.get<String>("screen"))); private set
  var cube by mutableStateOf(decode(saved["cube"]) ?: CubeState.solved()); private set
  var initial by mutableStateOf(decode(saved["initial"]) ?: cube); private set
  var moves by mutableStateOf(Move.parse(saved.get<String>("moves") ?: "")); private set
@@ -40,6 +41,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  val capturedFaces: Set<Face> get()=captures.keys.toSet()
  var virtualLessonTitle by mutableStateOf<String?>(saved.get<String>("virtualLessonTitle")); private set
  var virtualLessonScramble by mutableStateOf(saved.get<String>("virtualLessonScramble") ?: ""); private set
+ var virtualMode by mutableStateOf(saved.get<String>("virtualMode")?.let { runCatching { VirtualMode.valueOf(it) }.getOrNull() }); private set
  private val stability=Stability()
  private var rescanFace: Face?=null
  private var beforeRescan: CubeState?=null
@@ -48,8 +50,8 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  init { if(screen==Screen.CORRECT) { correctionOriginal=decode(saved["correctionOriginal"]) ?: cube };if(screen==Screen.EDIT && editOriginal==null) screen=Screen.REVIEW;if(screen in setOf(Screen.SCAN,Screen.PUZZLE_SOLVE)) screen=Screen.SCAN_PICKER;if(screen==Screen.ANALYZING) screen=Screen.REVIEW;if(step !in 0..moves.size) { screen=Screen.HOME;step=0 } }
  val pose get()=scanSequence[scanIndex.coerceAtMost(5)]
  private fun decode(text: String?): CubeState? = runCatching { text?.let { CubeState(it.map { c -> CubeColor.entries[c.digitToInt()] }) } }.getOrNull()
- private fun save() { saved["activePuzzle"]=activePuzzle.storageId;saved["lowConfidence"]=lowConfidence.toIntArray();saved["manualEntry"]=manualEntry;saved["screen"]=screen.name;saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() };saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() };saved["moves"]=moves.joinToString(" ") { it.notation };saved["step"]=step;saved["replay"]=isReplay;saved["startingFace"]=startingFace.ordinal;saved["editorFace"]=editorFace;saved["virtualLessonTitle"]=virtualLessonTitle;saved["virtualLessonScramble"]=virtualLessonScramble;editOriginal?.let { original -> saved["editOriginal"]=original.stickers.joinToString("") { it.ordinal.toString() } } ?: saved.remove<String>("editOriginal") }
- fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.PROGRESS,Screen.VIRTUAL,Screen.TIMER,Screen.PUZZLES));solvingGeneration++;busy=false;if(screen==Screen.VIRTUAL){virtualLessonTitle=null;virtualLessonScramble=""};this.screen=screen;save() }
+ private fun save() { saved["activePuzzle"]=activePuzzle.storageId;saved["lowConfidence"]=lowConfidence.toIntArray();saved["manualEntry"]=manualEntry;saved["screen"]=screen.name;saved["cube"]=cube.stickers.joinToString("") { it.ordinal.toString() };saved["initial"]=initial.stickers.joinToString("") { it.ordinal.toString() };saved["moves"]=moves.joinToString(" ") { it.notation };saved["step"]=step;saved["replay"]=isReplay;saved["startingFace"]=startingFace.ordinal;saved["editorFace"]=editorFace;saved["virtualLessonTitle"]=virtualLessonTitle;saved["virtualLessonScramble"]=virtualLessonScramble;virtualMode?.let { saved["virtualMode"]=it.name } ?: saved.remove<String>("virtualMode");editOriginal?.let { original -> saved["editOriginal"]=original.stickers.joinToString("") { it.ordinal.toString() } } ?: saved.remove<String>("editOriginal") }
+ fun open(screen: Screen) { require(screen in listOf(Screen.HOME,Screen.PRACTICE,Screen.LEARN,Screen.VIRTUAL,Screen.TIMER));solvingGeneration++;busy=false;if(screen==Screen.VIRTUAL){virtualLessonTitle=null;virtualLessonScramble="";virtualMode=null};this.screen=screen;save() }
  fun openScanPicker() { solvingGeneration++;busy=false;screen=Screen.SCAN_PICKER;save() }
  fun leaveScan() {
   solvingGeneration++;busy=false;stability.reset();progress=0f;corners=emptyList();message=""
@@ -62,11 +64,12 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  }
  fun scanPuzzle(puzzleId: PuzzleId) {
   when(puzzleId) {
-   PuzzleId.THREE_BY_THREE -> scan()
+   PuzzleId.THREE_BY_THREE -> { activePuzzle=puzzleId;screen=Screen.SCAN_PREPARE;save() }
    PuzzleId.TWO_BY_TWO,PuzzleId.PYRAMINX,PuzzleId.FOUR_BY_FOUR -> { activePuzzle=puzzleId;multiSession=MultiPuzzleSession(puzzleId);screen=Screen.PUZZLE_SOLVE;save() }
    else -> error("${PuzzleRegistry.get(puzzleId).name} scanning is not verified yet.")
   }
  }
+ fun startThreeByThreeScan() { if(screen==Screen.SCAN_PREPARE) scan() }
  fun puzzleSession():MultiPuzzleSession=multiSession?.takeIf { it.puzzle==activePuzzle } ?: MultiPuzzleSession(activePuzzle).also { multiSession=it }
  fun handlePuzzleBack() {
   val session=puzzleSession()
@@ -80,7 +83,9 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   }
  }
  fun closePuzzleSolve() { multiSession=null;screen=Screen.SCAN_PICKER;save() }
- fun startLessonPractice(title:String,scramble:String) { virtualLessonTitle=title;virtualLessonScramble=scramble;screen=Screen.VIRTUAL;save() }
+ fun startLessonPractice(title:String,scramble:String) { virtualLessonTitle=title;virtualLessonScramble=scramble;virtualMode=VirtualMode.GUIDED;screen=Screen.VIRTUAL;save() }
+ fun selectVirtualMode(mode:VirtualMode) { if(screen==Screen.VIRTUAL) { virtualMode=mode;save() } }
+ fun closeVirtualMode() { if(screen==Screen.VIRTUAL) { virtualLessonTitle=null;virtualLessonScramble="";virtualMode=null;save() } }
  fun dismissSolveError() { solveError=null }
  fun home() { solveError=null; solvingGeneration++; busy=false; screen=Screen.HOME; save() }
  fun returnToReview() { solvingGeneration++;busy=false;solveError=null;screen=Screen.REVIEW;save() }
@@ -237,4 +242,12 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  }
  fun viewSolution() { isReplay=true; cube=initial; step=0; screen=if(moves.isEmpty()) Screen.DONE else Screen.GUIDE; save() }
  fun demo() { manualEntry=false; cube=CubeState.solved().apply(Move.parse("R U R' U' F2 L D2 B R2 U")); lowConfidence=emptySet(); screen=Screen.REVIEW; message="Practice cube. Try the guide before scanning your own."; save() }
+
+ companion object {
+  private fun restoreScreen(value:String?):Screen = when(value) {
+   "PROGRESS" -> Screen.HOME
+   "PUZZLES" -> Screen.PRACTICE
+   else -> runCatching { Screen.valueOf(value ?: "HOME") }.getOrDefault(Screen.HOME)
+  }
+ }
 }

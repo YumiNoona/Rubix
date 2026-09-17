@@ -105,12 +105,18 @@ class ScanAndGuideTest {
   restored.open(Screen.PRACTICE);restored.open(Screen.VIRTUAL)
   assertNull(restored.virtualLessonTitle)
  }
+ @Test fun removedRootDestinationsRestoreSafely() {
+  assertEquals(Screen.HOME,CubeViewModel(SavedStateHandle(mapOf("screen" to "PROGRESS"))).screen)
+  assertEquals(Screen.PRACTICE,CubeViewModel(SavedStateHandle(mapOf("screen" to "PUZZLES"))).screen)
+ }
  @Test fun scanPickerPersistsAndDispatchesVerifiedThreeByThreeScanner() {
   val saved=SavedStateHandle();val vm=CubeViewModel(saved)
   vm.openScanPicker()
   assertEquals(Screen.SCAN_PICKER,vm.screen)
   assertEquals(Screen.SCAN_PICKER,CubeViewModel(saved).screen)
   vm.scanPuzzle(PuzzleId.THREE_BY_THREE)
+  assertEquals(Screen.SCAN_PREPARE,vm.screen)
+  vm.startThreeByThreeScan()
   assertEquals(Screen.SCAN,vm.screen)
   vm.openScanPicker();vm.scanPuzzle(PuzzleId.TWO_BY_TWO)
   assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.TWO_BY_TWO,vm.activePuzzle)
@@ -121,7 +127,7 @@ class ScanAndGuideTest {
  }
  @Test fun scanBackReturnsToItsActualParentWithoutLosingReviewedCube() {
   val vm=CubeViewModel(SavedStateHandle())
-  vm.openScanPicker();vm.scanPuzzle(PuzzleId.THREE_BY_THREE);vm.leaveScan()
+  vm.openScanPicker();vm.scanPuzzle(PuzzleId.THREE_BY_THREE);vm.startThreeByThreeScan();vm.leaveScan()
   assertEquals(Screen.SCAN_PICKER,vm.screen)
 
   vm.scan()

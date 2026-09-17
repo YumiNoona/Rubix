@@ -15,9 +15,10 @@ class AppPreferences(context: Context) {
  var puzzleSize by mutableIntStateOf(storage.getInt("puzzleSize",3).coerceIn(2,7)); private set
  var puzzleId by mutableStateOf(com.cubeguide.core.PuzzleId.fromStorage(storage.getString("puzzleId",null))); private set
  var completedLessons by mutableStateOf(storage.getStringSet("completedLessons",emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()); private set
- private var timerRecordsBySize by mutableStateOf((2..7).associateWith { size ->
-  storage.getString("timerRecords_$size",if(size==3) storage.getString("timerRecords","") else "")!!.split(",").mapNotNull { it.toLongOrNull() }.take(20)
- })
+ private var savedTimerRecords by mutableStateOf(
+  storage.getString("timerRecords_3",storage.getString("timerRecords",""))!!
+   .split(",").mapNotNull { it.toLongOrNull() }.take(20)
+ )
  var animationMillis by mutableIntStateOf(storage.getInt("animationMillis",1300)); private set
  var guideDelayMillis by mutableIntStateOf(storage.getInt("guideDelayMillis",1600).coerceIn(1000,2000)); private set
  private val colors=mutableStateMapOf<com.cubeguide.core.CubeColor,Int>().apply {
@@ -34,9 +35,9 @@ class AppPreferences(context: Context) {
   storage.edit().putString("puzzleId",value.storageId).putInt("puzzleSize",puzzleSize).apply()
  }
  fun completeLesson(index: Int) { completedLessons=completedLessons+index;storage.edit().putStringSet("completedLessons",completedLessons.map { it.toString() }.toSet()).apply() }
- fun timerRecords(size: Int): List<Long> = timerRecordsBySize[size].orEmpty()
- fun addTimerRecord(size: Int,milliseconds: Long) { if(milliseconds<100) return;val records=(listOf(milliseconds)+timerRecords(size)).take(20);timerRecordsBySize=timerRecordsBySize+(size to records);storage.edit().putString("timerRecords_$size",records.joinToString(",")).apply() }
- fun clearTimerRecords(size: Int) { timerRecordsBySize=timerRecordsBySize+(size to emptyList());storage.edit().remove("timerRecords_$size").apply() }
+ fun timerRecords(): List<Long> = savedTimerRecords
+ fun addTimerRecord(milliseconds: Long) { if(milliseconds<100) return;savedTimerRecords=(listOf(milliseconds)+savedTimerRecords).take(20);storage.edit().putString("timerRecords_3",savedTimerRecords.joinToString(",")).apply() }
+ fun clearTimerRecords() { savedTimerRecords=emptyList();storage.edit().remove("timerRecords_3").remove("timerRecords").apply() }
  fun updateSound(value: Boolean) { sound=value; storage.edit().putBoolean("sound",value).apply() }
  fun updateKeepAwake(value: Boolean) { keepAwake=value; storage.edit().putBoolean("keepAwake",value).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }

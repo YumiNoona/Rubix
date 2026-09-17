@@ -1,3 +1,11 @@
+# 3.0.0
+
+- Reduced the app shell to Home, Practice and Learn; removed the Progress screen and standalone Puzzle Library route with safe restoration for older saved navigation.
+- Added a dedicated white-up, green-front 3x3 scan preparation screen before camera permission and capture.
+- Rebuilt Virtual Cube around a size-aware mode hub for Free play, Challenge and Guided solve, including mode-aware Back behavior and challenge time, move and hint tracking.
+- Rebuilt Cube Timer as a focused hold-to-ready 3x3 timer with full-width responsive scramble/reset controls and preserved 3x3 records.
+- Introduced a logo-derived navy, blue and amber UI palette, directional screen transitions, and the supplied Rubix artwork as legacy, round, adaptive and splash icon assets.
+
 # 2.3.0
 
 - Enabled complete scan, gallery, review, focused editing, validation, setup, solve, autoplay guide and completion flows for 2x2, Pyraminx and 4x4.

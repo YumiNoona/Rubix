@@ -7,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-enum class FeatureIcon { HOME, SCAN, CUBE, TIMER, LEARN, STATS, PUZZLES, SETTINGS }
+enum class FeatureIcon { HOME, SCAN, CUBE, TIMER, LEARN, SETTINGS }
 
 @Composable
 internal fun FeatureGlyph(icon: FeatureIcon, modifier: Modifier = Modifier) {
@@ -17,8 +17,6 @@ internal fun FeatureGlyph(icon: FeatureIcon, modifier: Modifier = Modifier) {
         FeatureIcon.CUBE -> Icons.Rounded.ViewInAr
         FeatureIcon.TIMER -> Icons.Rounded.Timer
         FeatureIcon.LEARN -> Icons.Rounded.School
-        FeatureIcon.STATS -> Icons.Rounded.BarChart
-        FeatureIcon.PUZZLES -> Icons.Rounded.GridView
         FeatureIcon.SETTINGS -> Icons.Rounded.Settings
     }
     Icon(vector, contentDescription = null, modifier = modifier, tint = MaterialTheme.colorScheme.primary)
