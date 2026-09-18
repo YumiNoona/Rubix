@@ -8,10 +8,9 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.cubeguide.core.*
 import com.cubeguide.rendering.CubeView
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun Guide(vm: CubeViewModel,onBack:()->Unit) {
  val feedback=rememberTouchFeedback()
  val preferences=LocalAppPreferences.current
@@ -57,18 +57,8 @@ import com.cubeguide.rendering.CubeView
     Text("${vm.step+1} of ${vm.moves.size}",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f),textAlign=TextAlign.Center)
     Row(verticalAlignment=Alignment.CenterVertically) {
      IconButton(onClick={feedback();autoPlay=!autoPlay}) { Icon(if(autoPlay) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(autoPlay) "Pause autoplay" else "Start autoplay") }
-    Box {
      IconButton(onClick={autoPlay=false;menu=true}) { Icon(Icons.Rounded.MoreVert,"More options") }
-     DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
-      DropdownMenuItem(text={Text("Replay animation")},onClick={menu=false;replay++})
-      DropdownMenuItem(text={Text("Reset cube view")},onClick={menu=false;viewReset++})
-      DropdownMenuItem(text={Text("Settings")},onClick={menu=false;settings=true})
-      if(!vm.isReplay) DropdownMenuItem(text={Text("Correct cube colors")},onClick={menu=false;vm.beginCorrection()},enabled=!vm.busy)
-      DropdownMenuItem(text={Text("How to hold the cube")},onClick={menu=false;holdHelp=true})
-      DropdownMenuItem(text={Text("Restart guide")},onClick={menu=false;if(vm.isReplay) vm.restart() else restart=true})
-      if(!vm.isReplay) DropdownMenuItem(text={Text("I made a mistake")},onClick={menu=false;recovery="kind"},enabled=!vm.busy)
-     }
-    } }
+    }
    }
    LinearProgressIndicator(progress={((vm.step+animationProgress)/vm.moves.size).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth(),color=MaterialTheme.colorScheme.primary,trackColor=MaterialTheme.colorScheme.surfaceContainerHighest)
    if(autoPlay && animationProgress>=0.99f) LinearProgressIndicator(progress={autoAdvance.value},modifier=Modifier.fillMaxWidth().padding(top=4.dp),color=MaterialTheme.colorScheme.secondary,trackColor=MaterialTheme.colorScheme.surface)
@@ -104,6 +94,20 @@ import com.cubeguide.rendering.CubeView
      Button(onClick={feedback();autoPlay=false;vm.next()},enabled=!vm.busy && animationProgress>=0.99f,modifier=Modifier.weight(1f).heightIn(min=54.dp),shape=RoundedCornerShape(17.dp)) { Text("Next",maxLines=1) }
     }
    }
+  }
+ }
+ if(menu) ModalBottomSheet(onDismissRequest={menu=false},shape=RubixTokens.modalShape) {
+  Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
+   Text("Guide tools",style=MaterialTheme.typography.headlineSmall)
+   Spacer(Modifier.height(12.dp))
+   GuideAction(Icons.Rounded.Replay,"Replay move") { menu=false;replay++ }
+   GuideAction(Icons.Rounded.CenterFocusStrong,"Reset cube view") { menu=false;viewReset++ }
+   GuideAction(Icons.Rounded.Tune,"Guide settings") { menu=false;settings=true }
+   GuideAction(Icons.AutoMirrored.Rounded.HelpOutline,"Holding help") { menu=false;holdHelp=true }
+   if(!vm.isReplay) GuideAction(Icons.Rounded.Edit,"Correct colors",!vm.busy) { menu=false;vm.beginCorrection() }
+   if(!vm.isReplay) GuideAction(Icons.Rounded.ReportProblem,"Fix a mistake",!vm.busy) { menu=false;recovery="kind" }
+   GuideAction(Icons.Rounded.RestartAlt,"Restart guide") { menu=false;if(vm.isReplay) vm.restart() else restart=true }
+   Spacer(Modifier.height(16.dp))
   }
  }
  if(settings) DisplaySettings { settings=false }
@@ -143,4 +147,10 @@ import com.cubeguide.rendering.CubeView
    }
   }
  }},confirmButton={TextButton(onClick={recovery=null}) { Text("Cancel") }})
+}
+
+@Composable internal fun GuideAction(icon:androidx.compose.ui.graphics.vector.ImageVector,label:String,enabled:Boolean=true,onClick:()->Unit) {
+ TextButton(onClick=onClick,enabled=enabled,modifier=Modifier.fillMaxWidth().heightIn(min=52.dp),shape=RubixTokens.controlShape) {
+  Icon(icon,null,Modifier.size(22.dp));Spacer(Modifier.width(14.dp));Text(label,modifier=Modifier.weight(1f),textAlign=TextAlign.Start)
+ }
 }

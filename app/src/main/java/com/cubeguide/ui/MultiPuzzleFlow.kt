@@ -55,7 +55,7 @@ import kotlinx.coroutines.*
    else -> onExit()
   }
  }
- Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal=18.dp)) {
+ Column(Modifier.fillMaxSize()) {
   Row(Modifier.fillMaxWidth().height(58.dp),verticalAlignment=Alignment.CenterVertically) {
    IconButton(onClick={feedback();back()},enabled=session.stage!=MultiPuzzleStage.ANALYZING,modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
    Text(stageTitle(session),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f),maxLines=1)
@@ -233,10 +233,11 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.primary)
   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) { PuzzleModel(session,Modifier.fillMaxSize()) }
   Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Hold this position",fontWeight=FontWeight.SemiBold);Text(if(session.puzzle==PuzzleId.PYRAMINX) "Keep one tip pointing up and the first scanned face toward you." else "Keep white on top, green facing you, and red on the right throughout the guide.",color=MaterialTheme.colorScheme.onSurfaceVariant) } }
-  Spacer(Modifier.height(12.dp));Primary("Start solving",onClick=session::startGuide);Spacer(Modifier.height(12.dp))
+  Spacer(Modifier.height(12.dp));Primary("Start guide",onClick=session::startGuide);Spacer(Modifier.height(12.dp))
  }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun PuzzleGuide(session:MultiPuzzleSession) {
  val preferences=LocalAppPreferences.current;val feedback=rememberTouchFeedback();var auto by rememberSaveable { mutableStateOf(true) };var replay by remember { mutableIntStateOf(0) };var progress by remember(session.step) { mutableFloatStateOf(0f) };var menu by remember { mutableStateOf(false) };val notation=session.moves.getOrNull(session.step) ?: return
  val pyrProgress=remember(session.step,replay) { Animatable(0f) }
@@ -244,7 +245,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
  LaunchedEffect(session.step,progress,auto) { if(auto&&progress>=.99f) { delay(preferences.guideDelayMillis.toLong());if(auto&&session.stage==MultiPuzzleStage.GUIDE) { feedback();session.next() } } }
  Column(Modifier.fillMaxSize()) {
   LinearProgressIndicator(progress={((session.step+progress)/session.moves.size).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth())
-  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text(session.instruction(notation),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));IconButton(onClick={feedback();auto=!auto}){Icon(if(auto) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(auto) "Pause autoplay" else "Start autoplay")};Box { IconButton(onClick={auto=false;menu=true}){Icon(Icons.Rounded.MoreVert,"More options")};DropdownMenu(menu,{menu=false}) { DropdownMenuItem({Text("Replay move")},{menu=false;replay++;progress=0f},leadingIcon={Icon(Icons.Rounded.Replay,null)});DropdownMenuItem({Text("Correct current colors")},{menu=false;session.beginEdit()},leadingIcon={Icon(Icons.Rounded.Edit,null)});DropdownMenuItem({Text("Restart guide")},{menu=false;session.restart()},leadingIcon={Icon(Icons.Rounded.RestartAlt,null)}) } } }
+  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Text(session.instruction(notation),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));IconButton(onClick={feedback();auto=!auto}){Icon(if(auto) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(auto) "Pause autoplay" else "Start autoplay")};IconButton(onClick={auto=false;menu=true}){Icon(Icons.Rounded.MoreVert,"More options")} }
   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) {
    when(session.puzzle) {
     PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize(),VirtualMove.from(Move.parse(notation).single()),replay){progress=it}
@@ -255,6 +256,15 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   }
   Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically) { TurnArrow(notation.endsWith("'"),Modifier.size(34.dp));Spacer(Modifier.width(12.dp));Column { Text(notation,style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold);Text(if(notation.contains("w")) "Wide turn: move two layers together." else if(notation.first().isLowerCase()) "Tip only: turn the small point." else "Keep the same holding position.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant) } } }
   Spacer(Modifier.height(10.dp));Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) { OutlinedButton(onClick={feedback();auto=false;session.previous()},enabled=session.step>0,modifier=Modifier.weight(1f).height(54.dp)){Text("Previous")};Button(onClick={feedback();auto=false;session.next()},enabled=progress>=.99f,modifier=Modifier.weight(1f).height(54.dp)){Text("Next")} };Spacer(Modifier.height(12.dp))
+ }
+ if(menu) ModalBottomSheet(onDismissRequest={menu=false},shape=RubixTokens.modalShape) {
+  Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
+   Text("Guide tools",style=MaterialTheme.typography.headlineSmall);Spacer(Modifier.height(12.dp))
+   GuideAction(Icons.Rounded.Replay,"Replay move") { menu=false;replay++;progress=0f }
+   GuideAction(Icons.Rounded.Edit,"Correct colors") { menu=false;session.beginEdit() }
+   GuideAction(Icons.Rounded.RestartAlt,"Restart guide") { menu=false;session.restart() }
+   Spacer(Modifier.height(16.dp))
+  }
  }
 }
 

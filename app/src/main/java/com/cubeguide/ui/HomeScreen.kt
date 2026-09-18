@@ -2,6 +2,10 @@ package com.cubeguide.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +31,11 @@ internal fun Home(vm: CubeViewModel) {
     var previewCube by remember { mutableStateOf(scrambled) }
     var moveIndex by remember { mutableIntStateOf(-1) }
     LaunchedEffect(Unit) {
+        if (preferences.reduceMotion) {
+            previewCube = CubeState.solved()
+            moveIndex = homeSolution.size
+            return@LaunchedEffect
+        }
         delay(500)
         homeSolution.forEachIndexed { index, move ->
             moveIndex = index
@@ -36,42 +45,46 @@ internal fun Home(vm: CubeViewModel) {
         }
         moveIndex = homeSolution.size
     }
-    Column(
-        Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.height(8.dp))
-        Text("Scan. Solve. Learn.", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text(
-            "Your pocket cube companion",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        CubeView(
-            cube = previewCube,
-            modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 190.dp, max = 310.dp)
-                .semantics { contentDescription = "Scrambled Rubix cube solving itself" },
-            move = homeSolution.getOrNull(moveIndex),
-            replay = moveIndex,
-            showInitials = false,
-        )
-        Button(
-            onClick = { feedback(); vm.openScanPicker() },
-            modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(17.dp),
-        ) {
-            FeatureGlyph(FeatureIcon.SCAN, Modifier.size(23.dp))
-            Spacer(Modifier.width(10.dp))
-            Text("Scan my cube", maxLines = 1)
-        }
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        PageIntro("Ready to solve?", subtitle = "Scan a puzzle or enter its colors.")
         Spacer(Modifier.height(10.dp))
-        OutlinedButton(
-            onClick = { feedback(); vm.manual() },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(17.dp),
-        ) { Text("Enter colors manually", maxLines = 1) }
-        TextButton(onClick = { feedback(); vm.demo() }) { Text("Try a guided demo", maxLines = 1) }
-        Spacer(Modifier.height(8.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 210.dp, max = 340.dp),
+            shape = RubixTokens.cardShape,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .65f)),
+        ) {
+            CubeView(
+                cube = previewCube,
+                modifier = Modifier.fillMaxSize().padding(6.dp)
+                    .semantics { contentDescription = "Scrambled cube solving itself" },
+                move = homeSolution.getOrNull(moveIndex),
+                replay = moveIndex,
+                showInitials = false,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        RubixPrimaryButton("Scan puzzle", onClick = vm::openScanPicker, icon = Icons.Rounded.PhotoCamera)
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            OutlinedButton(
+                onClick = { feedback(); vm.manual() },
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RubixTokens.controlShape,
+            ) {
+                Icon(Icons.Rounded.Edit, null, Modifier.size(19.dp))
+                Spacer(Modifier.width(7.dp))
+                Text("Manual")
+            }
+            TextButton(
+                onClick = { feedback(); vm.demo() },
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RubixTokens.controlShape,
+            ) {
+                Icon(Icons.Rounded.PlayCircle, null, Modifier.size(19.dp))
+                Spacer(Modifier.width(7.dp))
+                Text("Demo")
+            }
+        }
     }
 }

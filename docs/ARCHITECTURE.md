@@ -12,6 +12,8 @@
 
 `app/ui/CubeViewModel` owns screen transitions, captures, review, solver dispatch, progress, confirmed digital twin, and saved state. A generation token discards stale solver results after navigation. Solver work runs on Default; camera analysis runs on its executor; UI changes run on the main thread. Guided and read-only replay modes are separate.
 
+`app/ui/RubixDesign` is the visual-system boundary. It defines semantic colors independently from sticker colors, a small spacing/shape vocabulary, shared buttons, introductions and action cards. `CubeApp` owns the stable edge-to-edge shell: detail content and root content animate inside fixed bounds, while the floating Practice–Solve–Learn dock overlays root content without resizing it. Phone overflow actions use modal action sheets rather than popup menus, so opening a menu cannot remeasure or shift the active puzzle.
+
 ## Validation pipeline
 
 Color counts -> unique centers -> explicit 12 edge identities -> explicit 8 cyclic corner identities -> min2phase edge/corner orientations and parity -> solve -> adjacent-face simplification -> apply every solution move independently -> verify solved.

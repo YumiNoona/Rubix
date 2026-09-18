@@ -25,8 +25,7 @@ import com.cubeguide.core.*
  if(body.isNotEmpty()) { Spacer(Modifier.height(12.dp)); Text(body,style=MaterialTheme.typography.bodyLarge,color=MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 @Composable internal fun Primary(text: String,enabled: Boolean=true,onClick: ()->Unit) {
- val feedback=rememberTouchFeedback()
- Button({ feedback(); onClick() },Modifier.fillMaxWidth().heightIn(min=54.dp),enabled=enabled,shape=RoundedCornerShape(17.dp)) { Text(text,style=MaterialTheme.typography.titleMedium,maxLines=1,overflow=TextOverflow.Ellipsis) }
+ RubixPrimaryButton(text=text,onClick=onClick,enabled=enabled)
 }
 @Composable internal fun CubeNet(cube: CubeState,uncertain: Set<Int>,select: (Int)->Unit) {
  val rows=listOf(listOf(null,Face.U,null,null),listOf(Face.L,Face.F,Face.R,Face.B),listOf(null,Face.D,null,null))
@@ -95,7 +94,7 @@ import com.cubeguide.core.*
  val feedback=rememberTouchFeedback()
  var selected by remember { mutableStateOf(CubeColor.YELLOW) }
  val hsv=FloatArray(3).also { android.graphics.Color.colorToHSV(preferences.color(selected),it) }
- ModalBottomSheet(onDismissRequest=onDismiss) {
+ ModalBottomSheet(onDismissRequest=onDismiss,shape=RubixTokens.modalShape) {
   Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=22.dp).navigationBarsPadding()) {
   Row(verticalAlignment=Alignment.CenterVertically) {
    Column(Modifier.weight(1f)) {
@@ -127,6 +126,7 @@ import com.cubeguide.core.*
   SettingsToggle("Haptic feedback",preferences.haptics) { preferences.updateHaptics(it) }
   SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
   SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }
+  SettingsToggle("Reduce motion",preferences.reduceMotion) { preferences.updateReduceMotion(it) }
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Guide animation",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)

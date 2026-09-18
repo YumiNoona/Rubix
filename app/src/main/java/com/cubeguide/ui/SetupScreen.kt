@@ -4,6 +4,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,8 +23,8 @@ import com.cubeguide.rendering.CubeView
   Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
     Column(Modifier.weight(1f)) {
-     Text("Solution ready",style=MaterialTheme.typography.headlineSmall)
-     Text("Match the centers before autoplay begins.",color=MaterialTheme.colorScheme.onSurfaceVariant)
+     Text("Match this position",style=MaterialTheme.typography.headlineSmall)
+     Text("Then keep holding it this way.",color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
     Surface(shape=RoundedCornerShape(14.dp),color=MaterialTheme.colorScheme.primaryContainer) {
      Text("${vm.moves.size} moves",Modifier.padding(horizontal=12.dp,vertical=8.dp),color=MaterialTheme.colorScheme.primary)
@@ -31,11 +33,11 @@ import com.cubeguide.rendering.CubeView
    CubeView(preview,modifier=Modifier.fillMaxWidth().height(250.dp))
    HoldingLabels(front,top)
    Spacer(Modifier.height(16.dp))
-   Text("Rotate the whole cube to match these two centers, then keep that position while following the guide.",style=MaterialTheme.typography.bodyMedium,textAlign=TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant)
+   Text("Rotate the whole cube—do not turn a face.",style=MaterialTheme.typography.bodyMedium,textAlign=TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant)
    TextButton(onClick={choose=true}) { Text("Choose another front color") }
    if(vm.message.isNotBlank()) Text(vm.message,style=MaterialTheme.typography.bodySmall,modifier=Modifier.padding(vertical=8.dp))
   }
-  Primary("Start solving") { vm.startGuide() }
+  RubixPrimaryButton("Start guide",vm::startGuide,icon=Icons.Rounded.PlayArrow)
   Spacer(Modifier.height(12.dp))
  }
  if(choose) AlertDialog(onDismissRequest={choose=false},title={Text("Which center should face you?")},text={

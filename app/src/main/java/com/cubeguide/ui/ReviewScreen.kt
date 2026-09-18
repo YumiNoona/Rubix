@@ -4,6 +4,10 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -35,10 +39,9 @@ import com.cubeguide.rendering.CubeView
    Text(if(correcting) "Match this state to the cube in your hands." else "Check all six sides before solving.",color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)
    Spacer(Modifier.height(12.dp))
    if(!editing) {
-    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {
-     FilterChip(selected=!show3D,onClick={show3D=false},label={Text("Net")})
-     Spacer(Modifier.width(8.dp))
-     FilterChip(selected=show3D,onClick={show3D=true},label={Text("3D")})
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+     SegmentedButton(selected=!show3D,onClick={show3D=false},shape=SegmentedButtonDefaults.itemShape(0,2),label={Text("Net")})
+     SegmentedButton(selected=show3D,onClick={show3D=true},shape=SegmentedButtonDefaults.itemShape(1,2),label={Text("3D")})
     }
     if(show3D) CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(290.dp).semantics { contentDescription="3D preview of your scanned cube. Drag to inspect all sides." })
     else CubeNet(vm.cube,highlighted,selectSticker)
@@ -64,9 +67,12 @@ import com.cubeguide.rendering.CubeView
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) { CubeColor.entries.forEach { color -> val count=vm.cube.stickers.count { it==color }; Text("${color.initial} $count",style=MaterialTheme.typography.labelSmall,color=if(count==9) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,maxLines=1) } }
    Spacer(Modifier.height(16.dp))
   }
-  Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()) {
+  Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RubixTokens.cardShape,modifier=Modifier.fillMaxWidth(),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant.copy(alpha=.65f))) {
    Column(Modifier.padding(14.dp)) {
-    Text(if(vm.busy) "Preparing your guide..." else if(issue!=null) "Your scan needs a check" else if(uncertainCount>0) "$uncertainCount sticker${if(uncertainCount==1) "" else "s"} need a closer look" else "Ready to solve",fontWeight=FontWeight.SemiBold,color=if(issue==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+    Row(verticalAlignment=Alignment.CenterVertically) {
+     Icon(if(issue==null) Icons.Rounded.CheckCircle else Icons.Rounded.ErrorOutline,null,Modifier.size(20.dp),tint=if(issue==null) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error)
+     Spacer(Modifier.width(9.dp));Text(if(vm.busy) "Preparing guide" else if(issue!=null) "Check this scan" else if(uncertainCount>0) "$uncertainCount to review" else "Ready to solve",fontWeight=FontWeight.SemiBold,color=if(issue==null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error)
+    }
     Spacer(Modifier.height(4.dp))
     Text(if(vm.busy) vm.message else issue?.message ?: if(uncertainCount>0) "Glare made the outlined colors less certain. Check them, or solve if the cube preview matches." else if(correcting) "Colors are valid. Recalculate from your current cube." else "All six faces checked. Choose your starting position next.",style=MaterialTheme.typography.bodySmall,modifier=Modifier.heightIn(max=120.dp).verticalScroll(rememberScrollState()))
     if(vm.busy) { Spacer(Modifier.height(8.dp)); LinearProgressIndicator(modifier=Modifier.fillMaxWidth()) }
@@ -77,8 +83,8 @@ import com.cubeguide.rendering.CubeView
    Primary(if(vm.busy) "Preparing your guide..." else "Update solution",!vm.busy) { selected=null;vm.solve() }
    TextButton(onClick=vm::cancelCorrection,enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Cancel changes") }
   } else Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-   OutlinedButton(onClick={vm.beginEdit(Face.entries[faceOrdinal])},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)) { Text("Edit colors",maxLines=1) }
-   Button(onClick={selected=null;vm.solve()},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)) { Text(if(vm.busy) "Checking…" else "Looks good",maxLines=1) }
+   OutlinedButton(onClick={vm.beginEdit(Face.entries[faceOrdinal])},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RubixTokens.controlShape) { Icon(Icons.Rounded.Edit,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text("Edit",maxLines=1) }
+   Button(onClick={selected=null;vm.solve()},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RubixTokens.controlShape) { Icon(Icons.Rounded.CheckCircle,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text(if(vm.busy) "Checking…" else "Continue",maxLines=1) }
   }
   Spacer(Modifier.height(12.dp))
  }

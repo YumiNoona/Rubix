@@ -2,49 +2,63 @@ package com.cubeguide.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun PracticeScreen(vm: CubeViewModel) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Text("Train at your pace", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("Play a virtual cube or time a focused 3×3 solve.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(22.dp))
-        PracticeCard("Virtual cube", "Free play, challenges and guided solving", FeatureIcon.CUBE) { vm.open(Screen.VIRTUAL) }
-        Spacer(Modifier.height(12.dp))
-        PracticeCard("Cube timer", "3×3 scrambles and personal records", FeatureIcon.TIMER) { vm.open(Screen.TIMER) }
-        Spacer(Modifier.height(20.dp))
+        PageIntro("Build your speed", subtitle = "Play, practise, repeat.")
+        Spacer(Modifier.height(RubixTokens.sectionGap))
+        RubixActionCard(
+            title = "Virtual cube",
+            subtitle = "Free play and guided challenges",
+            icon = Icons.Rounded.ViewInAr,
+            accent = MaterialTheme.colorScheme.primary,
+            onClick = { vm.open(Screen.VIRTUAL) },
+        )
+        Spacer(Modifier.height(RubixTokens.itemGap))
+        RubixActionCard(
+            title = "Solve timer",
+            subtitle = "Scrambles, records and averages",
+            icon = Icons.Rounded.Timer,
+            accent = MaterialTheme.colorScheme.tertiary,
+            onClick = { vm.open(Screen.TIMER) },
+        )
+        Spacer(Modifier.height(RubixTokens.sectionGap))
+        SectionLabel("Quick start")
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            QuickPractice("Free play", Icons.Rounded.TouchApp, Modifier.weight(1f)) {
+                vm.open(Screen.VIRTUAL); vm.selectVirtualMode(VirtualMode.FREE)
+            }
+            QuickPractice("Challenge", Icons.Rounded.Bolt, Modifier.weight(1f)) {
+                vm.open(Screen.VIRTUAL); vm.selectVirtualMode(VirtualMode.CHALLENGE)
+            }
+        }
     }
 }
 
 @Composable
-private fun PracticeCard(title: String, subtitle: String, icon: FeatureIcon, onClick: () -> Unit) {
+private fun QuickPractice(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
     val feedback = rememberTouchFeedback()
-    Card(
+    androidx.compose.material3.OutlinedButton(
         onClick = { feedback(); onClick() },
-        modifier = Modifier.fillMaxWidth().height(104.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = modifier.height(54.dp),
+        shape = RubixTokens.controlShape,
     ) {
-        Row(Modifier.fillMaxSize().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                Box(Modifier.size(50.dp), contentAlignment = Alignment.Center) { FeatureGlyph(icon, Modifier.size(27.dp)) }
-            }
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-            }
-            Icon(Icons.Rounded.ChevronRight,"Open",tint=MaterialTheme.colorScheme.primary)
-        }
+        androidx.compose.material3.Icon(icon, null, Modifier.size(20.dp))
+        Spacer(Modifier.width(7.dp))
+        androidx.compose.material3.Text(label, maxLines = 1)
     }
 }

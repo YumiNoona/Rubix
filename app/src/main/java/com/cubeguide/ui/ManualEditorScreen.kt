@@ -7,6 +7,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -39,7 +42,7 @@ internal fun ManualEditor(vm: CubeViewModel) {
             TextButton(
                 onClick = { feedback(); vm.undoEdit() },
                 enabled = vm.canUndoEdit,
-            ) { Text("Undo") }
+            ) { Icon(Icons.AutoMirrored.Rounded.Undo,null,Modifier.size(18.dp));Spacer(Modifier.width(5.dp));Text("Undo") }
         }
 
         Column(
@@ -113,12 +116,7 @@ internal fun ManualEditor(vm: CubeViewModel) {
             Spacer(Modifier.height(16.dp))
         }
 
-        Button(
-            onClick = { feedback(); vm.solve() },
-            enabled = !vm.busy,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-            shape = RoundedCornerShape(18.dp),
-        ) { Text(if (vm.busy) "Checking cube…" else "Solve this cube") }
+        RubixPrimaryButton(if(vm.busy) "Checking cube…" else "Solve cube",vm::solve,icon=Icons.Rounded.AutoFixHigh,enabled=!vm.busy)
         Spacer(Modifier.height(12.dp))
     }
 

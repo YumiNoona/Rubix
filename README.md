@@ -2,7 +2,7 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.0.0-238BFF)
+![Version](https://img.shields.io/badge/version-3.1.0-5AA7FF)
 ![JVM checks](https://img.shields.io/badge/JVM_tests-71_passed-15824F)
 
 
@@ -16,7 +16,7 @@ An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and P
 - **Cube timer** — a hold-to-ready 3x3 timer with valid scrambles, large stop target, personal records and responsive controls.
 - **Learn** — Rookie, Experienced and Veteran tracks with visual problem/solved examples, recognition cues, plans and playable practice states.
 
-Rubix uses a quiet dark theme, compact navigation, clear pressed and selected states, system-aware haptics, and display colors that can be tuned for a particular physical puzzle. Color initials are available only inside color editors and stay off every cube preview and solving guide.
+Rubix uses a quiet dark theme, a floating Practice–Solve–Learn dock, restrained motion, clear selected states, system-aware haptics, and display colors that can be tuned for a particular physical puzzle. Color initials are available only inside color editors and stay off every cube preview and solving guide.
 
 ## Install
 
@@ -32,7 +32,7 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 
 ## Solve your cube
 
-1. Tap **Scan my cube** and choose 2x2, 3x3, 4x4 or Pyraminx.
+1. Tap **Scan puzzle** and choose 2x2, 3x3, 4x4 or Pyraminx.
 2. Match the preparation screen. The 3x3 tutorial begins white-up and green-front; centerless 2x2 and 4x4 scans use the white-red-green reference corner; Pyraminx uses the guided green, red, blue and yellow face order.
 3. Capture each face with the live camera or gallery. Rubix uses a 2x2, 3x3, 4x4 or triangular detector for the selected puzzle.
 4. Review the full net. **Edit colors** opens a focused face editor with counts, optional initials, undo, redo, Cancel and Done.

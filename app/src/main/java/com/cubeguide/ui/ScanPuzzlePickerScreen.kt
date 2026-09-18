@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,32 +24,35 @@ import kotlin.math.*
 
 @Composable internal fun ScanPuzzlePickerScreen(onScan:(PuzzleId)->Unit) {
  val preferences=LocalAppPreferences.current
- val selected=PuzzleRegistry.get(preferences.puzzleId)
+ val available=PuzzleRegistry.all.filter { it.solverState==SolverState.AVAILABLE }
+ val planned=PuzzleRegistry.all.filterNot { it.solverState==SolverState.AVAILABLE }
  Column(Modifier.fillMaxSize()) {
-  LazyVerticalGrid(
-   columns=GridCells.Adaptive(102.dp),modifier=Modifier.weight(1f),
-   horizontalArrangement=Arrangement.spacedBy(10.dp),verticalArrangement=Arrangement.spacedBy(10.dp),
-   contentPadding=PaddingValues(bottom=12.dp),
-  ) {
-   items(PuzzleRegistry.all,key={it.id}) { puzzle ->
-    val active=puzzle.id==selected.id
-    Surface(onClick={preferences.updatePuzzle(puzzle.id)},shape=RoundedCornerShape(18.dp),
-     color=if(active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-     border=BorderStroke(if(active) 2.dp else 1.dp,if(active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
-     modifier=Modifier.height(126.dp)) {
-     Column(Modifier.fillMaxSize().padding(9.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-      PuzzleGlyph(puzzle,Modifier.size(62.dp));Spacer(Modifier.height(5.dp))
-      Text(puzzle.shortName,style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center,maxLines=1)
+  PageIntro("What are you solving?", subtitle = "Choose a supported puzzle.")
+  Spacer(Modifier.height(18.dp))
+  LazyVerticalGrid(columns=GridCells.Adaptive(140.dp),modifier=Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(bottom=18.dp)) {
+   item(span={androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan)}) { SectionLabel("Ready to scan") }
+   items(available,key={it.id}) { puzzle ->
+    val active=puzzle.id==preferences.puzzleId
+    Surface(onClick={preferences.updatePuzzle(puzzle.id);onScan(puzzle.id)},shape=RubixTokens.cardShape,
+     color=if(active) MaterialTheme.colorScheme.primaryContainer.copy(alpha=.72f) else MaterialTheme.colorScheme.surfaceContainer,
+     border=BorderStroke(1.dp,if(active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+     modifier=Modifier.height(148.dp)) {
+     Column(Modifier.fillMaxSize().padding(14.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+      PuzzleGlyph(puzzle,Modifier.size(72.dp));Spacer(Modifier.height(8.dp))
+      Text(puzzle.shortName,style=MaterialTheme.typography.titleMedium,textAlign=TextAlign.Center,maxLines=1)
+     }
+    }
+   }
+   item(span={androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan)}) { SectionLabel("Coming later",Modifier.padding(top=12.dp)) }
+   items(planned,key={it.id}) { puzzle ->
+    Surface(shape=RubixTokens.cardShape,color=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.58f),modifier=Modifier.height(112.dp)) {
+     Column(Modifier.fillMaxSize().padding(12.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+      Box { PuzzleGlyph(puzzle,Modifier.size(50.dp));Icon(Icons.Rounded.Lock,null,Modifier.align(Alignment.BottomEnd).size(18.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant) }
+      Spacer(Modifier.height(6.dp));Text(puzzle.shortName,style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1)
      }
     }
    }
   }
-  if(selected.solverState==SolverState.AVAILABLE) {
-   Button(onClick={onScan(selected.id)},modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
-    Icon(Icons.Rounded.PhotoCamera,null);Spacer(Modifier.width(8.dp));Text("Scan ${selected.shortName}")
-   }
-  } else Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) { Text("${selected.shortName} scanner unavailable") }
-  Spacer(Modifier.height(12.dp))
  }
 }
 

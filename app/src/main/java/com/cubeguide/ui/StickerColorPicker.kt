@@ -18,7 +18,7 @@ import com.cubeguide.core.Face
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun StickerColorPicker(index: Int,current: CubeColor,enabled: Boolean,onSelect: (CubeColor)->Unit,onDismiss: ()->Unit) {
  val preferences=LocalAppPreferences.current
- ModalBottomSheet(onDismissRequest=onDismiss) {
+ ModalBottomSheet(onDismissRequest=onDismiss,shape=RubixTokens.modalShape) {
   Column(Modifier.fillMaxWidth().padding(horizontal=24.dp).navigationBarsPadding()) {
    Text("Choose a color",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold)
    Spacer(Modifier.height(8.dp))

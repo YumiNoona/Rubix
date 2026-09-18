@@ -32,16 +32,7 @@ internal fun ThreeByThreeScanPreparation(onStart: () -> Unit) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            "Set up your 3×3",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            "Start with white on top and green facing you.",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        PageIntro("Set up your 3×3",subtitle="White on top. Green facing you.")
         CubeView(
             CubeState.solved(),
             Modifier.fillMaxWidth().height(215.dp),
@@ -55,7 +46,7 @@ internal fun ThreeByThreeScanPreparation(onStart: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(18.dp),
+            shape = RubixTokens.cardShape,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(Modifier.padding(16.dp)) {
@@ -90,15 +81,7 @@ internal fun ThreeByThreeScanPreparation(onStart: () -> Unit) {
             }
         }
         Spacer(Modifier.height(18.dp))
-        Button(
-            onClick = { feedback(); onStart() },
-            modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(17.dp),
-        ) {
-            Icon(Icons.Rounded.PhotoCamera, null)
-            Spacer(Modifier.width(9.dp))
-            Text("Start 3×3 scan", maxLines = 1)
-        }
+        RubixPrimaryButton("Start scan",onStart,icon=Icons.Rounded.PhotoCamera)
         Spacer(Modifier.height(16.dp))
     }
 }

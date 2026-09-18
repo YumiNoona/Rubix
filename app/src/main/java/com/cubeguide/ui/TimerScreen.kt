@@ -66,13 +66,9 @@ internal fun TimerScreen() {
     }
 
     Column(Modifier.fillMaxSize()) {
-        Text(
-            if (start == null) "Hold until green, then release" else "Tap the timer to stop",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Text(if (start == null) "Hold, then release" else "Tap to stop",color=MaterialTheme.colorScheme.onSurfaceVariant,style=MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(14.dp))
-        Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
+        Surface(shape = RubixTokens.cardShape, color = MaterialTheme.colorScheme.surfaceContainer) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("3×3 scramble", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
@@ -92,12 +88,12 @@ internal fun TimerScreen() {
         Spacer(Modifier.height(14.dp))
         val timerColor = when {
             start != null -> MaterialTheme.colorScheme.primaryContainer
-            readyState == TimerReadyState.READY -> Color(0xFF174F3A)
-            readyState == TimerReadyState.HOLDING -> Color(0xFF523B13)
+            readyState == TimerReadyState.READY -> MaterialTheme.colorScheme.tertiary.copy(alpha=.26f)
+            readyState == TimerReadyState.HOLDING -> MaterialTheme.colorScheme.secondaryContainer
             else -> MaterialTheme.colorScheme.surfaceContainerHighest
         }
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RubixTokens.cardShape,
             color = timerColor,
             modifier = Modifier.fillMaxWidth().weight(1f).pointerInput(start) {
                 detectTapGestures(
@@ -166,12 +162,12 @@ internal fun TimerScreen() {
 @Composable
 private fun TimerActions(canScramble:Boolean,canReset:Boolean,onScramble:()->Unit,onReset:()->Unit) {
     @Composable fun Scramble(modifier:Modifier) {
-        Button(onClick=onScramble,enabled=canScramble,modifier=modifier.height(52.dp),shape=RoundedCornerShape(16.dp),contentPadding=PaddingValues(horizontal=10.dp)) {
+        Button(onClick=onScramble,enabled=canScramble,modifier=modifier.height(52.dp),shape=RubixTokens.controlShape,contentPadding=PaddingValues(horizontal=10.dp)) {
             Icon(Icons.Rounded.Shuffle,null,Modifier.size(20.dp));Spacer(Modifier.width(7.dp));Text("New scramble",maxLines=1)
         }
     }
     @Composable fun Reset(modifier:Modifier) {
-        OutlinedButton(onClick=onReset,enabled=canReset,modifier=modifier.height(52.dp),shape=RoundedCornerShape(16.dp),contentPadding=PaddingValues(horizontal=10.dp)) {
+        OutlinedButton(onClick=onReset,enabled=canReset,modifier=modifier.height(52.dp),shape=RubixTokens.controlShape,contentPadding=PaddingValues(horizontal=10.dp)) {
             Icon(Icons.Rounded.RestartAlt,null,Modifier.size(20.dp));Spacer(Modifier.width(7.dp));Text("Reset timer",maxLines=1)
         }
     }

@@ -12,6 +12,7 @@ class AppPreferences(context: Context) {
  var haptics by mutableStateOf(storage.getBoolean("haptics",true)); private set
  var sound by mutableStateOf(storage.getBoolean("sound",false)); private set
  var keepAwake by mutableStateOf(storage.getBoolean("keepAwake",true)); private set
+ var reduceMotion by mutableStateOf(storage.getBoolean("reduceMotion",false)); private set
  var puzzleSize by mutableIntStateOf(storage.getInt("puzzleSize",3).coerceIn(2,7)); private set
  var puzzleId by mutableStateOf(com.cubeguide.core.PuzzleId.fromStorage(storage.getString("puzzleId",null))); private set
  var completedLessons by mutableStateOf(storage.getStringSet("completedLessons",emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()); private set
@@ -40,6 +41,7 @@ class AppPreferences(context: Context) {
  fun clearTimerRecords() { savedTimerRecords=emptyList();storage.edit().remove("timerRecords_3").remove("timerRecords").apply() }
  fun updateSound(value: Boolean) { sound=value; storage.edit().putBoolean("sound",value).apply() }
  fun updateKeepAwake(value: Boolean) { keepAwake=value; storage.edit().putBoolean("keepAwake",value).apply() }
+ fun updateReduceMotion(value: Boolean) { reduceMotion=value; storage.edit().putBoolean("reduceMotion",value).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }
  fun updateGuideDelay(value: Int) { guideDelayMillis=value.coerceIn(1000,2000);storage.edit().putInt("guideDelayMillis",guideDelayMillis).apply() }
  fun updateInitials(value: Boolean) { initials=value; storage.edit().putBoolean("initials",value).apply() }

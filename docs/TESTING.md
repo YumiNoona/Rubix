@@ -3,7 +3,7 @@
 ## Executed locally
 
 - `:core:test`: 37 test cases passed, covering the 2x2, 3x3, Pyraminx and 4x4 state models, inverses, doubles, wide turns, physical validators, randomized scrambles and replay-verified solver output.
-- `:app:testDebugUnitTest`: 31 test cases passed, covering color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2x2, Pyraminx and 4x4.
+- `:app:testDebugUnitTest`: 34 test cases passed, covering color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2x2, Pyraminx and 4x4.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -19,6 +19,8 @@ Run on a connected Android device or an accelerated emulator:
 ```
 
 `AppFlowTest` exercises practice -> review -> solve -> orientation -> move confirmation -> completion, manual invalid correction, and camera fallback. It writes home/review/guide/solved PNGs into the app's external-files directory for inspection. `VisionInstrumentedTest` generates six perspective/lighting fixture combinations and negative uniform/dark frames. Synthetic images test geometric/code behavior, not real camera accuracy.
+
+The 3.1.0 UI selectors compile against the floating Practice–Solve–Learn dock, direct puzzle selection, simplified actions, modal guide tools and Start guide flow. A dock-order regression verifies the intended left/center/right semantics. Runtime screenshot and animation-scale checks still require a connected device.
 
 ## Required physical acceptance matrix
 

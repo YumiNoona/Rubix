@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.ViewInAr
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
@@ -329,30 +330,15 @@ private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMod
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("Choose how to play", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("No physical cube needed", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            PageIntro("Choose a mode",Modifier.weight(1f),"No cube needed")
             PuzzleSizeMenu(size, onSize)
         }
         CubeView(preview, Modifier.fillMaxWidth().height(205.dp), showInitials = false)
-        VirtualModeCard(
-            Icons.Rounded.TouchApp,
-            "Free play",
-            "Turn any face, experiment and undo moves.",
-        ) { feedback(); onMode(VirtualMode.FREE) }
+        RubixActionCard("Free play","Explore and undo freely",Icons.Rounded.TouchApp,{feedback();onMode(VirtualMode.FREE)})
         Spacer(Modifier.height(10.dp))
-        VirtualModeCard(
-            Icons.Rounded.Timer,
-            "Challenge",
-            "Race an automatic scramble with time and move tracking.",
-        ) { feedback(); onMode(VirtualMode.CHALLENGE) }
+        RubixActionCard("Challenge","Race the clock",Icons.Rounded.Timer,{feedback();onMode(VirtualMode.CHALLENGE)},accent=MaterialTheme.colorScheme.tertiary)
         Spacer(Modifier.height(10.dp))
-        VirtualModeCard(
-            Icons.Rounded.Lightbulb,
-            "Guided solve",
-            "Preview one correct move at a time and solve along.",
-        ) { feedback(); onMode(VirtualMode.GUIDED) }
+        RubixActionCard("Guided solve","Get one move at a time",Icons.Rounded.Lightbulb,{feedback();onMode(VirtualMode.GUIDED)},accent=MaterialTheme.colorScheme.secondary)
         Spacer(Modifier.height(16.dp))
     }
 }
@@ -410,19 +396,22 @@ private fun turnDescription(move: VirtualMove) = when (move.turns) {
     else -> "clockwise"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PuzzleSizeMenu(size: Int, onSelect: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(
-            onClick = { open = true },
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        ) { Text("${size}×$size", maxLines = 1) }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            (2..7).forEach { value ->
-                DropdownMenuItem(text = { Text("${value}×$value cube") }, onClick = { open = false; onSelect(value) })
+    AssistChip(onClick={open=true},label={Text("${size}×$size")},leadingIcon={Icon(Icons.Rounded.ViewInAr,null,Modifier.size(18.dp))})
+    if(open) ModalBottomSheet(onDismissRequest={open=false},shape=RubixTokens.modalShape) {
+        Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
+            Text("Cube size",style=MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(14.dp))
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                (2..4).forEach { value -> FilterChip(selected=size==value,onClick={open=false;onSelect(value)},label={Text("${value}×$value")},modifier=Modifier.weight(1f)) }
             }
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                (5..7).forEach { value -> FilterChip(selected=size==value,onClick={open=false;onSelect(value)},label={Text("${value}×$value")},modifier=Modifier.weight(1f)) }
+            }
+            Spacer(Modifier.height(18.dp))
         }
     }
 }

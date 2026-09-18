@@ -1,3 +1,14 @@
+# 3.1.0
+
+- Rebuilt the root shell around a floating three-action dock with Practice on the left, Solve emphasized in the center, and Learn on the right.
+- Replaced directional full-screen slides with calm bounded fades, preventing toolbar and dock changes from producing a jumping transition.
+- Added a shared Rubix design system for semantic colors, typography, spacing, shapes, buttons, page introductions and action cards.
+- Simplified Home, Practice, Learn, puzzle selection, scan preparation, review, setup, completion, timer and virtual-mode copy and hierarchy.
+- Separated supported scanners from planned puzzles and made supported puzzle cards launch directly.
+- Replaced every guide and cube-size dropdown with accessible bottom action sheets that do not move the underlying screen.
+- Added a persisted Reduce motion preference and edge-to-edge system-bar handling.
+- Updated Compose flow tests for the new labels and added a regression for Practice–Solve–Learn dock ordering.
+
 # 3.0.0
 
 - Reduced the app shell to Home, Practice and Learn; removed the Progress screen and standalone Puzzle Library route with safe restoration for older saved navigation.

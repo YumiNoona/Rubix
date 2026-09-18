@@ -47,22 +47,25 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
  var showSolved by remember { mutableStateOf(false) }
  val visible=lessons.filter { it.skill==skill }
  Column(Modifier.fillMaxSize()) {
-  Text("Learn by seeing, then try every idea yourself.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-  Spacer(Modifier.height(14.dp))
-  PrimaryScrollableTabRow(selectedTabIndex=skill.ordinal,edgePadding=0.dp,divider={}) { Skill.entries.forEach { item ->
-   Tab(selected=skill==item,onClick={skill=item},text={Text(item.label,maxLines=1)})
+  val complete=preferences.completedLessons.count { id -> lessons.any { it.id==id } }
+  PageIntro("Learn one move at a time",subtitle=if(complete==0) "Start with the basics." else "$complete of ${lessons.size} lessons complete")
+  Spacer(Modifier.height(16.dp))
+  LinearProgressIndicator(progress={complete.toFloat()/lessons.size},modifier=Modifier.fillMaxWidth(),trackColor=MaterialTheme.colorScheme.surfaceContainer)
+  Spacer(Modifier.height(18.dp))
+  SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) { Skill.entries.forEachIndexed { index,item ->
+   SegmentedButton(selected=skill==item,onClick={skill=item},shape=SegmentedButtonDefaults.itemShape(index,Skill.entries.size),label={Text(item.label,maxLines=1)})
   } }
-  Spacer(Modifier.height(14.dp))
+  Spacer(Modifier.height(16.dp))
   LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)) {
    items(visible,key={it.id}) { lesson ->
     val done=lesson.id in preferences.completedLessons
-    Card(onClick={showSolved=false;selected=lesson},modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceContainer),shape=RoundedCornerShape(20.dp)) {
-     Row(Modifier.fillMaxWidth().height(126.dp).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-      CubeView(example(lesson),Modifier.size(106.dp))
+    Card(onClick={showSolved=false;selected=lesson},modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceContainer),shape=RubixTokens.cardShape,border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant.copy(alpha=.65f))) {
+     Row(Modifier.fillMaxWidth().height(108.dp).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+      CubeView(example(lesson),Modifier.size(86.dp))
       Spacer(Modifier.width(12.dp))
       Column(Modifier.weight(1f)) {
        Row(verticalAlignment=Alignment.CenterVertically) { Text(lesson.title,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));if(done) Icon(Icons.Rounded.CheckCircle,"Completed",tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(20.dp)) }
-       Spacer(Modifier.height(5.dp));Text(lesson.goal,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=3)
+       Spacer(Modifier.height(5.dp));Text(lesson.goal,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)
       }
      }
     }
@@ -71,7 +74,7 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
   }
  }
  selected?.let { lesson ->
-  ModalBottomSheet(onDismissRequest={selected=null}) {
+  ModalBottomSheet(onDismissRequest={selected=null},shape=RubixTokens.modalShape) {
    Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
     Text(lesson.title,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {

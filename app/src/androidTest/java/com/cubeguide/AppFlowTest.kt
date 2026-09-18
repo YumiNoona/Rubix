@@ -26,6 +26,13 @@ class AppFlowTest {
   val file=java.io.File(instrumentation.targetContext.getExternalFilesDir(null),"$name.png")
   file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; bitmap.recycle()
  }
+ @Test fun mainDockOrdersPracticeSolveAndLearn() {
+  val practice=compose.onNodeWithText("Practice",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
+  val solve=compose.onNodeWithText("Solve",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
+  val learn=compose.onNodeWithText("Learn",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
+  Assert.assertTrue(practice<solve)
+  Assert.assertTrue(solve<learn)
+ }
  @Test fun editingAnUncertainFrontStickerKeepsFrontSelected() {
   val vm=CubeViewModel(SavedStateHandle())
   val anchors=listOf(
@@ -52,13 +59,13 @@ class AppFlowTest {
  }
  @Test fun practiceFlowReachesSolved() {
   screenshot("home")
-  compose.onNodeWithText("Try a guided demo").performScrollTo().performClick()
+  compose.onNodeWithText("Demo").performScrollTo().performClick()
   screenshot("review")
-  compose.onNodeWithText("Looks good").assertIsDisplayed().performClick()
-  compose.waitUntil(30000) { compose.onAllNodesWithText("Start solving").fetchSemanticsNodes().isNotEmpty() }
+  compose.onNodeWithText("Continue").assertIsDisplayed().performClick()
+  compose.waitUntil(30000) { compose.onAllNodesWithText("Start guide").fetchSemanticsNodes().isNotEmpty() }
   compose.onNodeWithText("FACING YOU").assertIsDisplayed()
   compose.onNodeWithText("White").assertIsDisplayed()
-  compose.onNodeWithText("Start solving").performClick()
+  compose.onNodeWithText("Start guide").performClick()
   compose.onNodeWithContentDescription("Pause autoplay").performClick()
   compose.waitForIdle(); screenshot("guide")
   repeat(30) {
@@ -70,17 +77,17 @@ class AppFlowTest {
   screenshot("solved")
  }
  @Test fun manualCorrectionRejectsBadCounts() {
-  compose.onNodeWithText("Enter colors").performScrollTo().performClick()
+  compose.onNodeWithText("Manual").performScrollTo().performClick()
   compose.onAllNodesWithContentDescription("front row 1 column 1, Green",useUnmergedTree=true).onFirst().performClick()
-  compose.onNodeWithText("Solve this cube").assertIsDisplayed().performClick()
+  compose.onNodeWithText("Solve cube").assertIsDisplayed().performClick()
   compose.onNodeWithText("This cube needs a check").assertIsDisplayed()
   compose.onAllNodesWithText("exactly 9",substring=true).onLast().assertIsDisplayed()
  }
  @Test fun scanKeepsGalleryAndBackWithoutDuplicatingManualEntry() {
-  compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
-  compose.onNodeWithText("Scan and solve").assertExists()
+  compose.onNodeWithText("Scan puzzle").performScrollTo().performClick()
+  compose.onNodeWithText("Choose puzzle").assertExists()
   compose.onNodeWithText("3×3").performClick()
-  compose.onNodeWithText("Scan and solve 3×3").performScrollTo().performClick()
+  compose.onNodeWithText("Start scan").performScrollTo().performClick()
   compose.onNodeWithText("Gallery").performScrollTo().assertExists()
   compose.onNodeWithText("Enter colors instead").assertDoesNotExist()
   compose.onNodeWithContentDescription("Back").performClick()
@@ -88,8 +95,8 @@ class AppFlowTest {
  }
 
  @Test fun homePreviewIsLabelFreeAndScanUsesPuzzlePicker() {
-  compose.onNodeWithContentDescription("Scrambled Rubix cube solving itself").assertExists()
-  compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
+  compose.onNodeWithContentDescription("Scrambled cube solving itself").assertExists()
+  compose.onNodeWithText("Scan puzzle").performScrollTo().performClick()
   compose.onNodeWithText("Choose puzzle").assertExists()
   compose.onNodeWithText("2×2").assertExists()
   compose.onNodeWithText("Clock").assertExists()
@@ -104,7 +111,7 @@ class AppFlowTest {
    compose.activity.setContent { CubeApp(vm) }
   }
   compose.waitUntil(30000) { vm.screen==com.cubeguide.ui.Screen.SETUP }
-  compose.onNodeWithText("Start solving").performClick()
+  compose.onNodeWithText("Start guide").performClick()
   compose.onNodeWithText("Previous").assertExists()
   compose.onNodeWithText("Next").assertExists()
   compose.waitUntil(8000) { vm.step>0 || vm.screen==com.cubeguide.ui.Screen.DONE }
