@@ -96,14 +96,15 @@ import com.cubeguide.core.*
  val hsv=FloatArray(3).also { android.graphics.Color.colorToHSV(preferences.color(selected),it) }
  ModalBottomSheet(onDismissRequest=onDismiss,shape=RubixTokens.modalShape) {
   Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=22.dp).navigationBarsPadding()) {
-  Row(verticalAlignment=Alignment.CenterVertically) {
-   Column(Modifier.weight(1f)) {
-    Text("Settings",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
-    Text("Tune Rubix for your hands and cube.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-   }
-   TextButton(onClick=onDismiss) { Text("Done") }
-  }
+  Text("Settings",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
   Spacer(Modifier.height(22.dp))
+  Text("Appearance",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+  Spacer(Modifier.height(10.dp))
+  SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+   AppThemeMode.entries.forEachIndexed { index,mode -> SegmentedButton(selected=preferences.themeMode==mode,onClick={preferences.updateThemeMode(mode);feedback()},shape=SegmentedButtonDefaults.itemShape(index,AppThemeMode.entries.size),label={Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })}) }
+  }
+  SettingsToggle("Color initials in editors",preferences.initials) { preferences.updateInitials(it) }
+  HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Cube display",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Text("Choose a sticker, then tune its display color.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(12.dp))
@@ -120,7 +121,6 @@ import com.cubeguide.core.*
   Text("Brightness",style=MaterialTheme.typography.labelMedium)
   Slider(value=hsv[2],onValueChange={preferences.updateColor(selected,android.graphics.Color.HSVToColor(floatArrayOf(hsv[0],hsv[1],it)))},valueRange=0.25f..1f)
   TextButton(onClick={preferences.resetColors();feedback()}) { Text("Restore default colors") }
-  Text("Changes apply to the display, not camera recognition.",style=MaterialTheme.typography.bodySmall)
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Interaction",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   SettingsToggle("Haptic feedback",preferences.haptics) { preferences.updateHaptics(it) }
@@ -130,11 +130,9 @@ import com.cubeguide.core.*
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Guide animation",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)
-  Text("Turn speed",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(10.dp))
   Text("Autoplay pause · ${"%.1f".format(preferences.guideDelayMillis/1000f)} seconds",style=MaterialTheme.typography.labelLarge)
   Slider(value=preferences.guideDelayMillis.toFloat(),onValueChange={preferences.updateGuideDelay(it.toInt())},valueRange=1000f..2000f,steps=3)
-  Text("Time to copy each move before the guide continues.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   Spacer(Modifier.height(24.dp))
  } }
 }

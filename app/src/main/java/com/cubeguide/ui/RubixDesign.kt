@@ -53,6 +53,30 @@ internal fun rubixDarkScheme() = darkColorScheme(
     onSurfaceVariant = Color(0xFFACBBC5),
 )
 
+internal fun rubixLightScheme() = lightColorScheme(
+    primary = Color(0xFF0061A4),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFD1E4FF),
+    onPrimaryContainer = Color(0xFF001D36),
+    secondary = Color(0xFF7A5700),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFFFDEA1),
+    onSecondaryContainer = Color(0xFF261A00),
+    tertiary = Color(0xFF006C4D),
+    onTertiary = Color.White,
+    error = Color(0xFFBA1A1A),
+    background = Color(0xFFF7F9FC),
+    surface = Color(0xFFF7F9FC),
+    surfaceVariant = Color(0xFFDFE3E8),
+    surfaceContainer = Color(0xFFEDF1F5),
+    surfaceContainerHigh = Color(0xFFE5E9ED),
+    surfaceContainerHighest = Color(0xFFDDE3E8),
+    outline = Color(0xFF6F797F),
+    outlineVariant = Color(0xFFBFC8CE),
+    onSurface = Color(0xFF171C20),
+    onSurfaceVariant = Color(0xFF40484D),
+)
+
 @Composable
 internal fun rubixTypography() = Typography(
     displaySmall = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),

@@ -6,10 +6,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -22,110 +24,85 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.CubeColor
 import com.cubeguide.core.Face
-import com.cubeguide.rendering.CubeView
 
 @Composable
 internal fun ManualEditor(vm: CubeViewModel) {
-    val preferences = LocalAppPreferences.current
-    val feedback = rememberTouchFeedback()
-    var faceIndex by rememberSaveable { mutableIntStateOf(0) }
+    val preferences=LocalAppPreferences.current
+    val feedback=rememberTouchFeedback()
+    var faceIndex by rememberSaveable { mutableIntStateOf(Face.F.ordinal) }
     var brushIndex by rememberSaveable { mutableIntStateOf(CubeColor.WHITE.ordinal) }
-    val face = Face.entries[faceIndex]
-    val brush = CubeColor.entries[brushIndex]
+    val face=Face.entries[faceIndex]
+    val brush=CubeColor.entries[brushIndex]
 
     Column(Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Face ${faceIndex + 1} of 6", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("Choose a color, then paint the face.", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Text("Paint the stickers",style=MaterialTheme.typography.titleLarge)
+                Text("Centers stay fixed",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            TextButton(
-                onClick = { feedback(); vm.undoEdit() },
-                enabled = vm.canUndoEdit,
-            ) { Icon(Icons.AutoMirrored.Rounded.Undo,null,Modifier.size(18.dp));Spacer(Modifier.width(5.dp));Text("Undo") }
+            FilledTonalIconButton(onClick={feedback();vm.undoEdit()},enabled=vm.canUndoEdit) {
+                Icon(Icons.AutoMirrored.Rounded.Undo,"Undo color change")
+            }
         }
 
-        Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            CubeView(
-                vm.cube,
-                Modifier.fillMaxWidth().height(190.dp).semantics { contentDescription = "Your editable 3D cube" },
-            )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    onClick = { feedback(); faceIndex = (faceIndex + 5) % 6 },
-                    modifier = Modifier.weight(1f),
-                ) { Text("‹ Previous") }
-                Surface(
-                    shape = CircleShape,
-                    color = Color(preferences.color(vm.cube.stickers[faceIndex * 9 + 4])),
-                ) {
-                    Text(
-                        "${face.name} · ${vm.cube.stickers[faceIndex * 9 + 4].label}",
-                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        color = Color(preferences.ink(vm.cube.stickers[faceIndex * 9 + 4])),
-                        fontWeight = FontWeight.Bold,
-                    )
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                IconButton(onClick={feedback();faceIndex=(faceIndex+5)%6}) { Icon(Icons.Rounded.ChevronLeft,"Previous face") }
+                Surface(Modifier.weight(1f),shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer) {
+                    Row(Modifier.padding(horizontal=14.dp,vertical=10.dp),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
+                        val center=vm.cube.stickers[faceIndex*9+4]
+                        Box(Modifier.size(18.dp),contentAlignment=Alignment.Center) { Surface(Modifier.fillMaxSize(),shape=CircleShape,color=Color(preferences.color(center))) {} }
+                        Spacer(Modifier.width(9.dp));Text("${face.label.replaceFirstChar { it.uppercase() }} face",fontWeight=FontWeight.SemiBold)
+                    }
                 }
-                TextButton(
-                    onClick = { feedback(); faceIndex = (faceIndex + 1) % 6 },
-                    modifier = Modifier.weight(1f),
-                ) { Text("Next ›") }
-            }
-
-            LargeFace(vm.cube, face, vm.lowConfidence) { index ->
-                if (index % 9 != 4) {
-                    feedback()
-                    vm.edit(index, brush)
-                }
+                IconButton(onClick={feedback();faceIndex=(faceIndex+1)%6}) { Icon(Icons.Rounded.ChevronRight,"Next face") }
             }
             Spacer(Modifier.height(14.dp))
-            Text("Choose a color", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            LargeFace(vm.cube,face,vm.lowConfidence) { index ->
+                if(index%9!=4) { feedback();vm.edit(index,brush) }
+            }
+            Spacer(Modifier.height(18.dp))
+            SectionLabel("Sticker color",Modifier.fillMaxWidth())
             Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                CubeColor.entries.forEach { color ->
-                    val count = vm.cube.stickers.count { it == color }
-                    Surface(
-                        onClick = { brushIndex = color.ordinal; feedback() },
-                        shape = CircleShape,
-                        color = Color(preferences.color(color)),
-                        border = if (brush == color) BorderStroke(3.dp, MaterialTheme.colorScheme.onSurface) else null,
-                        modifier = Modifier.size(48.dp).semantics {
-                            selected = brush == color
-                            contentDescription = "${color.label} brush, $count stickers"
-                        },
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text("$count", color = Color(preferences.ink(color)), fontWeight = FontWeight.Bold)
+            CubeColor.entries.chunked(3).forEach { colors ->
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    colors.forEach { color ->
+                        val count=vm.cube.stickers.count { it==color }
+                        Surface(
+                            onClick={brushIndex=color.ordinal;feedback()},
+                            modifier=Modifier.weight(1f).height(54.dp).semantics { selected=brush==color;contentDescription="${color.label} brush, $count stickers" },
+                            shape=RubixTokens.controlShape,
+                            color=if(brush==color) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+                            border=BorderStroke(if(brush==color) 2.dp else 1.dp,if(brush==color) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+                        ) {
+                            Row(Modifier.fillMaxSize().padding(horizontal=10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.Center) {
+                                Surface(Modifier.size(22.dp),shape=CircleShape,color=Color(preferences.color(color))) {}
+                                Spacer(Modifier.width(7.dp));Text(color.initial,fontWeight=FontWeight.Bold)
+                                Spacer(Modifier.width(4.dp));Text(count.toString(),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
+                Spacer(Modifier.height(8.dp))
             }
-            Spacer(Modifier.height(10.dp))
-            Text(
-                "Paint stickers with ${brush.label.lowercase()}. Centers stay fixed.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                 Text("Show color initials",modifier=Modifier.weight(1f))
-                Switch(preferences.initials,{preferences.updateInitials(it)})
+                Switch(preferences.initials,{preferences.updateInitials(it);feedback()})
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
         }
 
         RubixPrimaryButton(if(vm.busy) "Checking cube…" else "Solve cube",vm::solve,icon=Icons.Rounded.AutoFixHigh,enabled=!vm.busy)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
     }
 
     vm.solveError?.let { error ->
         AlertDialog(
-            onDismissRequest = vm::dismissSolveError,
-            title = { Text("This cube needs a check") },
-            text = { Text(error) },
-            confirmButton = { TextButton(onClick = vm::dismissSolveError) { Text("Keep editing") } },
+            onDismissRequest=vm::dismissSolveError,
+            title={Text("This cube needs a check")},
+            text={Text(error)},
+            confirmButton={TextButton(onClick=vm::dismissSolveError) { Text("Keep editing") }},
         )
     }
 }

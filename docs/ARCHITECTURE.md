@@ -14,6 +14,8 @@
 
 `app/ui/RubixDesign` is the visual-system boundary. It defines semantic colors independently from sticker colors, a small spacing/shape vocabulary, shared buttons, introductions and action cards. `CubeApp` owns the stable edge-to-edge shell: detail content and root content animate inside fixed bounds, while the floating Practice–Solve–Learn dock overlays root content without resizing it. Phone overflow actions use modal action sheets rather than popup menus, so opening a menu cannot remeasure or shift the active puzzle.
 
+Appearance follows a persisted System/Dark/Light choice and updates system-bar icon contrast with the active scheme. Touch audio uses a short `ToneGenerator` media-stream tone rather than view sound effects, which are not guaranteed to be audible. The virtual 3x3 hint path solves the current sticker state off the main thread; other sizes reverse the exact recorded move history, ensuring every suggested plan remains replay-verifiable.
+
 ## Validation pipeline
 
 Color counts -> unique centers -> explicit 12 edge identities -> explicit 8 cyclic corner identities -> min2phase edge/corner orientations and parity -> solve -> adjacent-face simplification -> apply every solution move independently -> verify solved.

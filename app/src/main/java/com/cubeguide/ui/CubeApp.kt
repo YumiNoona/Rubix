@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,12 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
     }
 
     CompositionLocalProvider(LocalAppPreferences provides preferences) {
-        MaterialTheme(colorScheme = rubixDarkScheme(), typography = rubixTypography()) {
+        val useDark=when(preferences.themeMode) { AppThemeMode.SYSTEM->isSystemInDarkTheme();AppThemeMode.DARK->true;AppThemeMode.LIGHT->false }
+        SideEffect {
+            val activity=view.context as? android.app.Activity
+            activity?.let { androidx.core.view.WindowCompat.getInsetsController(it.window,view).apply { isAppearanceLightStatusBars=!useDark;isAppearanceLightNavigationBars=!useDark } }
+        }
+        MaterialTheme(colorScheme = if(useDark) rubixDarkScheme() else rubixLightScheme(), typography = rubixTypography()) {
             var settings by remember { mutableStateOf(false) }
             var exit by remember { mutableStateOf(false) }
             val holder = rememberSaveableStateHolder()
@@ -171,10 +177,8 @@ private fun RubixTopBar(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back")
             }
         } else {
-            Surface(shape = RoundedCornerShape(11.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                Icon(Icons.Rounded.ViewInAr, null, Modifier.padding(8.dp).size(20.dp), tint = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(Modifier.width(10.dp))
+            Icon(Icons.Rounded.ViewInAr,null,Modifier.padding(start=8.dp).size(25.dp),tint=MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(12.dp))
         }
         Text(
             screenTitle(vm),
@@ -240,8 +244,7 @@ private fun RubixDock(selected: Screen, onSelect: (Screen) -> Unit, modifier: Mo
             border = androidx.compose.foundation.BorderStroke(4.dp,MaterialTheme.colorScheme.background),
         ) {
             Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                Icon(Icons.Rounded.CenterFocusStrong,null,Modifier.size(27.dp),tint=if(selected==Screen.HOME) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer)
-                Text("Solve",style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold,color=if(selected==Screen.HOME) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer)
+                Icon(Icons.Rounded.ViewInAr,"Solve",Modifier.size(32.dp),tint=if(selected==Screen.HOME) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
     }

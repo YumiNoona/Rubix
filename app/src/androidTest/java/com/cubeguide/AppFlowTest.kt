@@ -28,7 +28,7 @@ class AppFlowTest {
  }
  @Test fun mainDockOrdersPracticeSolveAndLearn() {
   val practice=compose.onNodeWithText("Practice",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
-  val solve=compose.onNodeWithText("Solve",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
+  val solve=compose.onNodeWithContentDescription("Solve",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
   val learn=compose.onNodeWithText("Learn",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.center.x
   Assert.assertTrue(practice<solve)
   Assert.assertTrue(solve<learn)
@@ -58,8 +58,9 @@ class AppFlowTest {
   compose.onNodeWithText("Front · Green").assertIsDisplayed()
  }
  @Test fun practiceFlowReachesSolved() {
+  val vm=CubeViewModel(SavedStateHandle())
+  compose.activity.runOnUiThread { vm.demo();compose.activity.setContent { CubeApp(vm) } }
   screenshot("home")
-  compose.onNodeWithText("Demo").performScrollTo().performClick()
   screenshot("review")
   compose.onNodeWithText("Continue").assertIsDisplayed().performClick()
   compose.waitUntil(30000) { compose.onAllNodesWithText("Start guide").fetchSemanticsNodes().isNotEmpty() }
@@ -77,7 +78,7 @@ class AppFlowTest {
   screenshot("solved")
  }
  @Test fun manualCorrectionRejectsBadCounts() {
-  compose.onNodeWithText("Manual").performScrollTo().performClick()
+  compose.onNodeWithText("Enter colors manually").performScrollTo().performClick()
   compose.onAllNodesWithContentDescription("front row 1 column 1, Green",useUnmergedTree=true).onFirst().performClick()
   compose.onNodeWithText("Solve cube").assertIsDisplayed().performClick()
   compose.onNodeWithText("This cube needs a check").assertIsDisplayed()
@@ -95,7 +96,8 @@ class AppFlowTest {
  }
 
  @Test fun homePreviewIsLabelFreeAndScanUsesPuzzlePicker() {
-  compose.onNodeWithContentDescription("Scrambled cube solving itself").assertExists()
+  compose.onNodeWithContentDescription("Cube scrambling and solving itself").assertExists()
+  compose.onNodeWithText("Demo").assertDoesNotExist()
   compose.onNodeWithText("Scan puzzle").performScrollTo().performClick()
   compose.onNodeWithText("Choose puzzle").assertExists()
   compose.onNodeWithText("2×2").assertExists()

@@ -1,3 +1,13 @@
+# 3.2.0
+
+- Rebuilt manual color entry as a focused face painter with no competing 3D preview, a roomy 3-by-2 color palette, fixed solve action and compact face navigation.
+- Removed the home demo action and retained only Scan puzzle and Enter colors manually.
+- Made the center dock action an icon-only Rubix mark and removed decorative frames from the app mark and animated home cube.
+- Added ten randomized, continuously animated scramble/solve sequences with a five-second solved pause between cycles.
+- Replaced history-only virtual hints with a current-state solver plan for 3x3, an exact safe return plan for other sizes, next-move context, preview and apply actions.
+- Added persisted System, Dark and Light appearance modes plus a reorganized settings sheet without redundant Done or helper copy.
+- Replaced unreliable system click effects with an explicit short media-stream tone when Touch sounds is enabled.
+
 # 3.1.0
 
 - Rebuilt the root shell around a floating three-action dock with Practice on the left, Solve emphasized in the center, and Learn on the right.

@@ -1,8 +1,8 @@
 # Rubix UI overhaul plan
 
-## Implementation status — 3.1.0
+## Implementation status — 3.2.0
 
-The application-side overhaul is implemented across the shared theme, root shell, Solve, Practice, Learn, capture/review, guide, virtual cube, timer, settings and completion surfaces. The old directional route slide and popup menus have been removed. Unit, lint, Android-test compilation and debug assembly pass.
+The application-side overhaul is implemented across the shared theme, root shell, Solve, Practice, Learn, capture/review, guide, virtual cube, timer, settings and completion surfaces. The follow-up pass adds a spacious manual painter, randomized continuous Home cube choreography, smarter verified hint plans, an icon-only center dock, audible touch tones and persisted System/Dark/Light themes. Unit, lint, Android-test compilation and debug assembly pass.
 
 The only release gate that cannot be completed on this host is physical-device acceptance: there is no connected device or configured accelerated emulator. The generated debug APK must still be visually checked at the font scales, window sizes, animation scales and camera conditions listed in the testing matrix before replacing the distributed APK.
 

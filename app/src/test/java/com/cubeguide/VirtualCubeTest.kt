@@ -5,6 +5,7 @@ import com.cubeguide.core.Move
 import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.VirtualMove
 import com.cubeguide.play.virtualScramble
+import com.cubeguide.ui.smartHintPlan
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -64,5 +65,18 @@ class VirtualCubeTest {
             .apply(VirtualMove(Face.R, depth = 2, turns = 3))
             .apply(VirtualMove(Face.U, width = 3, turns = 2))
         assertEquals(cube, VirtualCube.decode(cube.encode()))
+    }
+
+    @Test fun smartHintPlanSolvesCurrentThreeByThreeState() {
+        val scrambled=virtualScramble(3,12).fold(VirtualCube.solved(3)) { state,move -> state.apply(move) }
+        val plan=smartHintPlan(scrambled)
+        assertTrue(plan.isNotEmpty())
+        assertTrue(plan.fold(scrambled) { state,move -> state.apply(move,record=false) }.solved)
+    }
+
+    @Test fun smartHintPlanFallsBackToExactHistoryForLargeCubes() {
+        val scrambled=virtualScramble(5,10).fold(VirtualCube.solved(5)) { state,move -> state.apply(move) }
+        val plan=smartHintPlan(scrambled)
+        assertTrue(plan.fold(scrambled) { state,move -> state.apply(move,record=false) }.solved)
     }
 }
