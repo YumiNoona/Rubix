@@ -2,6 +2,7 @@ package com.cubeguide.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.*
@@ -38,6 +39,7 @@ internal fun VirtualCubeView(
     modifier: Modifier = Modifier,
     move: VirtualMove? = null,
     replay: Int = 0,
+    viewReset: Int = 0,
     onAnimationProgress: (Float) -> Unit = {},
 ) {
     val preferences = LocalAppPreferences.current
@@ -46,16 +48,16 @@ internal fun VirtualCubeView(
     val turn = remember(cube.stickers, move) { Animatable(0f) }
     val progressCallback by rememberUpdatedState(onAnimationProgress)
 
+    LaunchedEffect(viewReset) { yaw=-0.58f;pitch=0.48f }
+
     LaunchedEffect(turn) {
         snapshotFlow { turn.value }.collect { progressCallback(it) }
     }
     LaunchedEffect(turn, replay) {
         if (move != null) {
             turn.snapTo(0f)
-            turn.animateTo(
-                1f,
-                tween(preferences.animationMillis * if (move.turns == 2) 2 else 1),
-            )
+            if(move.turns==2) { turn.animateTo(.5f,tween(preferences.animationMillis));delay(180) }
+            turn.animateTo(1f,tween(preferences.animationMillis))
         }
     }
 

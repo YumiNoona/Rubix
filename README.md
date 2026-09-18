@@ -1,8 +1,8 @@
-# Rubix
+# rubix.
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.2.0-5AA7FF)
+![Version](https://img.shields.io/badge/version-3.3.0-5AA7FF)
 ![JVM checks](https://img.shields.io/badge/JVM_tests-71_passed-15824F)
 
 

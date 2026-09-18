@@ -196,7 +196,7 @@ private fun RubixTopBar(
 }
 
 private fun screenTitle(vm: CubeViewModel) = when (vm.screen) {
-    Screen.HOME -> "rubix"
+    Screen.HOME -> "rubix."
     Screen.PRACTICE -> "Practice"
     Screen.LEARN -> "Learn"
     Screen.VIRTUAL -> vm.virtualMode?.title ?: "Virtual cube"

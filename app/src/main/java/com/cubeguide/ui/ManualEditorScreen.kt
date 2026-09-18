@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.ViewInAr
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,13 +25,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.CubeColor
 import com.cubeguide.core.Face
+import com.cubeguide.rendering.CubeView
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ManualEditor(vm: CubeViewModel) {
     val preferences=LocalAppPreferences.current
     val feedback=rememberTouchFeedback()
     var faceIndex by rememberSaveable { mutableIntStateOf(Face.F.ordinal) }
     var brushIndex by rememberSaveable { mutableIntStateOf(CubeColor.WHITE.ordinal) }
+    var preview by rememberSaveable { mutableStateOf(false) }
     val face=Face.entries[faceIndex]
     val brush=CubeColor.entries[brushIndex]
 
@@ -40,9 +44,11 @@ internal fun ManualEditor(vm: CubeViewModel) {
                 Text("Paint the stickers",style=MaterialTheme.typography.titleLarge)
                 Text("Centers stay fixed",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            FilledTonalIconButton(onClick={feedback();vm.undoEdit()},enabled=vm.canUndoEdit) {
-                Icon(Icons.AutoMirrored.Rounded.Undo,"Undo color change")
+            FilledTonalIconButton(onClick={feedback();preview=true}) {
+                Icon(Icons.Rounded.ViewInAr,"Preview cube")
             }
+            Spacer(Modifier.width(6.dp))
+            FilledTonalIconButton(onClick={feedback();vm.undoEdit()},enabled=vm.canUndoEdit) { Icon(Icons.AutoMirrored.Rounded.Undo,"Undo color change") }
         }
 
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
@@ -104,5 +110,12 @@ internal fun ManualEditor(vm: CubeViewModel) {
             text={Text(error)},
             confirmButton={TextButton(onClick=vm::dismissSolveError) { Text("Keep editing") }},
         )
+    }
+    if(preview) ModalBottomSheet(onDismissRequest={preview=false},shape=RubixTokens.modalShape) {
+        Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding(),horizontalAlignment=Alignment.CenterHorizontally) {
+            Text("Cube preview",style=MaterialTheme.typography.headlineSmall)
+            CubeView(vm.cube,Modifier.fillMaxWidth().height(340.dp))
+            Spacer(Modifier.height(18.dp))
+        }
     }
 }

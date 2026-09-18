@@ -101,7 +101,7 @@ import com.cubeguide.core.*
   Text("Appearance",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Spacer(Modifier.height(10.dp))
   SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-   AppThemeMode.entries.forEachIndexed { index,mode -> SegmentedButton(selected=preferences.themeMode==mode,onClick={preferences.updateThemeMode(mode);feedback()},shape=SegmentedButtonDefaults.itemShape(index,AppThemeMode.entries.size),label={Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })}) }
+   AppThemeMode.entries.forEachIndexed { index,mode -> SegmentedButton(selected=preferences.themeMode==mode,onClick={preferences.updateThemeMode(mode);feedback()},shape=SegmentedButtonDefaults.itemShape(index,AppThemeMode.entries.size),icon={},label={Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })}) }
   }
   SettingsToggle("Color initials in editors",preferences.initials) { preferences.updateInitials(it) }
   HorizontalDivider(Modifier.padding(vertical=16.dp))

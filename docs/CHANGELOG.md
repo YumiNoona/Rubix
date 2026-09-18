@@ -1,3 +1,11 @@
+# 3.3.0
+
+- Updated the visible brand and launcher name to `rubix.`.
+- Removed the default selected checkmark from the System/Dark/Light appearance control.
+- Added an icon-only 3D preview action to manual color entry, opening a large draggable cube sheet without crowding the editor.
+- Consolidated every 3x3 preview onto the solid virtual-cube renderer with fitted perspective, solid cubies, lighting, shadow and consistent drag/reset behavior.
+- Preserved distinct two-quarter-turn animation timing after unifying the renderer.
+
 # 3.2.0
 
 - Rebuilt manual color entry as a focused face painter with no competing 3D preview, a roomy 3-by-2 color palette, fixed solve action and compact face navigation.

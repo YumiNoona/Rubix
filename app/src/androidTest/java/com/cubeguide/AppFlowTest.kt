@@ -79,6 +79,9 @@ class AppFlowTest {
  }
  @Test fun manualCorrectionRejectsBadCounts() {
   compose.onNodeWithText("Enter colors manually").performScrollTo().performClick()
+  compose.onNodeWithContentDescription("Preview cube").assertIsDisplayed().performClick()
+  compose.onNodeWithText("Cube preview").assertIsDisplayed()
+  compose.activity.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
   compose.onAllNodesWithContentDescription("front row 1 column 1, Green",useUnmergedTree=true).onFirst().performClick()
   compose.onNodeWithText("Solve cube").assertIsDisplayed().performClick()
   compose.onNodeWithText("This cube needs a check").assertIsDisplayed()
