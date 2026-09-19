@@ -56,7 +56,7 @@ import kotlinx.coroutines.*
  }
  Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal=18.dp)) {
   Row(Modifier.fillMaxWidth().height(58.dp),verticalAlignment=Alignment.CenterVertically) {
-   IconButton(onClick={feedback();back()},enabled=session.stage!=MultiPuzzleStage.ANALYZING,modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
+   IconButton(onClick={feedback();back()},enabled=session.stage!=MultiPuzzleStage.ANALYZING,modifier=Modifier.offset(x=(-14).dp).size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
    Text(stageTitle(session),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f),maxLines=1)
    if(session.stage==MultiPuzzleStage.EDIT && session.manualEntry) ManualPuzzleMenu(session.puzzle,onManualPuzzle)
    else if(session.stage==MultiPuzzleStage.GUIDE) Text("${session.step+1}/${session.moves.size}",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold)
@@ -167,9 +167,9 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),contentAlignment=Alignment.Center) { if(show3D) PuzzleModel(session,Modifier.fillMaxWidth().height(310.dp)) else PuzzleNet(session,false) { face,_ -> session.beginEdit(face) } }
   Surface(shape=RoundedCornerShape(17.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(when { session.validation()!=null->"Check the colors";session.supportsAutomaticSolution->"Ready to solve";else->"Capture verified" },fontWeight=FontWeight.SemiBold,color=if(session.validation()==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error);Text(session.validation() ?: when { !session.supportsAutomaticSolution->"All ${session.spec.totalObservedStickers} stickers are balanced. Automatic big-cube solving is not enabled until its move engine can replay-verify every guide.";session.lowConfidence.isEmpty()->"All pieces form a legal ${session.spec.shortName}.";else->"Outlined stickers had low scan confidence. Check them closely." },style=MaterialTheme.typography.bodySmall) } }
   Spacer(Modifier.height(10.dp));Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-   OutlinedButton(onClick={session.beginEdit()},modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Icon(Icons.Rounded.Edit,null);Spacer(Modifier.width(6.dp));Text("Edit colors")}
-   if(session.supportsAutomaticSolution) Button(onClick={session.busy=true;session.stage=MultiPuzzleStage.ANALYZING;scope.launch { val result=withContext(Dispatchers.Default){session.calculateSolution()};session.acceptSolution(result) }},enabled=session.validation()==null&&!session.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Text("Solve")}
-   else FilledTonalButton(onClick=onExit,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Text("Finish review")}
+   OutlinedButton(onClick={session.beginEdit()},modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.Edit,"Edit colors",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Edit",maxLines=1)}
+   if(session.supportsAutomaticSolution) Button(onClick={session.busy=true;session.stage=MultiPuzzleStage.ANALYZING;scope.launch { val result=withContext(Dispatchers.Default){session.calculateSolution()};session.acceptSolution(result) }},enabled=session.validation()==null&&!session.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.AutoFixHigh,"Solve",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Solve",maxLines=1)}
+   else FilledTonalButton(onClick=onExit,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.Check,"Finish review",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Done",maxLines=1)}
   };Spacer(Modifier.height(12.dp))
  }
 }

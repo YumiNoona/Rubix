@@ -1,3 +1,9 @@
+# 3.2.1
+
+- Aligned back controls to the screen edge throughout detail flows and solving guides.
+- Replaced crowded review actions with concise Material icons and single-line labels.
+- Rebuilt Learn as a calm three-path landing screen; each path now opens its own focused lesson list with an in-context back action.
+
 # 3.2.0
 
 - Unified every regular cube's preparation page with the 3×3 tutorial format, including a stable solved model, lighting/framing tips and the six-face capture order.
@@ -5,7 +11,7 @@
 - Added a compact 2×2–7×7 type selector beside the manual-entry title and wired it to open the matching editor.
 - Added guided camera and gallery capture for 5×5, 6×6 and 7×7, including dense-grid detection, capacity-balanced color assignment, complete review nets, manual correction and solid 3D inspection.
 - Kept automatic big-cube guidance behind replay verification so a color-balanced scan cannot produce unverified moves.
-- Reworked Learn to match the spacious Practice visual language with scrollable skill cards, larger lesson previews, clearer hierarchy and a small-screen-safe lesson sheet.
+- Reworked Learn to match the spacious Practice visual language with larger lesson previews, clearer hierarchy and a small-screen-safe lesson sheet.
 - Expanded large-cube session and classifier regression coverage and refreshed the installable APK.
 
 # 3.1.0

@@ -2,7 +2,7 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.2.0-238BFF)
+![Version](https://img.shields.io/badge/version-3.2.1-238BFF)
 ![Build checks](https://img.shields.io/badge/tests_%26_lint-passing-15824F)
 
 

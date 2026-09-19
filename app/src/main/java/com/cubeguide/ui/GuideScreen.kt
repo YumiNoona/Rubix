@@ -53,7 +53,7 @@ import com.cubeguide.rendering.CubeView
   val cubeHeight=(maxHeight*0.44f).coerceIn(160.dp,280.dp)
   Column(Modifier.fillMaxSize()) {
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-    IconButton(onClick={feedback();autoPlay=false;onBack()},modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
+    IconButton(onClick={feedback();autoPlay=false;onBack()},modifier=Modifier.offset(x=(-14).dp).size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
     Text("${vm.step+1} of ${vm.moves.size}",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f),textAlign=TextAlign.Center)
     Row(verticalAlignment=Alignment.CenterVertically) {
      IconButton(onClick={feedback();autoPlay=!autoPlay}) { Icon(if(autoPlay) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if(autoPlay) "Pause autoplay" else "Start autoplay") }

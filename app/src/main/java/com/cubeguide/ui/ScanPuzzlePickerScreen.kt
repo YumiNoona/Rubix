@@ -50,7 +50,7 @@ import kotlin.math.max
  val preferences=LocalAppPreferences.current
  Box {
   FilledTonalButton(onClick={feedback();expanded=true},modifier=Modifier.height(40.dp),shape=RoundedCornerShape(14.dp),contentPadding=PaddingValues(horizontal=12.dp)) {
-   Text(PuzzleRegistry.get(selected).shortName,fontWeight=FontWeight.SemiBold)
+   Text(PuzzleRegistry.get(selected).shortName,fontWeight=FontWeight.SemiBold,maxLines=1)
    Spacer(Modifier.width(3.dp));Icon(Icons.Rounded.ExpandMore,"Change cube type",Modifier.size(18.dp))
   }
   DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
