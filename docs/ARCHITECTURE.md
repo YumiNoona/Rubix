@@ -97,7 +97,7 @@ Timer results, selected puzzle size and completed lessons live in `AppPreference
 
 ## Multi-puzzle solve flow (2.3.0)
 
-The scanner dispatches by `PuzzleSpec` and square detectors sample 2×2, 3×3 or 4×4 grids. The 2×2 flow repairs independent face-image rotations after a guided white-red-green reference-corner setup. The 4×4 classifier assigns sixteen of every color and validates corner and wing inventories before the reduction solver runs.
+The scanner dispatches by `PuzzleSpec` and square detectors sample 2×2 through 7×7 grids. The 2×2 flow repairs independent face-image rotations after a guided white-red-green reference-corner setup. The 4×4 classifier assigns sixteen of every color and validates corner and wing inventories before the reduction solver runs. The 5×5–7×7 classifier performs one capacity-balanced assignment across all six faces, fixes the six physical centers on odd sizes, and exposes the complete result to review and correction. Those sizes do not enter guidance until a matching state engine can validate legality and replay every returned move.
 
 `MultiPuzzleSession` owns the non-3×3 capture, review, edit, setup and guide state. `PuzzleSolverGate` remains the enabling boundary: it validates the input, parses and applies every returned move with the matching puzzle engine, and exposes the guide only when replay reaches solved. The 2×2 guide reuses generalized cube geometry and 4×4 renders outer and wide layers. The virtual renderer supports legal outer, inner and wide turns for 2×2 through 7×7. Initials are consumed only by focused editors; renderers default to label-free output.
 

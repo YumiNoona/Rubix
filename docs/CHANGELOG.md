@@ -1,3 +1,10 @@
+# 3.2.0
+
+- Added guided camera and gallery capture for 5×5, 6×6 and 7×7, including dense-grid detection, capacity-balanced color assignment, complete review nets, manual correction and solid 3D inspection.
+- Kept automatic big-cube guidance behind replay verification so a color-balanced scan cannot produce unverified moves.
+- Reworked Learn to match the spacious Practice visual language with scrollable skill cards, larger lesson previews, clearer hierarchy and a small-screen-safe lesson sheet.
+- Expanded large-cube session and classifier regression coverage and refreshed the installable APK.
+
 # 3.1.0
 
 - Replaced the virtual cube's frame-by-frame auto-fit with a fixed camera target and scale, eliminating zoom and model drift during drag and layer animations from 2×2 through 7×7.

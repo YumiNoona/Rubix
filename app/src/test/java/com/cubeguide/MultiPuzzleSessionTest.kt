@@ -37,4 +37,15 @@ class MultiPuzzleSessionTest {
   while(session.stage==MultiPuzzleStage.GUIDE) session.next()
   assertEquals(MultiPuzzleStage.DONE,session.stage);assertTrue(FourByFourState(session.colors).solved)
  }
+
+ @Test fun fiveSixAndSevenCaptureReviewAndEditAllStickers() {
+  listOf(PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN).forEach { puzzle ->
+   val session=MultiPuzzleSession(puzzle);session.beginScan()
+   val size=session.spec.squareSize!!
+   CubeColor.entries.forEach { color -> assertTrue(session.addCapture(List(size*size) { samples.getValue(color) })) }
+   assertEquals(MultiPuzzleStage.REVIEW,session.stage);assertNull(session.validation());assertEquals(size*size*6,session.colors.size)
+   assertFalse(session.supportsAutomaticSolution)
+   session.beginEdit();val original=session.colors[0];val replacement=CubeColor.entries.first { it!=original };session.setColor(0,replacement);session.undoEdit();assertEquals(original,session.colors[0]);session.cancelEdit()
+  }
+ }
 }

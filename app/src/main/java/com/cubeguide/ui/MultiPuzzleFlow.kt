@@ -64,7 +64,7 @@ import kotlinx.coroutines.*
   when(session.stage) {
    MultiPuzzleStage.PREPARE -> PuzzlePrepare(session)
    MultiPuzzleStage.SCAN -> PuzzleScanner(session)
-   MultiPuzzleStage.REVIEW -> PuzzleReview(session)
+   MultiPuzzleStage.REVIEW -> PuzzleReview(session,onExit)
    MultiPuzzleStage.EDIT -> PuzzleEditor(session)
    MultiPuzzleStage.ANALYZING -> PuzzleAnalyzing(session)
    MultiPuzzleStage.SETUP -> PuzzleSetup(session)
@@ -93,6 +93,7 @@ private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
   Text(when(session.puzzle) {
    PuzzleId.TWO_BY_TWO -> "Find the white–red–green corner. Hold white on top, green facing you, and red on the right. Keep that orientation while capturing Top, Right, Front, Bottom, Left, and Back."
    PuzzleId.FOUR_BY_FOUR -> "Use a white–red–green corner as your reference: white on top, green facing you, red on the right. Turn the whole puzzle between photos without twisting any layer."
+   PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> "Use the white–red–green corner as your reference: white on top, green facing you, and red on the right. Keep each dense sticker grid square to the frame and turn the whole puzzle between photos."
    else -> "Follow the guided capture order."
   },textAlign=TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=8.dp))
   Spacer(Modifier.height(20.dp))
@@ -179,17 +180,18 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 
 @Composable private fun CaptureProgress(total:Int,done:Int) { Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) { repeat(total) { index -> Surface(Modifier.weight(1f).height(7.dp),shape=CircleShape,color=when { index<done->MaterialTheme.colorScheme.primary;index==done->MaterialTheme.colorScheme.secondary;else->MaterialTheme.colorScheme.surfaceContainerHighest }){} } } }
 
-@Composable private fun PuzzleReview(session:MultiPuzzleSession) {
+@Composable private fun PuzzleReview(session:MultiPuzzleSession,onExit:()->Unit) {
  val scope=rememberCoroutineScope();var show3D by rememberSaveable { mutableStateOf(false) }
  Column(Modifier.fillMaxSize()) {
   Text("Does it match?",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
   Text("Compare every sticker with the puzzle in your hands.",color=MaterialTheme.colorScheme.onSurfaceVariant)
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) { FilterChip(!show3D,{show3D=false},{Text("2D net")});Spacer(Modifier.width(8.dp));FilterChip(show3D,{show3D=true},{Text("3D model")}) }
   Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),contentAlignment=Alignment.Center) { if(show3D) PuzzleModel(session,Modifier.fillMaxWidth().height(310.dp)) else PuzzleNet(session,false) { face,_ -> session.beginEdit(face) } }
-  Surface(shape=RoundedCornerShape(17.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(if(session.validation()==null) "Ready to solve" else "Check the colors",fontWeight=FontWeight.SemiBold,color=if(session.validation()==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error);Text(session.validation() ?: if(session.lowConfidence.isEmpty()) "All pieces form a legal ${session.spec.shortName}." else "Outlined stickers had low scan confidence. Check them closely.",style=MaterialTheme.typography.bodySmall) } }
+  Surface(shape=RoundedCornerShape(17.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(when { session.validation()!=null->"Check the colors";session.supportsAutomaticSolution->"Ready to solve";else->"Capture verified" },fontWeight=FontWeight.SemiBold,color=if(session.validation()==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error);Text(session.validation() ?: when { !session.supportsAutomaticSolution->"All ${session.spec.totalObservedStickers} stickers are balanced. Automatic big-cube solving is not enabled until its move engine can replay-verify every guide.";session.lowConfidence.isEmpty()->"All pieces form a legal ${session.spec.shortName}.";else->"Outlined stickers had low scan confidence. Check them closely." },style=MaterialTheme.typography.bodySmall) } }
   Spacer(Modifier.height(10.dp));Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
    OutlinedButton(onClick={session.beginEdit()},modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Icon(Icons.Rounded.Edit,null);Spacer(Modifier.width(6.dp));Text("Edit colors")}
-   Button(onClick={session.busy=true;session.stage=MultiPuzzleStage.ANALYZING;scope.launch { val result=withContext(Dispatchers.Default){session.calculateSolution()};session.acceptSolution(result) }},enabled=session.validation()==null&&!session.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Text("Solve")}
+   if(session.supportsAutomaticSolution) Button(onClick={session.busy=true;session.stage=MultiPuzzleStage.ANALYZING;scope.launch { val result=withContext(Dispatchers.Default){session.calculateSolution()};session.acceptSolution(result) }},enabled=session.validation()==null&&!session.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Text("Solve")}
+   else FilledTonalButton(onClick=onExit,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp)){Text("Finish review")}
   };Spacer(Modifier.height(12.dp))
  }
 }
@@ -253,6 +255,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
  when(session.puzzle) {
   PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),modifier)
   PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),modifier)
+  PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> VirtualCubeView(VirtualCube(session.spec.squareSize!!,session.colors.toList()),modifier)
   else -> Unit
  }
 }

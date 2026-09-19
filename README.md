@@ -2,11 +2,11 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.1.0-238BFF)
-![JVM checks](https://img.shields.io/badge/JVM_tests-71_passed-15824F)
+![Version](https://img.shields.io/badge/version-3.2.0-238BFF)
+![Build checks](https://img.shields.io/badge/tests_%26_lint-passing-15824F)
 
 
-An offline Android workspace for regular cubes from 2×2 through 7×7, with verified scanning and solving for 2×2, 3×3 and 4×4, a full virtual cube, timer and guided lessons.
+An offline Android workspace for regular cubes from 2×2 through 7×7, with camera capture, review and editing for every size, verified automatic solving for 2×2, 3×3 and 4×4, a full virtual cube, timer and guided lessons.
 
 ## What is inside
 
@@ -34,8 +34,8 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 ## Solve your cube
 
 1. Tap **Scan my cube** and choose a regular cube size.
-2. Match the preparation screen. The 3×3 tutorial begins white-up and green-front; centerless 2×2 and 4×4 scans use the white-red-green reference corner.
-3. Capture each face with the live camera or gallery. Rubix uses a 2x2, 3x3, 4x4 or triangular detector for the selected puzzle.
+2. Match the preparation screen. The 3×3 tutorial begins white-up and green-front; every other regular cube uses the white-red-green reference corner.
+3. Capture each face with the live camera or gallery. Rubix samples the matching 2×2 through 7×7 sticker grid for the selected puzzle.
 4. Review the full net. **Edit colors** opens a focused face editor with counts, optional initials, undo, redo, Cancel and Done.
 5. Solve only after validation succeeds, match the starting position, then follow the animated model. Autoplay, Pause, Previous, Next, replay, restart and current-state correction remain available.
 
@@ -43,7 +43,7 @@ Keep the same holding orientation while following the guide. Clockwise is viewed
 
 ## Capture and personalize
 
-The scanner supports a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and the expected center is checked before acceptance. Gallery access does not require broad storage permission. Check every imported sticker in review.
+The scanner supports 2×2 through 7×7 grids with a live camera, hardware flash where available, and the Android photo picker. Import one cube face at a time in the guided face/top order. Photos are resized, their orientation is normalized, and odd-cube centers anchor color assignment. Gallery access does not require broad storage permission. Check every imported sticker in review.
 
 Manual entry uses a large 3D preview, one focused face at a time, persistent brush selection, fixed centers, live per-color counts and undo. Scan review uses a separate editor with a labeled six-color palette, initials, undo and redo. Face selection and virtual lesson context survive UI restoration.
 
@@ -93,7 +93,7 @@ The UI is split by screen under `app/src/main/java/com/cubeguide/ui`. `CubeViewM
 
 ## Solution quality
 
-For 3×3, Rubix searches within the 20 face-turn bound and spends extra probes improving its first result. It also merges same-face turns across commuting opposite faces. Under 10 cannot be guaranteed for arbitrary scrambles. The 2×2 and 4×4 engines use their own state models and validators. Every returned sequence is replayed by the matching engine and must reach a solved state before the guide is shown. The 5×5–7×7 models are available in the virtual cube; their camera solvers remain disabled until a replay-verifiable engine is implemented.
+For 3×3, Rubix searches within the 20 face-turn bound and spends extra probes improving its first result. It also merges same-face turns across commuting opposite faces. Under 10 cannot be guaranteed for arbitrary scrambles. The 2×2 and 4×4 engines use their own state models and validators. Every returned sequence is replayed by the matching engine and must reach a solved state before the guide is shown. For 5×5–7×7, camera capture, balanced color classification, review, manual correction and 3D inspection are enabled; automatic guidance remains gated until a replay-verifiable reduction engine is implemented.
 
 ## Verification and limits
 

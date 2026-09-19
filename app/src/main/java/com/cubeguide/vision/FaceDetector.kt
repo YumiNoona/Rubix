@@ -7,7 +7,7 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.*
 
 class FaceDetector(private val gridSize:Int=3) {
- init { require(gridSize in 2..5) }
+ init { require(gridSize in 2..7) }
  fun detect(bitmap: Bitmap): Detection {
   val rgba=Mat(); val rgb=Mat(); val gray=Mat(); val edges=Mat(); val hierarchy=Mat()
   val contours=mutableListOf<MatOfPoint>(); val warp=Mat(); val lab=Mat(); val hsv=Mat()

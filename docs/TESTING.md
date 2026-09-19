@@ -3,7 +3,7 @@
 ## Executed locally
 
 - `:core:test`: covers the 2×2, 3×3 and 4×4 state models, inverses, doubles, wide turns, physical validators, randomized scrambles and replay-verified solver output.
-- `:app:testDebugUnitTest`: covers color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2×2 and 4×4.
+- `:app:testDebugUnitTest`: covers color classification, capture stability, scan orientation, focused editing, guide progression, complete synthetic scan-to-solved sessions for 2×2 and 4×4, and balanced capture-review-edit sessions for 5×5 through 7×7.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.

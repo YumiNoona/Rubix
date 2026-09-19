@@ -30,6 +30,7 @@ class MultiPuzzleSession(val puzzle:PuzzleId) {
  val faceSize get()=spec.stickersPerView
  val scanIndex get()=captures.size.coerceAtMost(faceCount-1)
  val lowConfidence get()=confidence.mapIndexedNotNull { index,value -> index.takeIf { value<.18 } }.toSet()
+ val supportsAutomaticSolution get()=puzzle in setOf(PuzzleId.TWO_BY_TWO,PuzzleId.FOUR_BY_FOUR)
 
  fun beginScan() { captures.clear();colors.clear();confidence=emptyList();message="";stage=MultiPuzzleStage.SCAN }
  fun beginManual() {
@@ -37,6 +38,7 @@ class MultiPuzzleSession(val puzzle:PuzzleId) {
   val stickers=when(puzzle) {
    PuzzleId.TWO_BY_TWO -> PocketCube.solved().stickers
    PuzzleId.FOUR_BY_FOUR -> FourByFourState.solved().stickers
+   PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> Face.entries.flatMap { face -> List(faceSize) { CubeColor.entries[face.ordinal] } }
    else -> emptyList()
   }
   colors.clear();colors.addAll(stickers);confidence=List(stickers.size){1.0};message="Enter every sticker exactly as it appears.";stage=MultiPuzzleStage.REVIEW;beginEdit()
@@ -54,26 +56,32 @@ class MultiPuzzleSession(val puzzle:PuzzleId) {
     is FourByFourClassificationResult.Ready -> setReviewed(result.scan.state.stickers,result.scan.confidence)
     is FourByFourClassificationResult.Rejected -> reject(result.reason)
    }
+   PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> when(val result=LargeCubeScanClassifier.classify(captures,spec.squareSize!!)) {
+    is LargeCubeClassificationResult.Ready -> setReviewed(result.scan.stickers,result.scan.confidence)
+    is LargeCubeClassificationResult.Rejected -> reject(result.reason)
+   }
    else -> reject("This puzzle flow is unavailable.")
   }
   return stage==MultiPuzzleStage.REVIEW
  }
- private fun setReviewed(stickers:List<CubeColor>,scores:List<Double>) { colors.clear();colors.addAll(stickers);confidence=scores;message=validation() ?: "Scan verified. Check every face before solving.";stage=MultiPuzzleStage.REVIEW }
+ private fun setReviewed(stickers:List<CubeColor>,scores:List<Double>) { colors.clear();colors.addAll(stickers);confidence=scores;message=validation() ?: if(supportsAutomaticSolution) "Scan verified. Check every face before solving." else "Capture complete. Check every sticker in review.";stage=MultiPuzzleStage.REVIEW }
  private fun reject(reason:String) { captures.clear();message=reason;stage=MultiPuzzleStage.SCAN }
 
  fun beginEdit(face:Int=0) { editReturnStage=stage;editFace=face.coerceIn(0,faceCount-1);originalColors=colors.toList();editHistory.clear();redoHistory.clear();canUndo=false;canRedo=false;stage=MultiPuzzleStage.EDIT }
  fun cancelEdit() { originalColors?.let { colors.clear();colors.addAll(it) };originalColors=null;editHistory.clear();redoHistory.clear();canUndo=false;canRedo=false;stage=editReturnStage }
- fun finishEdit() { originalColors=null;editHistory.clear();redoHistory.clear();canUndo=false;canRedo=false;confidence=List(colors.size){1.0};message=validation() ?: "Colors verified. Ready to solve.";stage=MultiPuzzleStage.REVIEW }
- fun setColor(index:Int,color:CubeColor) { if(index in colors.indices && color in availableColors && colors[index]!=color) { editHistory.addLast(colors.toList());if(editHistory.size>96) editHistory.removeFirst();redoHistory.clear();canUndo=true;canRedo=false;colors[index]=color;confidence=confidence.toMutableList().also { if(index in it.indices) it[index]=1.0 };message=validation() ?: "Colors verified. Ready to solve." } }
- fun undoEdit() { if(editHistory.isEmpty()) return;redoHistory.addLast(colors.toList());val previous=editHistory.removeLast();colors.clear();colors.addAll(previous);canUndo=editHistory.isNotEmpty();canRedo=true;message=validation() ?: "Colors verified. Ready to solve." }
- fun redoEdit() { if(redoHistory.isEmpty()) return;editHistory.addLast(colors.toList());val next=redoHistory.removeLast();colors.clear();colors.addAll(next);canUndo=true;canRedo=redoHistory.isNotEmpty();message=validation() ?: "Colors verified. Ready to solve." }
+ fun finishEdit() { originalColors=null;editHistory.clear();redoHistory.clear();canUndo=false;canRedo=false;confidence=List(colors.size){1.0};message=validMessage();stage=MultiPuzzleStage.REVIEW }
+ fun setColor(index:Int,color:CubeColor) { if(index in colors.indices && color in availableColors && colors[index]!=color) { editHistory.addLast(colors.toList());if(editHistory.size>96) editHistory.removeFirst();redoHistory.clear();canUndo=true;canRedo=false;colors[index]=color;confidence=confidence.toMutableList().also { if(index in it.indices) it[index]=1.0 };message=validMessage() } }
+ fun undoEdit() { if(editHistory.isEmpty()) return;redoHistory.addLast(colors.toList());val previous=editHistory.removeLast();colors.clear();colors.addAll(previous);canUndo=editHistory.isNotEmpty();canRedo=true;message=validMessage() }
+ fun redoEdit() { if(redoHistory.isEmpty()) return;editHistory.addLast(colors.toList());val next=redoHistory.removeLast();colors.clear();colors.addAll(next);canUndo=true;canRedo=redoHistory.isNotEmpty();message=validMessage() }
  val availableColors get()=CubeColor.entries
 
  fun validation():String? = when(puzzle) {
   PuzzleId.TWO_BY_TWO -> runCatching { TwoByTwoEngine.validate(PocketCube(colors.toList())) }.getOrElse { "Capture all 24 stickers." }
   PuzzleId.FOUR_BY_FOUR -> runCatching { FourByFourEngine.validate(FourByFourState(colors.toList())) }.getOrElse { "Capture all 96 stickers." }
+  PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> LargeCubeScanClassifier.validate(colors,spec.squareSize!!)
   else -> "This puzzle is unavailable."
  }
+ private fun validMessage()=validation() ?: if(supportsAutomaticSolution) "Colors verified. Ready to solve." else "Colors balanced. Review complete."
 
  fun calculateSolution():VerifiedSolution = when(puzzle) {
    PuzzleId.TWO_BY_TWO -> runCatching { PuzzleSolverGate.solve(TwoByTwoEngine,PocketCube(colors.toList())) }.getOrElse { VerifiedSolution.Rejected(puzzle,it.message ?: "Could not solve this 2×2.") }
