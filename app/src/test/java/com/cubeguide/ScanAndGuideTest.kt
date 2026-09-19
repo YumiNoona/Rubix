@@ -120,8 +120,6 @@ class ScanAndGuideTest {
   assertEquals(Screen.SCAN,vm.screen)
   vm.openScanPicker();vm.scanPuzzle(PuzzleId.TWO_BY_TWO)
   assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.TWO_BY_TWO,vm.activePuzzle)
-  vm.closePuzzleSolve();vm.scanPuzzle(PuzzleId.PYRAMINX)
-  assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.PYRAMINX,vm.activePuzzle)
   vm.closePuzzleSolve();vm.scanPuzzle(PuzzleId.FOUR_BY_FOUR)
   assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.FOUR_BY_FOUR,vm.activePuzzle)
  }

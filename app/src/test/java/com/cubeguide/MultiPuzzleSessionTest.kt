@@ -28,18 +28,6 @@ class MultiPuzzleSessionTest {
   assertEquals(MultiPuzzleStage.DONE,session.stage);assertTrue(PocketCube(session.colors).solved)
  }
 
- @Test fun pyraminxScansReviewsSolvesAndReplaysEveryMove() {
-  val moves=PyraminxMove.parse("U R' l B u' L")
-  val facelets=PyraminxFacelets.solved().apply(moves)
-  val physical=mapOf(PyraminxColor.GREEN to CubeColor.GREEN,PyraminxColor.RED to CubeColor.RED,PyraminxColor.BLUE to CubeColor.BLUE,PyraminxColor.YELLOW to CubeColor.YELLOW)
-  val session=MultiPuzzleSession(PuzzleId.PYRAMINX);session.beginScan()
-  facelets.stickers.map(physical::getValue).chunked(9).forEach { assertTrue(session.addCapture(it.map(samples::getValue))) }
-  assertEquals(MultiPuzzleStage.REVIEW,session.stage);assertNull(session.validation())
-  val solution=session.calculateSolution();assertIs<VerifiedSolution.Ready>(solution);session.acceptSolution(solution);session.startGuide()
-  while(session.stage==MultiPuzzleStage.GUIDE) session.next()
-  assertEquals(MultiPuzzleStage.DONE,session.stage);assertTrue(session.pyraminxDisplayFacelets()!!.toState()!!.solved)
- }
-
  @Test fun fourByFourScansReviewsSolvesAndReplaysEveryMove() {
   val state=FourByFourState.solved().apply(FourByFourMove.parse("Rw U F2 Lw' D B"))
   val session=MultiPuzzleSession(PuzzleId.FOUR_BY_FOUR);session.beginScan()

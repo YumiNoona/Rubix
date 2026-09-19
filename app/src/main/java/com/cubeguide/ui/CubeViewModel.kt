@@ -65,7 +65,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  fun scanPuzzle(puzzleId: PuzzleId) {
   when(puzzleId) {
    PuzzleId.THREE_BY_THREE -> { activePuzzle=puzzleId;screen=Screen.SCAN_PREPARE;save() }
-   PuzzleId.TWO_BY_TWO,PuzzleId.PYRAMINX,PuzzleId.FOUR_BY_FOUR -> { activePuzzle=puzzleId;multiSession=MultiPuzzleSession(puzzleId);screen=Screen.PUZZLE_SOLVE;save() }
+   PuzzleId.TWO_BY_TWO,PuzzleId.FOUR_BY_FOUR -> { activePuzzle=puzzleId;multiSession=MultiPuzzleSession(puzzleId);screen=Screen.PUZZLE_SOLVE;save() }
    else -> error("${PuzzleRegistry.get(puzzleId).name} scanning is not verified yet.")
   }
  }

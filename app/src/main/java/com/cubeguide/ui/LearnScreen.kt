@@ -5,7 +5,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.School
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,25 +50,30 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
  var showSolved by remember { mutableStateOf(false) }
  val visible=lessons.filter { it.skill==skill }
  Column(Modifier.fillMaxSize()) {
-  val complete=preferences.completedLessons.count { id -> lessons.any { it.id==id } }
-  PageIntro("Learn one move at a time",subtitle=if(complete==0) "Start with the basics." else "$complete of ${lessons.size} lessons complete")
-  Spacer(Modifier.height(16.dp))
-  LinearProgressIndicator(progress={complete.toFloat()/lessons.size},modifier=Modifier.fillMaxWidth(),trackColor=MaterialTheme.colorScheme.surfaceContainer)
-  Spacer(Modifier.height(18.dp))
+  Text("Pick a path",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
+  Text("See the idea on a cube, understand the plan, then practise it.",color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Spacer(Modifier.height(14.dp))
   SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) { Skill.entries.forEachIndexed { index,item ->
-   SegmentedButton(selected=skill==item,onClick={skill=item},shape=SegmentedButtonDefaults.itemShape(index,Skill.entries.size),label={Text(item.label,maxLines=1)})
+   SegmentedButton(selected=skill==item,onClick={skill=item},shape=SegmentedButtonDefaults.itemShape(index,Skill.entries.size),icon={},label={Text(item.label,maxLines=1)})
   } }
-  Spacer(Modifier.height(16.dp))
+  Spacer(Modifier.height(14.dp))
   LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+   item {
+    Surface(color=MaterialTheme.colorScheme.primaryContainer.copy(alpha=.55f),shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()) {
+     Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
+      Icon(when(skill){Skill.ROOKIE->Icons.Rounded.School;Skill.EXPERIENCED->Icons.Rounded.Speed;Skill.VETERAN->Icons.Rounded.Bolt},null,tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(30.dp))
+      Spacer(Modifier.width(13.dp));Column { Text(when(skill){Skill.ROOKIE->"Build strong basics";Skill.EXPERIENCED->"Solve with less hesitation";Skill.VETERAN->"Train for speed"},fontWeight=FontWeight.SemiBold);Text("${visible.size} practical lessons",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
+     }
+    }
+   }
    items(visible,key={it.id}) { lesson ->
-    val done=lesson.id in preferences.completedLessons
-    Card(onClick={showSolved=false;selected=lesson},modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceContainer),shape=RubixTokens.cardShape,border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant.copy(alpha=.65f))) {
-     Row(Modifier.fillMaxWidth().height(108.dp).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-      CubeView(example(lesson),Modifier.size(86.dp))
+    Card(onClick={showSolved=false;selected=lesson},modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceContainer),shape=RoundedCornerShape(20.dp)) {
+     Row(Modifier.fillMaxWidth().height(126.dp).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+      CubeView(example(lesson),Modifier.size(106.dp))
       Spacer(Modifier.width(12.dp))
       Column(Modifier.weight(1f)) {
-       Row(verticalAlignment=Alignment.CenterVertically) { Text(lesson.title,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));if(done) Icon(Icons.Rounded.CheckCircle,"Completed",tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(20.dp)) }
-       Spacer(Modifier.height(5.dp));Text(lesson.goal,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)
+       Row(verticalAlignment=Alignment.CenterVertically) { Text(lesson.title,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f));Icon(Icons.AutoMirrored.Rounded.ArrowForward,null,tint=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.size(20.dp)) }
+       Spacer(Modifier.height(5.dp));Text(lesson.goal,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=3)
       }
      }
     }
@@ -74,7 +82,7 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
   }
  }
  selected?.let { lesson ->
-  ModalBottomSheet(onDismissRequest={selected=null},shape=RubixTokens.modalShape) {
+  ModalBottomSheet(onDismissRequest={selected=null}) {
    Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
     Text(lesson.title,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {

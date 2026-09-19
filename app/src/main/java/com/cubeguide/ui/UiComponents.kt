@@ -127,6 +127,10 @@ import com.cubeguide.core.*
   SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
   SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }
   SettingsToggle("Reduce motion",preferences.reduceMotion) { preferences.updateReduceMotion(it) }
+  Spacer(Modifier.height(8.dp))
+  Text("Cube rotation sensitivity",style=MaterialTheme.typography.labelLarge)
+  Slider(value=preferences.cameraSensitivity,onValueChange=preferences::updateCameraSensitivity,valueRange=.0028f..007f,steps=5)
+  Text(when { preferences.cameraSensitivity<.004f->"Controlled";preferences.cameraSensitivity<.0058f->"Balanced";else->"Quick" },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   HorizontalDivider(Modifier.padding(vertical=16.dp))
   Text("Guide animation",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
   Slider(value=preferences.animationMillis.toFloat(),onValueChange={preferences.updateAnimation(it.toInt())},valueRange=600f..2200f,steps=7)

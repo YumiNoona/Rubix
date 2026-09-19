@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,7 +47,7 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
     }
 
     CompositionLocalProvider(LocalAppPreferences provides preferences) {
-        val useDark=when(preferences.themeMode) { AppThemeMode.SYSTEM->isSystemInDarkTheme();AppThemeMode.DARK->true;AppThemeMode.LIGHT->false }
+        val useDark=preferences.themeMode==AppThemeMode.DARK
         SideEffect {
             val activity=view.context as? android.app.Activity
             activity?.let { androidx.core.view.WindowCompat.getInsetsController(it.window,view).apply { isAppearanceLightStatusBars=!useDark;isAppearanceLightNavigationBars=!useDark } }
@@ -219,11 +218,9 @@ private fun RubixDock(selected: Screen, onSelect: (Screen) -> Unit, modifier: Mo
     val feedback = rememberTouchFeedback()
     Box(modifier.padding(horizontal = 22.dp, vertical = 4.dp).fillMaxWidth().height(92.dp)) {
         Surface(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(72.dp)
-                .shadow(24.dp, RoundedCornerShape(28.dp)),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(72.dp),
             shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .75f)),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = .82f),
         ) {
             Row(Modifier.fillMaxSize().padding(horizontal = 10.dp),verticalAlignment = Alignment.CenterVertically) {
                 DockItem("Practice",Icons.Rounded.SportsEsports,selected==Screen.PRACTICE,Modifier.weight(1f)) { feedback();onSelect(Screen.PRACTICE) }
@@ -241,7 +238,7 @@ private fun RubixDock(selected: Screen, onSelect: (Screen) -> Unit, modifier: Mo
             },
             shape = CircleShape,
             color = if (selected == Screen.HOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
-            border = androidx.compose.foundation.BorderStroke(4.dp,MaterialTheme.colorScheme.background),
+            border = androidx.compose.foundation.BorderStroke(2.dp,MaterialTheme.colorScheme.primary.copy(alpha=.24f)),
         ) {
             Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
                 Icon(Icons.Rounded.ViewInAr,"Solve",Modifier.size(32.dp),tint=if(selected==Screen.HOME) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer)

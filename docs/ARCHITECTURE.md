@@ -2,7 +2,7 @@
 
 ## Boundaries
 
-`core` is a JVM Kotlin module: 2x2, 3x3, 4x4 and Pyraminx state models, moves, physical validators, scan-orientation rules and solver adapters. Integer geometry maps a sticker's position and outward normal into a permutation for each clockwise layer turn. Each inverse and double turn uses the same engine. Independent reference scrambles in tests verify the mapping instead of comparing the engine only with itself.
+`core` is a JVM Kotlin module for regular cubes: 2×2, 3×3 and 4×4 state models, moves, physical validators, scan-orientation rules and solver adapters. Integer geometry maps a sticker's position and outward normal into a permutation for each clockwise layer turn. Each inverse and double turn uses the same engine. Independent reference scrambles in tests verify the mapping instead of comparing the engine only with itself.
 
 `app/camera` owns lifecycle binding, frame backpressure, RGBA bitmap conversion and rotation, frame throttling, executor cleanup and permission fallback. No frames are stored or uploaded.
 
@@ -97,9 +97,9 @@ Timer results, selected puzzle size and completed lessons live in `AppPreference
 
 ## Multi-puzzle solve flow (2.3.0)
 
-The scanner now dispatches by `PuzzleSpec`: square detectors sample 2x2, 3x3 or 4x4 grids, while the Pyraminx detector normalizes a triangular contour into nine ordered triangular samples. The 2x2 flow repairs independent face-image rotations after a guided white-red-green reference-corner setup. Pyraminx assigns exactly nine stickers to each of four session-derived colors and tests legal palette mappings. The 4x4 classifier assigns sixteen of every color and validates corner and wing inventories before the reduction solver runs.
+The scanner dispatches by `PuzzleSpec` and square detectors sample 2×2, 3×3 or 4×4 grids. The 2×2 flow repairs independent face-image rotations after a guided white-red-green reference-corner setup. The 4×4 classifier assigns sixteen of every color and validates corner and wing inventories before the reduction solver runs.
 
-`MultiPuzzleSession` owns the non-3x3 capture, review, edit, setup and guide state. `PuzzleSolverGate` remains the enabling boundary: it validates the input, parses and applies every returned move with the matching puzzle engine, and exposes the guide only when replay reaches solved. The 2x2 guide reuses generalized cube geometry, 4x4 renders outer and wide layers, and Pyraminx keeps its 36-facelet model synchronized with every main-layer and tip move. Initials are consumed only by focused editors; renderers default to label-free output.
+`MultiPuzzleSession` owns the non-3×3 capture, review, edit, setup and guide state. `PuzzleSolverGate` remains the enabling boundary: it validates the input, parses and applies every returned move with the matching puzzle engine, and exposes the guide only when replay reaches solved. The 2×2 guide reuses generalized cube geometry and 4×4 renders outer and wide layers. The virtual renderer supports legal outer, inner and wide turns for 2×2 through 7×7. Initials are consumed only by focused editors; renderers default to label-free output.
 
 ## Focused navigation and autoplay (2.1.0)
 

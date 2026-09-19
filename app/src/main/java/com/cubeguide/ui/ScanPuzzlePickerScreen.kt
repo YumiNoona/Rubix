@@ -15,12 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.*
-import kotlin.math.*
+import kotlin.math.max
 
 @Composable internal fun ScanPuzzlePickerScreen(onScan:(PuzzleId)->Unit) {
  val preferences=LocalAppPreferences.current
@@ -59,21 +58,8 @@ import kotlin.math.*
 @Composable private fun PuzzleGlyph(puzzle:PuzzleSpec,modifier:Modifier) {
  val primary=Color(0xFF2F8CFF);val yellow=Color(0xFFFFE43B);val red=Color(0xFFE83D54);val green=Color(0xFF1FA66A)
  Canvas(modifier) {
-  val s=size.minDimension;val c=Offset(size.width/2,size.height/2)
-  when(puzzle.scanShape) {
-   ScanShape.SQUARE_GRID -> {
+  val s=size.minDimension
     val n=puzzle.squareSize ?: 3;val gap=max(1.5f,s*0.025f);val edge=(s-(n-1)*gap)/n
     repeat(n*n) { i -> drawRoundRect(listOf(yellow,primary,red,green)[(i+i/n)%4],Offset(i%n*(edge+gap),i/n*(edge+gap)),androidx.compose.ui.geometry.Size(edge,edge),androidx.compose.ui.geometry.CornerRadius(edge*0.12f)) }
-   }
-   ScanShape.TRIANGLE_GRID -> {
-    val p=Path().apply { moveTo(c.x,s*0.05f);lineTo(s*0.96f,s*0.9f);lineTo(s*0.04f,s*0.9f);close() };drawPath(p,green);drawLine(Color(0xFF071116),Offset(c.x,s*0.05f),Offset(c.x,s*0.9f),s*0.045f);drawLine(Color(0xFF071116),Offset(s*0.27f,s*0.48f),Offset(s*0.73f,s*0.48f),s*0.045f)
-   }
-   ScanShape.PENTAGON -> {
-    val points=(0..4).map { i -> val a=-PI/2+i*2*PI/5;Offset(c.x+cos(a).toFloat()*s*.46f,c.y+sin(a).toFloat()*s*.46f) };val p=Path().apply { moveTo(points[0].x,points[0].y);points.drop(1).forEach{lineTo(it.x,it.y)};close() };drawPath(p,yellow);points.forEach { drawLine(Color(0xFF071116),c,it,s*.035f) }
-   }
-   ScanShape.SKEWB_FACE -> { drawRoundRect(primary,cornerRadius=androidx.compose.ui.geometry.CornerRadius(s*.12f));drawLine(Color(0xFF071116),Offset(0f,0f),Offset(s,s),s*.05f);drawLine(Color(0xFF071116),Offset(s,0f),Offset(0f,s),s*.05f);drawCircle(yellow,s*.16f,c) }
-   ScanShape.CLOCK_FACE -> { drawCircle(Color(0xFF172A35),s*.48f,c);repeat(9){i->val x=c.x+(i%3-1)*s*.23f;val y=c.y+(i/3-1)*s*.23f;drawCircle(yellow,s*.08f,Offset(x,y));drawLine(red,Offset(x,y),Offset(x,y-s*.06f),s*.025f)} }
-   ScanShape.SQUARE_ONE -> { drawRoundRect(yellow,Offset(0f,s*.08f),androidx.compose.ui.geometry.Size(s,s*.34f),androidx.compose.ui.geometry.CornerRadius(s*.12f));drawRoundRect(red,Offset(0f,s*.58f),androidx.compose.ui.geometry.Size(s,s*.34f),androidx.compose.ui.geometry.CornerRadius(s*.12f));drawLine(Color(0xFF071116),Offset(0f,c.y),Offset(s,c.y),s*.07f) }
-  }
  }
 }

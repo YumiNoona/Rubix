@@ -332,8 +332,8 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
 @Composable
 private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMode) -> Unit) {
     val feedback = rememberTouchFeedback()
-    val preview = remember {
-        Move.parse("R U2 F' L D R2").fold(CubeState.solved()) { cube, move -> cube.apply(move) }
+    val preview = remember(size) {
+        Move.parse("R U2 F' L D R2").fold(VirtualCube.solved(size)) { cube, move -> cube.apply(move) }
     }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
@@ -343,7 +343,8 @@ private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMod
             PageIntro("Choose a mode",Modifier.weight(1f),"No cube needed")
             PuzzleSizeMenu(size, onSize)
         }
-        CubeView(preview, Modifier.fillMaxWidth().height(205.dp), showInitials = false)
+        if(size==3) CubeView(CubeState(preview.stickers),Modifier.fillMaxWidth().height(205.dp),showInitials=false)
+        else VirtualCubeView(preview,Modifier.fillMaxWidth().height(205.dp))
         RubixActionCard("Free play","Explore and undo freely",Icons.Rounded.TouchApp,{feedback();onMode(VirtualMode.FREE)})
         Spacer(Modifier.height(10.dp))
         RubixActionCard("Challenge","Race the clock",Icons.Rounded.Timer,{feedback();onMode(VirtualMode.CHALLENGE)},accent=MaterialTheme.colorScheme.tertiary)

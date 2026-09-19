@@ -1,31 +1,10 @@
-# 3.3.0
-
-- Updated the visible brand and launcher name to `rubix.`.
-- Removed the default selected checkmark from the System/Dark/Light appearance control.
-- Added an icon-only 3D preview action to manual color entry, opening a large draggable cube sheet without crowding the editor.
-- Consolidated every 3x3 preview onto the solid virtual-cube renderer with fitted perspective, solid cubies, lighting, shadow and consistent drag/reset behavior.
-- Preserved distinct two-quarter-turn animation timing after unifying the renderer.
-
-# 3.2.0
-
-- Rebuilt manual color entry as a focused face painter with no competing 3D preview, a roomy 3-by-2 color palette, fixed solve action and compact face navigation.
-- Removed the home demo action and retained only Scan puzzle and Enter colors manually.
-- Made the center dock action an icon-only Rubix mark and removed decorative frames from the app mark and animated home cube.
-- Added ten randomized, continuously animated scramble/solve sequences with a five-second solved pause between cycles.
-- Replaced history-only virtual hints with a current-state solver plan for 3x3, an exact safe return plan for other sizes, next-move context, preview and apply actions.
-- Added persisted System, Dark and Light appearance modes plus a reorganized settings sheet without redundant Done or helper copy.
-- Replaced unreliable system click effects with an explicit short media-stream tone when Touch sounds is enabled.
-
 # 3.1.0
 
-- Rebuilt the root shell around a floating three-action dock with Practice on the left, Solve emphasized in the center, and Learn on the right.
-- Replaced directional full-screen slides with calm bounded fades, preventing toolbar and dock changes from producing a jumping transition.
-- Added a shared Rubix design system for semantic colors, typography, spacing, shapes, buttons, page introductions and action cards.
-- Simplified Home, Practice, Learn, puzzle selection, scan preparation, review, setup, completion, timer and virtual-mode copy and hierarchy.
-- Separated supported scanners from planned puzzles and made supported puzzle cards launch directly.
-- Replaced every guide and cube-size dropdown with accessible bottom action sheets that do not move the underlying screen.
-- Added a persisted Reduce motion preference and edge-to-edge system-bar handling.
-- Updated Compose flow tests for the new labels and added a regression for Practice–Solve–Learn dock ordering.
+- Replaced the virtual cube's frame-by-frame auto-fit with a fixed camera target and scale, eliminating zoom and model drift during drag and layer animations from 2×2 through 7×7.
+- Added adjustable cube rotation sensitivity and persistent Dark or Light appearance settings.
+- Reduced the puzzle catalog to regular cubes from 2×2 through 7×7 and removed the retired Pyraminx, Clock, Megaminx, Skewb and Square-1 implementations.
+- Refined Learn with clearer skill paths and lesson cards, and removed completion check marks from the lesson list.
+- Made the bottom navigation edge-to-edge and transparent instead of placing it inside a dark framed dock.
 
 # 3.0.0
 
