@@ -1,5 +1,8 @@
 # 3.2.0
 
+- Unified every regular cube's preparation page with the 3×3 tutorial format, including a stable solved model, lighting/framing tips and the six-face capture order.
+- Replaced the old 4×4 display with the shared solid regular-cube renderer for review, setup, animated guidance and completion.
+- Added a compact 2×2–7×7 type selector beside the manual-entry title and wired it to open the matching editor.
 - Added guided camera and gallery capture for 5×5, 6×6 and 7×7, including dense-grid detection, capacity-balanced color assignment, complete review nets, manual correction and solid 3D inspection.
 - Kept automatic big-cube guidance behind replay verification so a color-balanced scan cannot produce unverified moves.
 - Reworked Learn to match the spacious Practice visual language with scrollable skill cards, larger lesson previews, clearer hierarchy and a small-screen-safe lesson sheet.

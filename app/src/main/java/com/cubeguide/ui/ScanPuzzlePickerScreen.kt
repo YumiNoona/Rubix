@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -37,6 +39,23 @@ import kotlin.math.max
       Text(puzzle.shortName,style=MaterialTheme.typography.titleMedium,textAlign=TextAlign.Center,maxLines=1)
      }
     }
+   }
+  }
+ }
+}
+
+@Composable internal fun ManualPuzzleMenu(selected:PuzzleId,onSelect:(PuzzleId)->Unit) {
+ var expanded by remember { mutableStateOf(false) }
+ val feedback=rememberTouchFeedback()
+ val preferences=LocalAppPreferences.current
+ Box {
+  FilledTonalButton(onClick={feedback();expanded=true},modifier=Modifier.height(40.dp),shape=RoundedCornerShape(14.dp),contentPadding=PaddingValues(horizontal=12.dp)) {
+   Text(PuzzleRegistry.get(selected).shortName,fontWeight=FontWeight.SemiBold)
+   Spacer(Modifier.width(3.dp));Icon(Icons.Rounded.ExpandMore,"Change cube type",Modifier.size(18.dp))
+  }
+  DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
+   PuzzleRegistry.all.forEach { puzzle ->
+    DropdownMenuItem(text={Text(puzzle.shortName)},onClick={expanded=false;feedback();preferences.updatePuzzle(puzzle.id);onSelect(puzzle.id)},leadingIcon={if(puzzle.id==selected) Icon(Icons.Rounded.Check,null)})
    }
   }
  }

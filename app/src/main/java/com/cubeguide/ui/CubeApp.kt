@@ -89,7 +89,7 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
                                     Screen.LEARN -> LearnScreen(vm)
                                     Screen.SCAN_PICKER -> ScanPuzzlePickerScreen(onScan = vm::scanPuzzle)
                                     Screen.SCAN_PREPARE -> ThreeByThreeScanPreparation(vm::startThreeByThreeScan)
-                                    Screen.PUZZLE_SOLVE -> MultiPuzzleFlow(vm.puzzleSession(), vm::closePuzzleSolve)
+                                    Screen.PUZZLE_SOLVE -> MultiPuzzleFlow(vm.puzzleSession(), vm::closePuzzleSolve, vm::manualPuzzle)
                                     Screen.SCAN -> Scan(vm)
                                     Screen.REVIEW, Screen.CORRECT -> Review(vm)
                                     Screen.EDIT -> ColorEditorScreen(vm)
@@ -190,6 +190,8 @@ private fun RubixTopBar(
             IconButton(onClick = { feedback(); onSettings() }) {
                 Icon(Icons.Rounded.Tune, "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        } else if(vm.screen==Screen.REVIEW && vm.manualEntry) {
+            ManualPuzzleMenu(vm.activePuzzle,vm::manualPuzzle)
         }
     }
 }

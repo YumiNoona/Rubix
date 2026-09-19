@@ -84,6 +84,14 @@ class ScanAndGuideTest {
   assertTrue(CubeViewModel(saved).manualEntry)
   vm.demo(); assertFalse(vm.manualEntry)
  }
+ @Test fun manualEntryCanSwitchBetweenEveryRegularCubeSize() {
+  val vm=CubeViewModel(SavedStateHandle())
+  vm.manualPuzzle(PuzzleId.SEVEN_BY_SEVEN)
+  assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.SEVEN_BY_SEVEN,vm.activePuzzle)
+  assertTrue(vm.puzzleSession().manualEntry);assertEquals(MultiPuzzleStage.EDIT,vm.puzzleSession().stage);assertEquals(294,vm.puzzleSession().colors.size)
+  vm.manualPuzzle(PuzzleId.THREE_BY_THREE)
+  assertEquals(Screen.REVIEW,vm.screen);assertEquals(PuzzleId.THREE_BY_THREE,vm.activePuzzle);assertTrue(vm.manualEntry)
+ }
  @Test fun focusedEditorSupportsFaceNavigationUndoRedoAndCancel() {
   val vm=CubeViewModel(SavedStateHandle());vm.demo();val original=vm.cube
   vm.beginEdit(Face.F);assertEquals(Screen.EDIT,vm.screen);assertEquals(Face.F.ordinal,vm.editorFace)

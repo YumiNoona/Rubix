@@ -22,25 +22,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cubeguide.core.CubeColor
 import com.cubeguide.core.CubeState
+import com.cubeguide.core.PuzzleId
+import com.cubeguide.core.PuzzleRegistry
+import com.cubeguide.core.PuzzleSpec
+import com.cubeguide.play.VirtualCube
 import com.cubeguide.rendering.CubeView
 
 @Composable
 internal fun ThreeByThreeScanPreparation(onStart: () -> Unit) {
+    RegularCubeScanPreparation(PuzzleRegistry.get(PuzzleId.THREE_BY_THREE),onStart)
+}
+
+@Composable
+internal fun RegularCubeScanPreparation(
+    spec: PuzzleSpec,
+    onStart: () -> Unit,
+    onManual: (() -> Unit)? = null,
+) {
     val feedback = rememberTouchFeedback()
     val preferences = LocalAppPreferences.current
+    val size = spec.squareSize ?: 3
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        PageIntro("Set up your 3×3",subtitle="White on top. Green facing you.")
-        CubeView(
-            CubeState.solved(),
-            Modifier.fillMaxWidth().height(215.dp),
-            showInitials = false,
-        )
+        PageIntro("Set up your ${spec.shortName}",subtitle="White on top. Green facing you. Red on the right.")
+        if(size==3) CubeView(CubeState.solved(),Modifier.fillMaxWidth().height(215.dp),showInitials=false)
+        else VirtualCubeView(VirtualCube.solved(size),Modifier.fillMaxWidth().height(215.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ScanTip(Icons.Rounded.LightMode, "Even light", "Avoid glare", Modifier.weight(1f))
-            ScanTip(Icons.Rounded.CenterFocusStrong, "Fill frame", "Show 9 tiles", Modifier.weight(1f))
+            ScanTip(Icons.Rounded.CenterFocusStrong, "Fill frame", "Show ${size*size} tiles", Modifier.weight(1f))
             ScanTip(Icons.Rounded.ScreenRotation, "Keep top", "Rotate cube", Modifier.weight(1f))
         }
         Spacer(Modifier.height(16.dp))
@@ -82,6 +93,7 @@ internal fun ThreeByThreeScanPreparation(onStart: () -> Unit) {
         }
         Spacer(Modifier.height(18.dp))
         RubixPrimaryButton("Start scan",onStart,icon=Icons.Rounded.PhotoCamera)
+        if(onManual!=null) TextButton(onClick={feedback();onManual()},modifier=Modifier.fillMaxWidth()) { Text("Enter colors manually") }
         Spacer(Modifier.height(16.dp))
     }
 }

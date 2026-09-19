@@ -69,13 +69,22 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   }
  }
  fun startThreeByThreeScan() { if(screen==Screen.SCAN_PREPARE) scan() }
+ fun manualPuzzle(puzzleId:PuzzleId) {
+  activePuzzle=puzzleId
+  if(puzzleId==PuzzleId.THREE_BY_THREE) manual()
+  else {
+   multiSession=MultiPuzzleSession(puzzleId).also { it.beginManual() }
+   screen=Screen.PUZZLE_SOLVE
+   save()
+  }
+ }
  fun puzzleSession():MultiPuzzleSession=multiSession?.takeIf { it.puzzle==activePuzzle } ?: MultiPuzzleSession(activePuzzle).also { multiSession=it }
  fun handlePuzzleBack() {
   val session=puzzleSession()
   when(session.stage) {
    MultiPuzzleStage.EDIT -> session.cancelEdit()
    MultiPuzzleStage.SCAN -> session.stage=MultiPuzzleStage.PREPARE
-   MultiPuzzleStage.REVIEW -> session.beginScan()
+   MultiPuzzleStage.REVIEW -> if(session.manualEntry) closePuzzleSolve() else session.beginScan()
    MultiPuzzleStage.SETUP -> session.stage=MultiPuzzleStage.REVIEW
    MultiPuzzleStage.ANALYZING -> Unit
    else -> closePuzzleSolve()

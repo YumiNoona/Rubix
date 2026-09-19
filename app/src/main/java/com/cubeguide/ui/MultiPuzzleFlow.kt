@@ -38,17 +38,16 @@ import com.cubeguide.camera.CameraPreview
 import com.cubeguide.core.*
 import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.VirtualMove
-import com.cubeguide.rendering.FourByFourView
 import com.cubeguide.vision.*
 import kotlinx.coroutines.*
 
-@Composable internal fun MultiPuzzleFlow(session:MultiPuzzleSession,onExit:()->Unit) {
+@Composable internal fun MultiPuzzleFlow(session:MultiPuzzleSession,onExit:()->Unit,onManualPuzzle:(PuzzleId)->Unit) {
  val feedback=rememberTouchFeedback();var leave by remember { mutableStateOf(false) }
  val back={
   when(session.stage) {
    MultiPuzzleStage.EDIT -> session.cancelEdit()
    MultiPuzzleStage.SCAN -> session.stage=MultiPuzzleStage.PREPARE
-   MultiPuzzleStage.REVIEW -> session.beginScan()
+   MultiPuzzleStage.REVIEW -> if(session.manualEntry) onExit() else session.beginScan()
    MultiPuzzleStage.GUIDE -> leave=true
    MultiPuzzleStage.SETUP -> session.stage=MultiPuzzleStage.REVIEW
    MultiPuzzleStage.ANALYZING -> Unit
@@ -59,7 +58,8 @@ import kotlinx.coroutines.*
   Row(Modifier.fillMaxWidth().height(58.dp),verticalAlignment=Alignment.CenterVertically) {
    IconButton(onClick={feedback();back()},enabled=session.stage!=MultiPuzzleStage.ANALYZING,modifier=Modifier.size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
    Text(stageTitle(session),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f),maxLines=1)
-   if(session.stage==MultiPuzzleStage.GUIDE) Text("${session.step+1}/${session.moves.size}",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold)
+   if(session.stage==MultiPuzzleStage.EDIT && session.manualEntry) ManualPuzzleMenu(session.puzzle,onManualPuzzle)
+   else if(session.stage==MultiPuzzleStage.GUIDE) Text("${session.step+1}/${session.moves.size}",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold)
   }
   when(session.stage) {
    MultiPuzzleStage.PREPARE -> PuzzlePrepare(session)
@@ -79,7 +79,7 @@ private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
  MultiPuzzleStage.PREPARE -> "Prepare ${session.spec.shortName}"
  MultiPuzzleStage.SCAN -> "Scan ${session.spec.shortName}"
  MultiPuzzleStage.REVIEW -> "Review colors"
- MultiPuzzleStage.EDIT -> "Edit colors"
+ MultiPuzzleStage.EDIT -> if(session.manualEntry) "Enter colors" else "Edit colors"
  MultiPuzzleStage.ANALYZING -> "Building solution"
  MultiPuzzleStage.SETUP -> "Starting position"
  MultiPuzzleStage.GUIDE -> "Solve ${session.spec.shortName}"
@@ -87,29 +87,7 @@ private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
 }
 
 @Composable private fun PuzzlePrepare(session:MultiPuzzleSession) {
- Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
-  Spacer(Modifier.height(14.dp));PuzzleGlyphLarge(session.spec)
-  Spacer(Modifier.height(22.dp));Text("Set a clear reference",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
-  Text(when(session.puzzle) {
-   PuzzleId.TWO_BY_TWO -> "Find the white–red–green corner. Hold white on top, green facing you, and red on the right. Keep that orientation while capturing Top, Right, Front, Bottom, Left, and Back."
-   PuzzleId.FOUR_BY_FOUR -> "Use a white–red–green corner as your reference: white on top, green facing you, red on the right. Turn the whole puzzle between photos without twisting any layer."
-   PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> "Use the white–red–green corner as your reference: white on top, green facing you, and red on the right. Keep each dense sticker grid square to the frame and turn the whole puzzle between photos."
-   else -> "Follow the guided capture order."
-  },textAlign=TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=8.dp))
-  Spacer(Modifier.height(20.dp))
-  Surface(shape=RoundedCornerShape(20.dp),color=MaterialTheme.colorScheme.surfaceContainer) { Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-   PrepRow(Icons.Rounded.LightMode,"Use bright, even light")
-   PrepRow(Icons.Rounded.CenterFocusStrong,"Keep the full face inside the frame")
-   PrepRow(Icons.Rounded.ScreenRotation,"Rotate the whole puzzle only")
-  } }
-  Spacer(Modifier.height(22.dp));Primary("Start scanning") { session.beginScan() };TextButton(onClick=session::beginManual,modifier=Modifier.fillMaxWidth()){Text("Enter colors manually")};Spacer(Modifier.height(12.dp))
- }
-}
-
-@Composable private fun PrepRow(icon:androidx.compose.ui.graphics.vector.ImageVector,text:String) { Row(verticalAlignment=Alignment.CenterVertically) { Icon(icon,null,tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.width(12.dp));Text(text,modifier=Modifier.weight(1f)) } }
-
-@Composable private fun PuzzleGlyphLarge(spec:PuzzleSpec) {
- Surface(shape=RoundedCornerShape(28.dp),color=MaterialTheme.colorScheme.primaryContainer,modifier=Modifier.size(150.dp)) { Box(contentAlignment=Alignment.Center) { FeatureGlyph(FeatureIcon.CUBE,Modifier.size(74.dp));Text(spec.shortName,modifier=Modifier.align(Alignment.BottomCenter).padding(bottom=16.dp),fontWeight=FontWeight.Bold) } }
+ RegularCubeScanPreparation(session.spec,session::beginScan,session::beginManual)
 }
 
 @Composable private fun PuzzleScanner(session:MultiPuzzleSession) {
@@ -242,7 +220,10 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) {
    when(session.puzzle) {
     PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize(),VirtualMove.from(Move.parse(notation).single()),replay){progress=it}
-    PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize(),FourByFourMove.parse(notation).single(),replay){progress=it}
+    PuzzleId.FOUR_BY_FOUR -> {
+     val move=FourByFourMove.parse(notation).single()
+     VirtualCubeView(VirtualCube(4,session.colors.toList()),Modifier.fillMaxSize(),VirtualMove(move.face,width=if(move.wide) 2 else 1,turns=move.turns),replay){progress=it}
+    }
     else -> Unit
    }
   }
@@ -254,7 +235,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 @Composable private fun PuzzleModel(session:MultiPuzzleSession,modifier:Modifier) {
  when(session.puzzle) {
   PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),modifier)
-  PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),modifier)
+  PuzzleId.FOUR_BY_FOUR -> VirtualCubeView(VirtualCube(4,session.colors.toList()),modifier)
   PuzzleId.FIVE_BY_FIVE,PuzzleId.SIX_BY_SIX,PuzzleId.SEVEN_BY_SEVEN -> VirtualCubeView(VirtualCube(session.spec.squareSize!!,session.colors.toList()),modifier)
   else -> Unit
  }
@@ -264,7 +245,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
  CompletionFeedback(session.moves)
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
   Spacer(Modifier.height(28.dp));Icon(Icons.Rounded.CheckCircle,"Solved",Modifier.size(72.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.height(12.dp));Text("${session.spec.name} solved",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.onSurfaceVariant)
-  Box(Modifier.fillMaxWidth().height(300.dp),contentAlignment=Alignment.Center) { when(session.puzzle) { PuzzleId.TWO_BY_TWO->VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize());PuzzleId.FOUR_BY_FOUR->FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize());else->Unit } }
+  Box(Modifier.fillMaxWidth().height(300.dp),contentAlignment=Alignment.Center) { when(session.puzzle) { PuzzleId.TWO_BY_TWO->VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize());PuzzleId.FOUR_BY_FOUR->VirtualCubeView(VirtualCube(4,session.colors.toList()),Modifier.fillMaxSize());else->Unit } }
   Primary("Solve another") { onExit() };TextButton(onClick=session::replay,enabled=session.moves.isNotEmpty()){Text("Replay solution")};Spacer(Modifier.height(12.dp))
  }
 }

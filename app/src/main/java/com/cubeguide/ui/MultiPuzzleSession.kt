@@ -18,6 +18,7 @@ class MultiPuzzleSession(val puzzle:PuzzleId) {
  var moves by mutableStateOf<List<String>>(emptyList())
  var step by mutableIntStateOf(0)
  var busy by mutableStateOf(false)
+ var manualEntry by mutableStateOf(false);private set
  private var originalColors:List<CubeColor>?=null
  private var editReturnStage=MultiPuzzleStage.REVIEW
  private val editHistory=ArrayDeque<List<CubeColor>>()
@@ -32,8 +33,9 @@ class MultiPuzzleSession(val puzzle:PuzzleId) {
  val lowConfidence get()=confidence.mapIndexedNotNull { index,value -> index.takeIf { value<.18 } }.toSet()
  val supportsAutomaticSolution get()=puzzle in setOf(PuzzleId.TWO_BY_TWO,PuzzleId.FOUR_BY_FOUR)
 
- fun beginScan() { captures.clear();colors.clear();confidence=emptyList();message="";stage=MultiPuzzleStage.SCAN }
+ fun beginScan() { manualEntry=false;captures.clear();colors.clear();confidence=emptyList();message="";stage=MultiPuzzleStage.SCAN }
  fun beginManual() {
+  manualEntry=true
   captures.clear()
   val stickers=when(puzzle) {
    PuzzleId.TWO_BY_TWO -> PocketCube.solved().stickers
