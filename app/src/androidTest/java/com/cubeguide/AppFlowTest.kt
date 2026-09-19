@@ -92,8 +92,8 @@ class AppFlowTest {
   compose.onNodeWithText("Scan my cube").performScrollTo().performClick()
   compose.onNodeWithText("Choose puzzle").assertExists()
   compose.onNodeWithText("2×2").assertExists()
-  compose.onNodeWithText("Clock").assertExists()
-  compose.onNodeWithText("Square-1").assertExists()
+  compose.onNodeWithText("6×6").assertExists()
+  compose.onNodeWithText("7×7").assertExists()
  }
 
  @Test fun guideAutoplayAdvancesAndManualControlsRemainAvailable() {

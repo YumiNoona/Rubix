@@ -25,12 +25,8 @@ object PuzzleCapturePlans {
   }
  )
  val all=listOf(
-  faces(PuzzleId.TWO_BY_TWO,2),faces(PuzzleId.THREE_BY_THREE,3),faces(PuzzleId.FOUR_BY_FOUR,4),faces(PuzzleId.FIVE_BY_FIVE,5),
-  PuzzleCapturePlan(PuzzleId.CLOCK,"Keep pins unchanged between photos.",listOf(CaptureStep("front","Front dials and pins","Photograph all nine front dials and four pins.",13),CaptureStep("back","Back dials and pins","Flip left-to-right and photograph all nine back dials and pins.",13))),
-  PuzzleCapturePlan(PuzzleId.MEGAMINX,"Follow the numbered face order without twisting the puzzle between adjacent captures.",(1..12).map { CaptureStep("face-$it","Face $it","Align the pentagon and show all eleven facelets.",11) }),
-  PuzzleCapturePlan(PuzzleId.PYRAMINX,"Keep one vertex pointing upward for each guided face.",listOf("Green","Red","Blue","Yellow").mapIndexed { index,color -> CaptureStep("face-${index+1}","$color face","Point one tip upward and show all nine triangular facelets.",9) }),
-  PuzzleCapturePlan(PuzzleId.SKEWB,"Follow the corner markers so face orientation is preserved.",(1..6).map { CaptureStep("face-$it","Face $it","Show the center and four corner regions.",5) }),
-  PuzzleCapturePlan(PuzzleId.SQUARE_ONE,"Do not turn either layer between captures.",listOf(CaptureStep("top","Top layer","Capture piece colors and widths around the top ring.",12),CaptureStep("bottom","Bottom layer","Capture piece colors and widths around the bottom ring.",12),CaptureStep("equator","Equator","Capture both middle pieces and the current slice alignment.",2))),
+  faces(PuzzleId.TWO_BY_TWO,2),faces(PuzzleId.THREE_BY_THREE,3),faces(PuzzleId.FOUR_BY_FOUR,4),
+  faces(PuzzleId.FIVE_BY_FIVE,5),faces(PuzzleId.SIX_BY_SIX,6),faces(PuzzleId.SEVEN_BY_SEVEN,7),
  )
  fun get(id:PuzzleId)=all.first { it.puzzle==id }
 }

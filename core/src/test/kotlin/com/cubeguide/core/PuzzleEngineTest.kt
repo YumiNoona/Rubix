@@ -19,7 +19,7 @@ class PuzzleEngineTest {
  }
  @Test fun gateRejectsAnEngineWhoseMovesDoNotActuallySolve() {
   val broken=object:PuzzleEngine<Int> {
-   override val puzzle=PuzzleId.CLOCK
+   override val puzzle=PuzzleId.SEVEN_BY_SEVEN
    override fun validate(state:Int)=null
    override fun solve(state:Int)=listOf("fake")
    override fun apply(state:Int,move:String)=state

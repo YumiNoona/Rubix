@@ -11,7 +11,7 @@ class PuzzleCapturePlanTest {
   }
  }
  @Test fun squareFacePlansMatchRegistryObservationCounts() {
-  listOf(PuzzleId.TWO_BY_TWO,PuzzleId.THREE_BY_THREE,PuzzleId.FOUR_BY_FOUR,PuzzleId.FIVE_BY_FIVE).forEach { id ->
+  PuzzleId.entries.forEach { id ->
    assertEquals(PuzzleRegistry.get(id).totalObservedStickers,PuzzleCapturePlans.get(id).observedValues)
   }
  }

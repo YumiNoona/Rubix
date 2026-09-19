@@ -1,3 +1,11 @@
+# 3.1.0
+
+- Replaced the virtual cube's frame-by-frame auto-fit with a fixed camera target and scale, eliminating zoom and model drift during drag and layer animations from 2×2 through 7×7.
+- Added adjustable cube rotation sensitivity and persistent Dark or Light appearance settings.
+- Reduced the puzzle catalog to regular cubes from 2×2 through 7×7 and removed the retired Pyraminx, Clock, Megaminx, Skewb and Square-1 implementations.
+- Refined Learn with clearer skill paths and lesson cards, and removed completion check marks from the lesson list.
+- Made the bottom navigation edge-to-edge and transparent instead of placing it inside a dark framed dock.
+
 # 3.0.0
 
 - Reduced the app shell to Home, Practice and Learn; removed the Progress screen and standalone Puzzle Library route with safe restoration for older saved navigation.

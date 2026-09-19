@@ -29,8 +29,8 @@ private fun Vec.vp() = VP(x.toFloat(), y.toFloat(), z.toFloat())
 private data class VQuad(val points: List<VP>, val color: Color, val sticker: Boolean)
 
 /**
- * One renderer for every regular cube size. It derives its scale from the projected
- * geometry, so a 2x2 and a 7x7 occupy the same safe viewport without clipping.
+ * One renderer for every regular cube size. Its camera target and scale remain fixed
+ * while the user rotates the view or a layer animates, preventing zoom and drift.
  */
 @Composable
 internal fun VirtualCubeView(
@@ -65,12 +65,12 @@ internal fun VirtualCubeView(
             .semantics {
                 contentDescription = "Interactive ${cube.size} by ${cube.size} virtual cube. Drag to rotate."
             }
-            .pointerInput(move) {
+            .pointerInput(move, preferences.cameraSensitivity) {
                 if (move == null) {
                     detectDragGestures { change, drag ->
                         change.consume()
-                        yaw += drag.x * .008f
-                        pitch = (pitch + drag.y * .008f).coerceIn(-1.18f, 1.18f)
+                        yaw = (yaw + drag.x * preferences.cameraSensitivity) % (2 * PI.toFloat())
+                        pitch = (pitch + drag.y * preferences.cameraSensitivity).coerceIn(-1.05f, 1.05f)
                     }
                 }
             },
@@ -167,22 +167,12 @@ internal fun VirtualCubeView(
             return point.x * factor to -point.y * factor
         }
 
-        val projected = quads.flatMap { it.points }.map(::perspective)
-        val minX = projected.minOf { it.first }
-        val maxX = projected.maxOf { it.first }
-        val minY = projected.minOf { it.second }
-        val maxY = projected.maxOf { it.second }
-        val fitScale = min(
-            size.width * .82f / (maxX - minX).coerceAtLeast(1f),
-            size.height * .72f / (maxY - minY).coerceAtLeast(1f),
-        )
-        val rawCenterX = (minX + maxX) / 2f
-        val rawCenterY = (minY + maxY) / 2f
+        val fitScale = size.minDimension * .285f / cube.size
         fun project(point: VP): Offset {
             val raw = perspective(point)
             return Offset(
-                size.width * .5f + (raw.first - rawCenterX) * fitScale,
-                size.height * .48f + (raw.second - rawCenterY) * fitScale,
+                size.width * .5f + raw.first * fitScale,
+                size.height * .48f + raw.second * fitScale,
             )
         }
 

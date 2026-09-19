@@ -2,15 +2,16 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.0.0-238BFF)
+![Version](https://img.shields.io/badge/version-3.1.0-238BFF)
 ![JVM checks](https://img.shields.io/badge/JVM_tests-71_passed-15824F)
 
 
-An offline Android puzzle workspace for scanning and solving 2x2, 3x3, 4x4 and Pyraminx puzzles, practising on virtual cubes, timing solves and learning the beginner method.
+An offline Android workspace for regular cubes from 2×2 through 7×7, with verified scanning and solving for 2×2, 3×3 and 4×4, a full virtual cube, timer and guided lessons.
 
 ## What is inside
 
-- **Solve** — dedicated camera geometry, gallery import, color review/editing, physical validation and replay-verified animated guides for 2x2, 3x3, 4x4 and Pyraminx.
+- **Solve** — dedicated camera geometry, gallery import, color review/editing, physical validation and replay-verified animated guides for 2×2, 3×3 and 4×4.
+- **Play** — stable, animated 3D models and legal layer turns for every regular size from 2×2 through 7×7.
 - **Practice** — a focused home for the virtual cube and 3x3 timer.
 - **Virtual cube** — a mode hub for Free play, Challenge and Guided solve across 2x2 through 7x7, with animated outer, inner and wide turns.
 - **Cube timer** — a hold-to-ready 3x3 timer with valid scrambles, large stop target, personal records and responsive controls.
@@ -32,8 +33,8 @@ The accompanying `dist/Rubix.apk.sha256` lets you check download integrity.
 
 ## Solve your cube
 
-1. Tap **Scan my cube** and choose 2x2, 3x3, 4x4 or Pyraminx.
-2. Match the preparation screen. The 3x3 tutorial begins white-up and green-front; centerless 2x2 and 4x4 scans use the white-red-green reference corner; Pyraminx uses the guided green, red, blue and yellow face order.
+1. Tap **Scan my cube** and choose a regular cube size.
+2. Match the preparation screen. The 3×3 tutorial begins white-up and green-front; centerless 2×2 and 4×4 scans use the white-red-green reference corner.
 3. Capture each face with the live camera or gallery. Rubix uses a 2x2, 3x3, 4x4 or triangular detector for the selected puzzle.
 4. Review the full net. **Edit colors** opens a focused face editor with counts, optional initials, undo, redo, Cancel and Done.
 5. Solve only after validation succeeds, match the starting position, then follow the animated model. Autoplay, Pause, Previous, Next, replay, restart and current-state correction remain available.
@@ -92,14 +93,14 @@ The UI is split by screen under `app/src/main/java/com/cubeguide/ui`. `CubeViewM
 
 ## Solution quality
 
-For 3x3, Rubix searches within the 20 face-turn bound and spends extra probes improving its first result. It also merges same-face turns across commuting opposite faces. Under 10 cannot be guaranteed for arbitrary scrambles. The 2x2, Pyraminx and 4x4 engines use their own state models and validators. Every returned sequence is replayed by the matching engine and must reach a solved state before the guide is shown.
+For 3×3, Rubix searches within the 20 face-turn bound and spends extra probes improving its first result. It also merges same-face turns across commuting opposite faces. Under 10 cannot be guaranteed for arbitrary scrambles. The 2×2 and 4×4 engines use their own state models and validators. Every returned sequence is replayed by the matching engine and must reach a solved state before the guide is shown. The 5×5–7×7 models are available in the virtual cube; their camera solvers remain disabled until a replay-verifiable engine is implemented.
 
 ## Verification and limits
 
-JVM tests cover puzzle permutations, physical validity, solver replay, 2x2 scan orientation, Pyraminx facelets, 4x4 wide turns, all 24 3x3 holding orientations, guide progression, editing and current-state correction. End-to-end session tests feed synthetic captures through each new classifier and replay every solution. Android instrumentation covers the existing 3x3 practice flow and synthetic vision fixtures. Real-camera measurement is still required for all puzzle detectors. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
+JVM tests cover puzzle permutations, physical validity, solver replay, 2×2 scan orientation, 4×4 wide turns, all 24 3×3 holding orientations, guide progression, editing and current-state correction. End-to-end session tests feed synthetic captures through each enabled classifier and replay every solution. Android instrumentation covers the 3×3 practice flow and synthetic vision fixtures. Real-camera measurement is still required for all puzzle detectors. See [testing notes](docs/TESTING.md) for executed checks and the physical acceptance matrix.
 
 The latest layout, photo import, flash, sounds, haptics and real-camera behavior still need physical-device verification. Synthetic fixtures do not establish real-world scan accuracy. Lighting, glare, cube shades and capture orientation can require manual sticker correction.
 
 ## Dependencies and licenses
 
-Kotlin, Jetpack Compose, CameraX, OpenCV, pinned min2phase and WCA TNoodle threephase sources, plus Rubix's independent 2x2 and Pyraminx state engines. Upstream notices and licenses ship with the application. See [third-party notices](THIRD_PARTY_NOTICES.md), [architecture](docs/ARCHITECTURE.md) and [changelog](docs/CHANGELOG.md).
+Kotlin, Jetpack Compose, CameraX, OpenCV, pinned min2phase and WCA TNoodle threephase sources, plus Rubix's independent 2×2 engine. Upstream notices and licenses ship with the application. See [third-party notices](THIRD_PARTY_NOTICES.md), [architecture](docs/ARCHITECTURE.md) and [changelog](docs/CHANGELOG.md).

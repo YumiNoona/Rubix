@@ -2,8 +2,8 @@
 
 ## Executed locally
 
-- `:core:test`: 37 test cases passed, covering the 2x2, 3x3, Pyraminx and 4x4 state models, inverses, doubles, wide turns, physical validators, randomized scrambles and replay-verified solver output.
-- `:app:testDebugUnitTest`: 31 test cases passed, covering color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2x2, Pyraminx and 4x4.
+- `:core:test`: covers the 2×2, 3×3 and 4×4 state models, inverses, doubles, wide turns, physical validators, randomized scrambles and replay-verified solver output.
+- `:app:testDebugUnitTest`: covers color classification, capture stability, scan orientation, focused editing, guide progression and complete synthetic scan-to-solved sessions for 2×2 and 4×4.
 - `:app:lintDebug`: passes with no errors. Dependency-upgrade/target-API notices are expected because the build deliberately pins a compatible stable SDK 36 toolchain.
 - `:app:assembleDebug`: installable development APK built.
 - `:app:assembleDebugAndroidTest`: instrumentation APK compiles.
@@ -80,7 +80,7 @@ A regression reproduces 13 independently classified white stickers and verifies 
 
 ## 2.3.0 multi-puzzle solve gates
 
-Synthetic end-to-end sessions capture all six 2x2 faces, all four Pyraminx faces and all six 4x4 faces. Each session asserts successful review validation, runs the puzzle-specific solver through `PuzzleSolverGate`, applies every guide move and checks the final state is solved. Editor undo, redo and cancel restoration are covered in the 2x2 session. Android UI tests compile against the enabled catalog routes and shared flow; physical-device acceptance remains required for camera geometry, face-order instructions, flash, gallery orientation and responsive rendering.
+Synthetic end-to-end sessions capture all six 2×2 faces and all six 4×4 faces. Each session asserts successful review validation, runs the puzzle-specific solver through `PuzzleSolverGate`, applies every guide move and checks the final state is solved. Editor undo, redo and cancel restoration are covered in the 2×2 session. Android UI tests compile against the regular-cube catalog routes and shared flow; physical-device acceptance remains required for camera geometry, face-order instructions, flash, gallery orientation and responsive rendering.
 # 2.2.0 focused editing, learning and solid-cube checks
 
 - JVM tests cover dedicated editor restoration, face navigation, undo/redo/cancel and saved lesson practice context. Total JVM test methods: 30.

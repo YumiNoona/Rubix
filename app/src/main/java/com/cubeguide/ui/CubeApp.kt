@@ -1,5 +1,6 @@
 package com.cubeguide.ui
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -17,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.view.WindowCompat
 import com.cubeguide.core.PuzzleRegistry
 
 internal val AccentBlue=Color(0xFF238BFF)
@@ -33,10 +35,11 @@ private fun Screen.depth()=when(this) {
  val context=LocalContext.current;val preferences=remember { AppPreferences(context) };val view=androidx.compose.ui.platform.LocalView.current
  DisposableEffect(vm.screen,preferences.keepAwake) { val old=view.keepScreenOn;view.keepScreenOn=preferences.keepAwake && vm.screen in setOf(Screen.SCAN,Screen.ANALYZING,Screen.SETUP,Screen.GUIDE,Screen.CORRECT,Screen.TIMER);onDispose { view.keepScreenOn=old } }
  CompositionLocalProvider(LocalAppPreferences provides preferences) {
-  val scheme=darkColorScheme(primary=AccentBlue,onPrimary=Color.White,primaryContainer=Color(0xFF123458),onPrimaryContainer=Color(0xFFE4F0FF),secondary=Color(0xFFFFB21C),onSecondary=Color(0xFF241600),secondaryContainer=Color(0xFF4B3407),onSecondaryContainer=Color(0xFFFFE2A4),tertiary=Color(0xFF36D399),background=Color(0xFF050C16),surface=Color(0xFF050C16),surfaceContainer=Color(0xFF0D1926),surfaceContainerHighest=Color(0xFF142536),outline=Color(0xFF547083),outlineVariant=Color(0xFF293E4E),onSurface=Color(0xFFF2F6FA),onSurfaceVariant=Color(0xFFAAB9C6))
+  val scheme=if(preferences.appearance==AppearanceMode.DARK) darkColorScheme(primary=AccentBlue,onPrimary=Color.White,primaryContainer=Color(0xFF123458),onPrimaryContainer=Color(0xFFE4F0FF),secondary=Color(0xFFFFB21C),onSecondary=Color(0xFF241600),secondaryContainer=Color(0xFF4B3407),onSecondaryContainer=Color(0xFFFFE2A4),tertiary=Color(0xFF36D399),background=Color(0xFF050C16),surface=Color(0xFF050C16),surfaceContainer=Color(0xFF0D1926),surfaceContainerHighest=Color(0xFF142536),outline=Color(0xFF547083),outlineVariant=Color(0xFF293E4E),onSurface=Color(0xFFF2F6FA),onSurfaceVariant=Color(0xFFAAB9C6)) else lightColorScheme(primary=Color(0xFF0869C8),onPrimary=Color.White,primaryContainer=Color(0xFFD7E9FF),onPrimaryContainer=Color(0xFF062E55),secondary=Color(0xFF8B5B00),secondaryContainer=Color(0xFFFFDEA1),tertiary=Color(0xFF087A58),background=Color(0xFFF7FAFD),surface=Color(0xFFF7FAFD),surfaceContainer=Color(0xFFEAF1F7),surfaceContainerHighest=Color(0xFFDDE8F0),outline=Color(0xFF647785),outlineVariant=Color(0xFFC4D1DA),onSurface=Color(0xFF101820),onSurfaceVariant=Color(0xFF465A68))
   var settings by remember { mutableStateOf(false) };var exit by remember { mutableStateOf(false) };val holder=rememberSaveableStateHolder()
+  SideEffect { (view.context as? Activity)?.window?.let { window -> WindowCompat.getInsetsController(window,view).apply { isAppearanceLightStatusBars=preferences.appearance==AppearanceMode.LIGHT;isAppearanceLightNavigationBars=preferences.appearance==AppearanceMode.LIGHT } } }
   MaterialTheme(colorScheme=scheme,typography=Typography(headlineLarge=MaterialTheme.typography.headlineLarge.copy(fontWeight=FontWeight.Bold),headlineMedium=MaterialTheme.typography.headlineMedium.copy(fontWeight=FontWeight.Bold))) {
-   Surface(Modifier.fillMaxSize()) { Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+   Surface(Modifier.fillMaxSize()) { Column(Modifier.fillMaxSize().statusBarsPadding()) {
     if(vm.screen !in setOf(Screen.GUIDE,Screen.PUZZLE_SOLVE)) AppTopBar(vm,onBack={when(vm.screen) { Screen.VIRTUAL -> if(vm.virtualMode!=null) vm.closeVirtualMode() else vm.open(Screen.PRACTICE);Screen.TIMER -> vm.open(Screen.PRACTICE);Screen.SCAN_PICKER -> vm.home();Screen.SCAN_PREPARE -> vm.openScanPicker();Screen.SCAN -> vm.leaveScan();Screen.EDIT -> vm.cancelEdit();Screen.CORRECT -> vm.cancelCorrection();Screen.REVIEW -> if(vm.manualEntry) vm.home() else vm.scan(vm.pose.face);Screen.ANALYZING,Screen.SETUP -> vm.returnToReview();Screen.DONE -> vm.home();else -> exit=true }},onSettings={settings=true})
     AnimatedContent(vm.screen,modifier=Modifier.weight(1f).padding(horizontal=18.dp),transitionSpec={
      if(initialState in rootScreens && targetState in rootScreens) {
@@ -78,5 +81,5 @@ private fun Screen.depth()=when(this) {
 }
 @Composable private fun MainNavigation(selected:Screen,onSelect:(Screen)->Unit) {
  val feedback=rememberTouchFeedback()
- NavigationBar(containerColor=MaterialTheme.colorScheme.surfaceContainer,tonalElevation=0.dp) { listOf(Screen.HOME to "Home",Screen.PRACTICE to "Practice",Screen.LEARN to "Learn").forEach { (screen,label) -> NavigationBarItem(selected=selected==screen,onClick={feedback();onSelect(screen)},icon={ FeatureGlyph(when(screen) { Screen.HOME->FeatureIcon.HOME;Screen.PRACTICE->FeatureIcon.CUBE;else->FeatureIcon.LEARN },Modifier.size(23.dp)) },label={Text(label,maxLines=1)}) } }
+ NavigationBar(modifier=Modifier.navigationBarsPadding(),containerColor=Color.Transparent,tonalElevation=0.dp) { listOf(Screen.HOME to "Home",Screen.PRACTICE to "Practice",Screen.LEARN to "Learn").forEach { (screen,label) -> NavigationBarItem(selected=selected==screen,onClick={feedback();onSelect(screen)},colors=NavigationBarItemDefaults.colors(indicatorColor=MaterialTheme.colorScheme.primaryContainer.copy(alpha=.72f)),icon={ FeatureGlyph(when(screen) { Screen.HOME->FeatureIcon.HOME;Screen.PRACTICE->FeatureIcon.CUBE;else->FeatureIcon.LEARN },Modifier.size(23.dp)) },label={Text(label,maxLines=1)}) } }
 }

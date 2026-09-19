@@ -6,12 +6,16 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalView
 
+enum class AppearanceMode { DARK, LIGHT }
+
 class AppPreferences(context: Context) {
  private val storage=context.applicationContext.getSharedPreferences("display_preferences",Context.MODE_PRIVATE)
  var initials by mutableStateOf(storage.getBoolean("initials",false)); private set
  var haptics by mutableStateOf(storage.getBoolean("haptics",true)); private set
  var sound by mutableStateOf(storage.getBoolean("sound",false)); private set
  var keepAwake by mutableStateOf(storage.getBoolean("keepAwake",true)); private set
+ var appearance by mutableStateOf(runCatching { AppearanceMode.valueOf(storage.getString("appearance",AppearanceMode.DARK.name)!!) }.getOrDefault(AppearanceMode.DARK)); private set
+ var cameraSensitivity by mutableFloatStateOf(storage.getFloat("cameraSensitivity",.0048f).coerceIn(.0028f,.007f)); private set
  var puzzleSize by mutableIntStateOf(storage.getInt("puzzleSize",3).coerceIn(2,7)); private set
  var puzzleId by mutableStateOf(com.cubeguide.core.PuzzleId.fromStorage(storage.getString("puzzleId",null))); private set
  var completedLessons by mutableStateOf(storage.getStringSet("completedLessons",emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()); private set
@@ -40,6 +44,8 @@ class AppPreferences(context: Context) {
  fun clearTimerRecords() { savedTimerRecords=emptyList();storage.edit().remove("timerRecords_3").remove("timerRecords").apply() }
  fun updateSound(value: Boolean) { sound=value; storage.edit().putBoolean("sound",value).apply() }
  fun updateKeepAwake(value: Boolean) { keepAwake=value; storage.edit().putBoolean("keepAwake",value).apply() }
+ fun updateAppearance(value: AppearanceMode) { appearance=value;storage.edit().putString("appearance",value.name).apply() }
+ fun updateCameraSensitivity(value: Float) { cameraSensitivity=value.coerceIn(.0028f,.007f);storage.edit().putFloat("cameraSensitivity",cameraSensitivity).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }
  fun updateGuideDelay(value: Int) { guideDelayMillis=value.coerceIn(1000,2000);storage.edit().putInt("guideDelayMillis",guideDelayMillis).apply() }
  fun updateInitials(value: Boolean) { initials=value; storage.edit().putBoolean("initials",value).apply() }

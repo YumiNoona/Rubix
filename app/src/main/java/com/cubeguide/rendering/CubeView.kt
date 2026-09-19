@@ -46,7 +46,7 @@ private data class Quad(val vertices: List<P>,val color: Color,val letter: Strin
    animation.animateTo(1f,tween(preferences.animationMillis))
   }
  }
- Canvas(modifier.clipToBounds().pointerInput(Unit) { detectDragGestures { change,drag -> change.consume(); yaw+=drag.x*0.008f; pitch=(pitch+drag.y*0.008f).coerceIn(-1.3f,1.3f) } }) {
+ Canvas(modifier.clipToBounds().pointerInput(preferences.cameraSensitivity) { detectDragGestures { change,drag -> change.consume(); yaw=(yaw+drag.x*preferences.cameraSensitivity)%(2*PI.toFloat()); pitch=(pitch+drag.y*preferences.cameraSensitivity).coerceIn(-1.05f,1.05f) } }) {
   val axis=move?.let { Geometry.normals[it.face.ordinal].p() }
   val angle=if(move==null) 0f else -animation.value*(if(move.turns==3) -1 else move.turns)*PI.toFloat()/2
   fun layer(v: P,pos: P): P {

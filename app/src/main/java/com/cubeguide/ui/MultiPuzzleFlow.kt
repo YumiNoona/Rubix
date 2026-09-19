@@ -93,7 +93,6 @@ private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
   Text(when(session.puzzle) {
    PuzzleId.TWO_BY_TWO -> "Find the white–red–green corner. Hold white on top, green facing you, and red on the right. Keep that orientation while capturing Top, Right, Front, Bottom, Left, and Back."
    PuzzleId.FOUR_BY_FOUR -> "Use a white–red–green corner as your reference: white on top, green facing you, red on the right. Turn the whole puzzle between photos without twisting any layer."
-   PuzzleId.PYRAMINX -> "Keep one tip pointing up. Capture the green, red, blue, then yellow face in that order, with the same tip at the top of every photo."
    else -> "Follow the guided capture order."
   },textAlign=TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=8.dp))
   Spacer(Modifier.height(20.dp))
@@ -149,7 +148,7 @@ private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
    }
   }
   Spacer(Modifier.height(10.dp));LinearProgressIndicator(progress={progress},modifier=Modifier.fillMaxWidth())
-  Text(session.message.ifBlank { if(session.puzzle==PuzzleId.PYRAMINX) "Point one tip up and hold the triangle steady." else "Fit the full face in the frame and hold steady." },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(vertical=10.dp))
+  Text(session.message.ifBlank { "Fit the full face in the frame and hold steady." },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(vertical=10.dp))
   if(importing) {
    Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) { OutlinedButton(onClick={importing=false;image=null;detected=null},modifier=Modifier.weight(1f)){Text("Camera")};Button(onClick={detected?.let(::accept)},enabled=detected?.samples?.size==session.faceSize,modifier=Modifier.weight(1f)){Text("Add face")} }
   } else Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -174,7 +173,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   android.graphics.Bitmap.createBitmap(original,0,0,original.width,original.height,matrix,true).also { if(it!==original) original.recycle() }
  }
  check(org.opencv.android.OpenCVLoader.initLocal()) { "Image processing is unavailable." }
- val detection=if(spec.scanShape==ScanShape.TRIANGLE_GRID) TriangleFaceDetector().detect(bitmap) else FaceDetector(spec.squareSize!!).detect(bitmap)
+ val detection=FaceDetector(spec.squareSize!!).detect(bitmap)
  return bitmap to detection
 }
 
@@ -209,10 +208,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 }
 
 @Composable private fun PuzzleNet(session:MultiPuzzleSession,showInitials:Boolean,onSticker:(Int,Int)->Unit) {
- if(session.puzzle==PuzzleId.PYRAMINX) {
-  val facelets=session.pyraminxDisplayFacelets() ?: return
-  Column(verticalArrangement=Arrangement.spacedBy(10.dp)) { repeat(2) { row -> Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) { repeat(2) { column -> val face=row*2+column;val color=session.palette.getValue(PyraminxColor.entries[face]);Surface(Modifier.weight(1f),shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer){Column(Modifier.padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally){Text("Face ${face+1} · ${color.label}",style=MaterialTheme.typography.labelMedium);PyraminxFaceView(facelets,face,Modifier.fillMaxWidth().aspectRatio(1.05f),palette=session.palette,showInitials=showInitials,onStickerClick={onSticker(face,it)})}} } } } }
- } else SquarePuzzleNet(session.colors,session.spec.squareSize!!,session.lowConfidence,showInitials,onSticker)
+ SquarePuzzleNet(session.colors,session.spec.squareSize!!,session.lowConfidence,showInitials,onSticker)
 }
 
 @Composable private fun SquarePuzzleNet(colors:List<CubeColor>,n:Int,uncertain:Set<Int>,showInitials:Boolean,onSticker:(Int,Int)->Unit) {
@@ -221,9 +217,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 }
 
 @Composable private fun PuzzleFocusedFace(session:MultiPuzzleSession,showInitials:Boolean,onSticker:(Int)->Unit) {
- if(session.puzzle==PuzzleId.PYRAMINX) { val facelets=session.pyraminxDisplayFacelets() ?: return;PyraminxFaceView(facelets,session.editFace,Modifier.fillMaxWidth().aspectRatio(1.05f).padding(18.dp),palette=session.palette,showInitials=showInitials,onStickerClick=onSticker) }
- else { val n=session.spec.squareSize!!;val preferences=LocalAppPreferences.current;Column(Modifier.fillMaxWidth().padding(horizontal=32.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) { repeat(n) { r -> Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) { repeat(n) { c -> val index=session.editFace*n*n+r*n+c;Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(session.colors[index])),RoundedCornerShape(9.dp)).border(1.dp,Color.Black.copy(alpha=.25f),RoundedCornerShape(9.dp)).clickable { onSticker(index) },contentAlignment=Alignment.Center) { if(showInitials) Text(session.colors[index].initial,color=Color(preferences.ink(session.colors[index])),fontWeight=FontWeight.Bold) } } } } } }
-}
+ val n=session.spec.squareSize!!;val preferences=LocalAppPreferences.current;Column(Modifier.fillMaxWidth().padding(horizontal=32.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) { repeat(n) { r -> Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) { repeat(n) { c -> val index=session.editFace*n*n+r*n+c;Box(Modifier.weight(1f).aspectRatio(1f).background(Color(preferences.color(session.colors[index])),RoundedCornerShape(9.dp)).border(1.dp,Color.Black.copy(alpha=.25f),RoundedCornerShape(9.dp)).clickable { onSticker(index) },contentAlignment=Alignment.Center) { if(showInitials) Text(session.colors[index].initial,color=Color(preferences.ink(session.colors[index])),fontWeight=FontWeight.Bold) } } } } } }
 
 @Composable private fun PuzzleAnalyzing(session:MultiPuzzleSession) { Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) { CircularProgressIndicator(Modifier.size(54.dp));Spacer(Modifier.height(22.dp));Text("Finding a replay-verified solution",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center);Text(if(session.puzzle==PuzzleId.FOUR_BY_FOUR) "4×4 reduction can take a little longer." else "This usually takes a moment.",color=MaterialTheme.colorScheme.onSurfaceVariant,textAlign=TextAlign.Center) } }
 
@@ -232,15 +226,13 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
   Text("Solution ready",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
   Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.primary)
   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) { PuzzleModel(session,Modifier.fillMaxSize()) }
-  Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Hold this position",fontWeight=FontWeight.SemiBold);Text(if(session.puzzle==PuzzleId.PYRAMINX) "Keep one tip pointing up and the first scanned face toward you." else "Keep white on top, green facing you, and red on the right throughout the guide.",color=MaterialTheme.colorScheme.onSurfaceVariant) } }
+  Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Hold this position",fontWeight=FontWeight.SemiBold);Text("Keep white on top, green facing you, and red on the right throughout the guide.",color=MaterialTheme.colorScheme.onSurfaceVariant) } }
   Spacer(Modifier.height(12.dp));Primary("Start solving",onClick=session::startGuide);Spacer(Modifier.height(12.dp))
  }
 }
 
 @Composable private fun PuzzleGuide(session:MultiPuzzleSession) {
  val preferences=LocalAppPreferences.current;val feedback=rememberTouchFeedback();var auto by rememberSaveable { mutableStateOf(true) };var replay by remember { mutableIntStateOf(0) };var progress by remember(session.step) { mutableFloatStateOf(0f) };var menu by remember { mutableStateOf(false) };val notation=session.moves.getOrNull(session.step) ?: return
- val pyrProgress=remember(session.step,replay) { Animatable(0f) }
- if(session.puzzle==PuzzleId.PYRAMINX) LaunchedEffect(pyrProgress,replay) { pyrProgress.animateTo(1f,tween(preferences.animationMillis));progress=1f }
  LaunchedEffect(session.step,progress,auto) { if(auto&&progress>=.99f) { delay(preferences.guideDelayMillis.toLong());if(auto&&session.stage==MultiPuzzleStage.GUIDE) { feedback();session.next() } } }
  Column(Modifier.fillMaxSize()) {
   LinearProgressIndicator(progress={((session.step+progress)/session.moves.size).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth())
@@ -249,7 +241,6 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
    when(session.puzzle) {
     PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize(),VirtualMove.from(Move.parse(notation).single()),replay){progress=it}
     PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize(),FourByFourMove.parse(notation).single(),replay){progress=it}
-    PuzzleId.PYRAMINX -> PyraminxGuideModel(session,Modifier.fillMaxSize(),pyrProgress.value)
     else -> Unit
    }
   }
@@ -262,17 +253,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
  when(session.puzzle) {
   PuzzleId.TWO_BY_TWO -> VirtualCubeView(VirtualCube(2,session.colors.toList()),modifier)
   PuzzleId.FOUR_BY_FOUR -> FourByFourView(FourByFourState(session.colors.toList()),modifier)
-  PuzzleId.PYRAMINX -> PyraminxGuideModel(session,modifier,1f)
   else -> Unit
- }
-}
-
-@Composable private fun PyraminxGuideModel(session:MultiPuzzleSession,modifier:Modifier,progress:Float) {
- val facelets=session.pyraminxDisplayFacelets() ?: return;val active=session.moves.getOrNull(session.step)?.let { PyraminxMove.parse(it).single().axis.ordinal } ?: 0
- Box(modifier,contentAlignment=Alignment.Center) {
-  PyraminxFaceView(facelets,(active+2)%4,Modifier.fillMaxWidth(.58f).aspectRatio(1.02f).offset(x=(-72).dp,y=18.dp).graphicsLayer { rotationY=58f;alpha=.72f },palette=session.palette)
-  PyraminxFaceView(facelets,(active+1)%4,Modifier.fillMaxWidth(.58f).aspectRatio(1.02f).offset(x=72.dp,y=18.dp).graphicsLayer { rotationY=-58f;alpha=.72f },palette=session.palette)
-  PyraminxFaceView(facelets,active,Modifier.fillMaxWidth(.66f).aspectRatio(1.02f).graphicsLayer { scaleX=1f+.035f*kotlin.math.sin(progress*3.14f);scaleY=scaleX },palette=session.palette)
  }
 }
 
@@ -280,7 +261,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
  CompletionFeedback(session.moves)
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
   Spacer(Modifier.height(28.dp));Icon(Icons.Rounded.CheckCircle,"Solved",Modifier.size(72.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.height(12.dp));Text("${session.spec.name} solved",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.onSurfaceVariant)
-  Box(Modifier.fillMaxWidth().height(300.dp),contentAlignment=Alignment.Center) { when(session.puzzle) { PuzzleId.TWO_BY_TWO->VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize());PuzzleId.FOUR_BY_FOUR->FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize());PuzzleId.PYRAMINX->PyraminxGuideModel(session,Modifier.fillMaxSize(),1f);else->Unit } }
+  Box(Modifier.fillMaxWidth().height(300.dp),contentAlignment=Alignment.Center) { when(session.puzzle) { PuzzleId.TWO_BY_TWO->VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize());PuzzleId.FOUR_BY_FOUR->FourByFourView(FourByFourState(session.colors.toList()),Modifier.fillMaxSize());else->Unit } }
   Primary("Solve another") { onExit() };TextButton(onClick=session::replay,enabled=session.moves.isNotEmpty()){Text("Replay solution")};Spacer(Modifier.height(12.dp))
  }
 }
