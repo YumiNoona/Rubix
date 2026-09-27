@@ -23,10 +23,7 @@ import kotlin.math.max
 @Composable internal fun ScanPuzzlePickerScreen(onScan:(PuzzleId)->Unit) {
  val preferences=LocalAppPreferences.current
  Column(Modifier.fillMaxSize()) {
-  PageIntro("What are you solving?", subtitle = "Choose a supported puzzle.")
-  Spacer(Modifier.height(18.dp))
-  LazyVerticalGrid(columns=GridCells.Adaptive(140.dp),modifier=Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(bottom=18.dp)) {
-   item(span={androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan)}) { SectionLabel("Ready to scan") }
+  LazyVerticalGrid(columns=GridCells.Adaptive(140.dp),modifier=Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(top=8.dp,bottom=18.dp)) {
    items(PuzzleRegistry.all,key={it.id}) { puzzle ->
     val active=puzzle.id==preferences.puzzleId
     Surface(onClick={preferences.updatePuzzle(puzzle.id);onScan(puzzle.id)},shape=RubixTokens.cardShape,

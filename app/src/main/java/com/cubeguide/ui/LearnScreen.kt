@@ -85,8 +85,7 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
 
 @Composable private fun LearnPathPicker(onSelect:(Skill)->Unit) {
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-  PageIntro("Learn to solve",subtitle="Choose a path, study the cube, then practise each idea.")
-  Spacer(Modifier.height(RubixTokens.sectionGap));SectionLabel("Choose your path");Spacer(Modifier.height(10.dp))
+  Spacer(Modifier.height(8.dp))
   Skill.entries.forEach { skill -> SkillCard(skill) { onSelect(skill) };Spacer(Modifier.height(10.dp)) }
   Spacer(Modifier.height(88.dp))
  }

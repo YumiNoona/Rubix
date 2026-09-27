@@ -191,6 +191,9 @@ private fun RubixTopBar(
             IconButton(onClick = { feedback(); onSettings() }) {
                 Icon(Icons.Rounded.Tune, "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        } else if(vm.screen==Screen.VIRTUAL && vm.virtualLessonTitle==null) {
+            val preferences=LocalAppPreferences.current
+            PuzzleSizeMenu(preferences.puzzleSize,preferences::updatePuzzleSize)
         } else if(vm.screen==Screen.REVIEW && vm.manualEntry) {
             ManualPuzzleMenu(vm.activePuzzle,vm::manualPuzzle)
         } else if(vm.screen==Screen.PUZZLE_SOLVE && vm.puzzleSession().stage==MultiPuzzleStage.EDIT && vm.puzzleSession().manualEntry) {

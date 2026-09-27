@@ -1,3 +1,10 @@
+# 3.2.5
+
+- Moved the larger cube-size control into the Virtual Cube app bar and removed the duplicated mode heading so the model receives the full upper canvas.
+- Reduced the virtual mode chooser to three icon-and-label cards and removed repeated quick-start actions from Practice.
+- Reduced the hint panel to move notation, one turn instruction and balanced Preview/Apply buttons; supporting detail now lives behind an information icon.
+- Removed redundant introduction blocks from Home, Learn and puzzle selection so each page begins directly with its primary content.
+
 # 3.2.4
 
 - Let balanced six-face 3×3 scans continue into automatic orientation repair instead of trapping them behind a disabled action, while still blocking incomplete color counts and duplicate centers.

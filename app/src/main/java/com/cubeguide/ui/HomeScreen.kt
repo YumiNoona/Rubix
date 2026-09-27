@@ -59,8 +59,6 @@ internal fun Home(vm: CubeViewModel) {
         }
     }
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        PageIntro("Ready to solve?", subtitle = "Scan a puzzle or enter its colors.")
-        Spacer(Modifier.height(10.dp))
         CubeView(cube=previewCube,modifier=Modifier.fillMaxWidth().weight(1f).heightIn(min=210.dp,max=350.dp).semantics { contentDescription="Cube scrambling and solving itself" },move=activeMove,replay=replay,showInitials=false)
         Spacer(Modifier.height(14.dp))
         RubixPrimaryButton("Scan puzzle", onClick = vm::openScanPicker, icon = Icons.Rounded.PhotoCamera)

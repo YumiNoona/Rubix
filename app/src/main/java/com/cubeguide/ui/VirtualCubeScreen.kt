@@ -18,6 +18,8 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Lightbulb
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.School
@@ -51,7 +53,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
     val lessonScramble = vm.virtualLessonScramble
     val mode = vm.virtualMode
     if (mode == null) {
-        VirtualCubeHub(preferences.puzzleSize, preferences::updatePuzzleSize, vm::selectVirtualMode)
+        VirtualCubeHub(preferences.puzzleSize, vm::selectVirtualMode)
         return
     }
     val size = if (lessonTitle != null) 3 else preferences.puzzleSize
@@ -72,6 +74,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
     var replay by remember { mutableIntStateOf(0) }
     var redo by remember(size) { mutableStateOf<List<VirtualMove>>(emptyList()) }
     var hintVisible by rememberSaveable { mutableStateOf(false) }
+    var hintInfo by rememberSaveable { mutableStateOf(false) }
     var hintPlan by remember(size) { mutableStateOf<List<VirtualMove>>(emptyList()) }
     var hintLoading by remember { mutableStateOf(false) }
     var challengeStart by rememberSaveable(size, mode) { mutableStateOf<Long?>(null) }
@@ -142,7 +145,6 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
             )
-            PuzzleSizeMenu(size, preferences::updatePuzzleSize)
         }
 
         val finishTurn: (Float) -> Unit = { progress ->
@@ -185,26 +187,21 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             ) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.AutoAwesome, null)
-                        Spacer(Modifier.width(10.dp))
-                        Column(Modifier.weight(1f)) { Text("Next best move",fontWeight=FontWeight.SemiBold);Text(if(size<=3) "Verified from this position" else "Shortest verified rewind through your turns",style=MaterialTheme.typography.bodySmall) }
-                        IconButton(onClick={hintVisible=false}) { Icon(Icons.Rounded.Close,"Hide hint") }
-                    }
                     if(hintLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical=12.dp))
                     else hintPlan.firstOrNull()?.let { hint ->
-                        Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Surface(shape=RoundedCornerShape(14.dp),color=MaterialTheme.colorScheme.surface) { Text(hint.notation,Modifier.padding(horizontal=16.dp,vertical=10.dp),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) }
-                            Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)) { Text("Turn ${hint.face.name} ${turnDescription(hint)}",fontWeight=FontWeight.Medium);Text("Step 1 of ${hintPlan.size}",style=MaterialTheme.typography.bodySmall) }
+                            Spacer(Modifier.width(12.dp));Text("Turn ${hint.face.name} ${turnDescription(hint)}",fontWeight=FontWeight.Medium,modifier=Modifier.weight(1f),maxLines=2)
+                            IconButton(onClick={hintInfo=true}) { Icon(Icons.Rounded.Info,"About this hint") }
+                            IconButton(onClick={hintVisible=false}) { Icon(Icons.Rounded.Close,"Hide hint") }
                         }
-                        Row(Modifier.fillMaxWidth().padding(top=8.dp),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
-                            TextButton(enabled=pending==null,onClick={begin(hint,cube)}) { Icon(Icons.Rounded.PlayArrow,null);Spacer(Modifier.width(5.dp));Text("Animate") }
+                        Row(Modifier.fillMaxWidth().padding(top=10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
+                            OutlinedButton(enabled=pending==null,onClick={begin(hint,cube)},modifier=Modifier.weight(1f).height(48.dp),shape=RubixTokens.controlShape) { Icon(Icons.Rounded.PlayArrow,null);Spacer(Modifier.width(6.dp));Text("Preview",maxLines=1) }
                             Button(enabled=pending==null,onClick={
                                 val undoing=cube.history.lastOrNull()?.inverse()==hint
                                 val result=if(undoing) cube.apply(hint,record=false).withoutLastHistory() else cube.apply(hint)
                                 begin(hint,result);redo=emptyList();if(mode==VirtualMode.CHALLENGE) challengeHints++
-                            }) { Text("Make move") }
+                            },modifier=Modifier.weight(1f).height(48.dp),shape=RubixTokens.controlShape) { Icon(Icons.Rounded.Check,null);Spacer(Modifier.width(6.dp));Text("Apply",maxLines=1) }
                         }
                     }
                 }
@@ -326,10 +323,17 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
         }
         Spacer(Modifier.height(10.dp))
     }
+    if(hintInfo) AlertDialog(
+        onDismissRequest={hintInfo=false},
+        icon={Icon(Icons.Rounded.AutoAwesome,null)},
+        title={Text("Verified hint")},
+        text={Text(if(size<=3) "Rubix recalculates a solution from the current stickers. ${hintPlan.size} move${if(hintPlan.size==1) " remains" else "s remain"}." else "This cube returns safely through your recorded turns. ${hintPlan.size} move${if(hintPlan.size==1) " remains" else "s remain"}.")},
+        confirmButton={TextButton(onClick={hintInfo=false}) { Text("Close") }},
+    )
 }
 
 @Composable
-private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMode) -> Unit) {
+private fun VirtualCubeHub(size: Int, onMode: (VirtualMode) -> Unit) {
     val feedback = rememberTouchFeedback()
     val preview = remember(size) {
         Move.parse("R U2 F' L D R2").fold(VirtualCube.solved(size)) { cube, move -> cube.apply(move) }
@@ -340,19 +344,15 @@ private fun VirtualCubeHub(size: Int, onSize: (Int) -> Unit, onMode: (VirtualMod
             if(compact) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                PageIntro("Choose how to play",Modifier.weight(1f),"No cube needed")
-                PuzzleSizeMenu(size, onSize)
-            }
             val previewModifier=if(compact) Modifier.fillMaxWidth().height(180.dp) else Modifier.fillMaxWidth().weight(1f).heightIn(min=190.dp,max=300.dp)
             if(size==3) CubeView(CubeState(preview.stickers),previewModifier,showInitials=false)
             else VirtualCubeView(preview,previewModifier)
             Spacer(Modifier.height(if(compact) 10.dp else 18.dp))
-            RubixActionCard("Free play","Practice turns with unlimited undo",Icons.Rounded.TouchApp,{feedback();onMode(VirtualMode.FREE)})
+            RubixActionCard("Free play",icon=Icons.Rounded.TouchApp,onClick={feedback();onMode(VirtualMode.FREE)})
             Spacer(Modifier.height(10.dp))
-            RubixActionCard("Timed challenge","Solve a fresh scramble against the clock",Icons.Rounded.Timer,{feedback();onMode(VirtualMode.CHALLENGE)},accent=MaterialTheme.colorScheme.tertiary)
+            RubixActionCard("Timed challenge",icon=Icons.Rounded.Timer,onClick={feedback();onMode(VirtualMode.CHALLENGE)},accent=MaterialTheme.colorScheme.tertiary)
             Spacer(Modifier.height(10.dp))
-            RubixActionCard("Hint mode","Ask for a verified next move when you need it",Icons.Rounded.Lightbulb,{feedback();onMode(VirtualMode.GUIDED)},accent=MaterialTheme.colorScheme.secondary)
+            RubixActionCard("Hint mode",icon=Icons.Rounded.Lightbulb,onClick={feedback();onMode(VirtualMode.GUIDED)},accent=MaterialTheme.colorScheme.secondary)
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -436,9 +436,9 @@ private fun simplifyPlan(moves: List<VirtualMove>): List<VirtualMove> {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PuzzleSizeMenu(size: Int, onSelect: (Int) -> Unit) {
+internal fun PuzzleSizeMenu(size: Int, onSelect: (Int) -> Unit,enabled:Boolean=true) {
     var open by remember { mutableStateOf(false) }
-    AssistChip(onClick={open=true},label={Text("${size}×$size")},leadingIcon={Icon(Icons.Rounded.ViewInAr,null,Modifier.size(18.dp))})
+    AssistChip(onClick={if(enabled) open=true},enabled=enabled,modifier=Modifier.height(44.dp),label={Text("${size}×$size",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)},leadingIcon={Icon(Icons.Rounded.ViewInAr,null,Modifier.size(21.dp))})
     if(open) ModalBottomSheet(onDismissRequest={open=false},shape=RubixTokens.modalShape) {
         Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()) {
             Text("Cube size",style=MaterialTheme.typography.headlineSmall)

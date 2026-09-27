@@ -35,11 +35,11 @@ class AppFlowTest {
  }
  @Test fun learnOpensAPathBeforeShowingLessons() {
   compose.onNodeWithText("Learn",useUnmergedTree=true).performClick()
-  compose.onNodeWithText("Choose your path").assertIsDisplayed()
+  compose.onNodeWithText("Rookie").assertIsDisplayed()
   compose.onNodeWithText("Rookie").performClick()
   compose.onNodeWithText("How the cube moves").assertIsDisplayed()
   compose.onNodeWithContentDescription("Back to learning paths").performClick()
-  compose.onNodeWithText("Choose your path").assertIsDisplayed()
+  compose.onNodeWithText("Rookie").assertIsDisplayed()
  }
  @Test fun editingAnUncertainFrontStickerKeepsFrontSelected() {
   val vm=CubeViewModel(SavedStateHandle())
