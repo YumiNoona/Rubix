@@ -82,14 +82,15 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  fun handlePuzzleBack() {
   val session=puzzleSession()
   when(session.stage) {
-   MultiPuzzleStage.EDIT -> session.cancelEdit()
+   MultiPuzzleStage.EDIT -> if(session.manualEntry) closeManualPuzzle() else session.cancelEdit()
    MultiPuzzleStage.SCAN -> session.stage=MultiPuzzleStage.PREPARE
-   MultiPuzzleStage.REVIEW -> if(session.manualEntry) closePuzzleSolve() else session.beginScan()
+   MultiPuzzleStage.REVIEW -> if(session.manualEntry) closeManualPuzzle() else session.beginScan()
    MultiPuzzleStage.SETUP -> session.stage=MultiPuzzleStage.REVIEW
    MultiPuzzleStage.ANALYZING -> Unit
    else -> closePuzzleSolve()
   }
  }
+ private fun closeManualPuzzle() { multiSession=null;home() }
  fun closePuzzleSolve() { multiSession=null;screen=Screen.SCAN_PICKER;save() }
  fun startLessonPractice(title:String,scramble:String) { virtualLessonTitle=title;virtualLessonScramble=scramble;virtualMode=VirtualMode.GUIDED;screen=Screen.VIRTUAL;save() }
  fun selectVirtualMode(mode:VirtualMode) { if(screen==Screen.VIRTUAL) { virtualMode=mode;save() } }

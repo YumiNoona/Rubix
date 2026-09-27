@@ -1,3 +1,9 @@
+# 3.2.2
+
+- Moved every 2×2 and 4×4–7×7 stage onto the same app bar, safe-area and content frame as the polished 3×3 flow, removing the double inset that made those pages look scaled down.
+- Made Back from manual entry return directly to Home for every cube size, including after switching the manual editor size.
+- Gave lesson sheets, cube previews and Look for/Plan/Moves cards more padding and clearer vertical rhythm.
+
 # 3.2.1
 
 - Aligned back controls to the screen edge throughout detail flows and solving guides.

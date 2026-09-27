@@ -89,6 +89,7 @@ class ScanAndGuideTest {
   vm.manualPuzzle(PuzzleId.SEVEN_BY_SEVEN)
   assertEquals(Screen.PUZZLE_SOLVE,vm.screen);assertEquals(PuzzleId.SEVEN_BY_SEVEN,vm.activePuzzle)
   assertTrue(vm.puzzleSession().manualEntry);assertEquals(MultiPuzzleStage.EDIT,vm.puzzleSession().stage);assertEquals(294,vm.puzzleSession().colors.size)
+  vm.handlePuzzleBack();assertEquals(Screen.HOME,vm.screen)
   vm.manualPuzzle(PuzzleId.THREE_BY_THREE)
   assertEquals(Screen.REVIEW,vm.screen);assertEquals(PuzzleId.THREE_BY_THREE,vm.activePuzzle);assertTrue(vm.manualEntry)
  }

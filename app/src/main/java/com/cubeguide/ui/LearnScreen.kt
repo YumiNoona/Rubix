@@ -57,18 +57,21 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
  if(skill==null) LearnPathPicker { skill=it }
  else LearnLessonList(skill!!,onBack={skill=null},onLesson={lesson -> showSolved=false;selected=lesson})
  selected?.let { lesson ->
-  ModalBottomSheet(onDismissRequest={selected=null}) {
-   Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=20.dp).navigationBarsPadding()) {
+  ModalBottomSheet(onDismissRequest={selected=null},shape=RubixTokens.modalShape) {
+   Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start=24.dp,end=24.dp,top=8.dp,bottom=16.dp).navigationBarsPadding()) {
     Text(lesson.title,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
+    Spacer(Modifier.height(12.dp))
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {
      FilterChip(selected=!showSolved,onClick={showSolved=false},label={Text("Problem")})
      Spacer(Modifier.width(8.dp));FilterChip(selected=showSolved,onClick={showSolved=true},label={Text("Solved")})
     }
-    Surface(shape=RubixTokens.cardShape,color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { CubeView(if(showSolved) CubeState.solved() else example(lesson),Modifier.fillMaxWidth().height(176.dp)) }
+    Spacer(Modifier.height(12.dp))
+    Surface(shape=RubixTokens.cardShape,color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { CubeView(if(showSolved) CubeState.solved() else example(lesson),Modifier.fillMaxWidth().height(190.dp)) }
+    Spacer(Modifier.height(12.dp))
     Insight("LOOK FOR",lesson.notice)
-    Spacer(Modifier.height(8.dp));Insight("PLAN",lesson.plan)
-    Spacer(Modifier.height(8.dp));Insight("MOVES",solution(lesson))
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(12.dp));Insight("PLAN",lesson.plan)
+    Spacer(Modifier.height(12.dp));Insight("MOVES",solution(lesson))
+    Spacer(Modifier.height(20.dp))
     Button(onClick={preferences.completeLesson(lesson.id);selected=null;vm.startLessonPractice(lesson.title,lesson.scramble)},modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
      Icon(Icons.Rounded.PlayArrow,"Practise lesson");Spacer(Modifier.width(8.dp));Text("Practise",maxLines=1)
     }
@@ -125,7 +128,10 @@ private fun Skill.subtitle()=when(this){Skill.ROOKIE->"Foundations";Skill.EXPERI
 }
 
 @Composable private fun Insight(label:String,text:String) {
- Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(14.dp),modifier=Modifier.fillMaxWidth()) {
-  Row(Modifier.padding(14.dp)) { Text(label,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelMedium,modifier=Modifier.width(72.dp));Text(text,style=MaterialTheme.typography.bodyMedium,modifier=Modifier.weight(1f)) }
+ Surface(color=MaterialTheme.colorScheme.surfaceContainer,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()) {
+  Column(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=16.dp)) {
+   Text(label,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelMedium)
+   Spacer(Modifier.height(7.dp));Text(text,style=MaterialTheme.typography.bodyMedium)
+  }
  }
 }

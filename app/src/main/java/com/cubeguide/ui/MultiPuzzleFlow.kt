@@ -41,30 +41,31 @@ import com.cubeguide.play.VirtualMove
 import com.cubeguide.vision.*
 import kotlinx.coroutines.*
 
-@Composable internal fun MultiPuzzleFlow(session:MultiPuzzleSession,onExit:()->Unit,onManualPuzzle:(PuzzleId)->Unit) {
+@Composable internal fun MultiPuzzleFlow(session:MultiPuzzleSession,onExit:()->Unit,onManualExit:()->Unit) {
  val feedback=rememberTouchFeedback();var leave by remember { mutableStateOf(false) }
  val back={
   when(session.stage) {
-   MultiPuzzleStage.EDIT -> session.cancelEdit()
+   MultiPuzzleStage.EDIT -> if(session.manualEntry) onManualExit() else session.cancelEdit()
    MultiPuzzleStage.SCAN -> session.stage=MultiPuzzleStage.PREPARE
-   MultiPuzzleStage.REVIEW -> if(session.manualEntry) onExit() else session.beginScan()
+   MultiPuzzleStage.REVIEW -> if(session.manualEntry) onManualExit() else session.beginScan()
    MultiPuzzleStage.GUIDE -> leave=true
    MultiPuzzleStage.SETUP -> session.stage=MultiPuzzleStage.REVIEW
    MultiPuzzleStage.ANALYZING -> Unit
    else -> onExit()
   }
  }
- Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal=18.dp)) {
-  Row(Modifier.fillMaxWidth().height(58.dp),verticalAlignment=Alignment.CenterVertically) {
-   IconButton(onClick={feedback();back()},enabled=session.stage!=MultiPuzzleStage.ANALYZING,modifier=Modifier.offset(x=(-14).dp).size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
-   Text(stageTitle(session),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f),maxLines=1)
-   if(session.stage==MultiPuzzleStage.EDIT && session.manualEntry) ManualPuzzleMenu(session.puzzle,onManualPuzzle)
-   else if(session.stage==MultiPuzzleStage.GUIDE) Text("${session.step+1}/${session.moves.size}",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold)
+ Column(Modifier.fillMaxSize()) {
+  if(session.stage==MultiPuzzleStage.GUIDE) {
+   Row(Modifier.fillMaxWidth().height(58.dp),verticalAlignment=Alignment.CenterVertically) {
+    IconButton(onClick={feedback();back()},modifier=Modifier.offset(x=(-14).dp).size(48.dp)) { Icon(Icons.AutoMirrored.Rounded.ArrowBack,"Back",Modifier.size(26.dp)) }
+    Text("Solve ${session.spec.shortName}",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f),maxLines=1)
+    Text("${session.step+1}/${session.moves.size}",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold)
+   }
   }
   when(session.stage) {
    MultiPuzzleStage.PREPARE -> PuzzlePrepare(session)
    MultiPuzzleStage.SCAN -> PuzzleScanner(session)
-   MultiPuzzleStage.REVIEW -> PuzzleReview(session,onExit)
+   MultiPuzzleStage.REVIEW -> PuzzleReview(session,if(session.manualEntry) onManualExit else onExit)
    MultiPuzzleStage.EDIT -> PuzzleEditor(session)
    MultiPuzzleStage.ANALYZING -> PuzzleAnalyzing(session)
    MultiPuzzleStage.SETUP -> PuzzleSetup(session)
@@ -75,10 +76,10 @@ import kotlinx.coroutines.*
  if(leave) AlertDialog(onDismissRequest={leave=false},title={Text("Leave this solve?")},text={Text("Your current guide will close.")},confirmButton={TextButton(onClick={leave=false;onExit()}){Text("Leave")}},dismissButton={TextButton(onClick={leave=false}){Text("Keep solving")}})
 }
 
-private fun stageTitle(session:MultiPuzzleSession)=when(session.stage) {
- MultiPuzzleStage.PREPARE -> "Prepare ${session.spec.shortName}"
- MultiPuzzleStage.SCAN -> "Scan ${session.spec.shortName}"
- MultiPuzzleStage.REVIEW -> "Review colors"
+internal fun puzzleFlowTitle(session:MultiPuzzleSession)=when(session.stage) {
+ MultiPuzzleStage.PREPARE -> "Get ready"
+ MultiPuzzleStage.SCAN -> "Scan"
+ MultiPuzzleStage.REVIEW -> "Review"
  MultiPuzzleStage.EDIT -> if(session.manualEntry) "Enter colors" else "Edit colors"
  MultiPuzzleStage.ANALYZING -> "Building solution"
  MultiPuzzleStage.SETUP -> "Starting position"

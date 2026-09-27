@@ -57,7 +57,8 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
             var exit by remember { mutableStateOf(false) }
             val holder = rememberSaveableStateHolder()
             val root = vm.screen in rootScreens
-            val hideAppBar = vm.screen in setOf(Screen.GUIDE, Screen.PUZZLE_SOLVE)
+            val puzzleGuide = vm.screen==Screen.PUZZLE_SOLVE && vm.puzzleSession().stage==MultiPuzzleStage.GUIDE
+            val hideAppBar = vm.screen==Screen.GUIDE || puzzleGuide
 
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Box(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -70,7 +71,7 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
                         },
                         label = "screen",
                     ) { screen ->
-                        val topPadding = if (screen in setOf(Screen.GUIDE, Screen.PUZZLE_SOLVE)) 0.dp else 64.dp
+                        val topPadding = if (screen==Screen.GUIDE || (screen==Screen.PUZZLE_SOLVE && vm.puzzleSession().stage==MultiPuzzleStage.GUIDE)) 0.dp else 64.dp
                         val bottomPadding = if (screen in rootScreens) 102.dp else 8.dp
                         Box(
                             Modifier.fillMaxSize().padding(
@@ -89,7 +90,7 @@ fun CubeApp(vm: CubeViewModel = viewModel()) {
                                     Screen.LEARN -> LearnScreen(vm)
                                     Screen.SCAN_PICKER -> ScanPuzzlePickerScreen(onScan = vm::scanPuzzle)
                                     Screen.SCAN_PREPARE -> ThreeByThreeScanPreparation(vm::startThreeByThreeScan)
-                                    Screen.PUZZLE_SOLVE -> MultiPuzzleFlow(vm.puzzleSession(), vm::closePuzzleSolve, vm::manualPuzzle)
+                                    Screen.PUZZLE_SOLVE -> MultiPuzzleFlow(vm.puzzleSession(),vm::closePuzzleSolve,vm::home)
                                     Screen.SCAN -> Scan(vm)
                                     Screen.REVIEW, Screen.CORRECT -> Review(vm)
                                     Screen.EDIT -> ColorEditorScreen(vm)
@@ -192,6 +193,8 @@ private fun RubixTopBar(
             }
         } else if(vm.screen==Screen.REVIEW && vm.manualEntry) {
             ManualPuzzleMenu(vm.activePuzzle,vm::manualPuzzle)
+        } else if(vm.screen==Screen.PUZZLE_SOLVE && vm.puzzleSession().stage==MultiPuzzleStage.EDIT && vm.puzzleSession().manualEntry) {
+            ManualPuzzleMenu(vm.activePuzzle,vm::manualPuzzle)
         }
     }
 }
@@ -204,7 +207,7 @@ private fun screenTitle(vm: CubeViewModel) = when (vm.screen) {
     Screen.TIMER -> "Timer"
     Screen.SCAN_PICKER -> "Choose puzzle"
     Screen.SCAN_PREPARE -> "Get ready"
-    Screen.PUZZLE_SOLVE -> PuzzleRegistry.get(vm.activePuzzle).name
+    Screen.PUZZLE_SOLVE -> puzzleFlowTitle(vm.puzzleSession())
     Screen.SCAN -> "Scan"
     Screen.REVIEW -> if (vm.manualEntry) "Enter colors" else "Review"
     Screen.EDIT -> "Edit colors"
