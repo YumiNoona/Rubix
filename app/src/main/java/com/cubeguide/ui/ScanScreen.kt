@@ -32,7 +32,7 @@ import com.cubeguide.camera.CameraPreview
 import com.cubeguide.core.*
 
 @Composable internal fun Scan(vm: CubeViewModel) {
- if(vm.scanIndex>0) CompletionFeedback(vm.scanIndex)
+ if(vm.capturedFaces.isNotEmpty()) CompletionFeedback(vm.capturedFaces.size)
  val context=LocalContext.current
  val scope=rememberCoroutineScope()
  val feedback=rememberTouchFeedback()
@@ -75,12 +75,12 @@ import com.cubeguide.core.*
  }
  DisposableEffect(photo) { val current=photo; onDispose { current?.recycle() } }
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-  val color=CubeColor.entries[vm.pose.face.ordinal]; val top=CubeColor.entries[vm.pose.top.ordinal]
+  val color=CubeColor.entries[vm.pose.face.ordinal]
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
    Box(Modifier.size(34.dp).background(Color(LocalAppPreferences.current.color(color)),RoundedCornerShape(10.dp)))
    Spacer(Modifier.width(12.dp))
-   Column(Modifier.weight(1f)) { Text("${color.label} face",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold); Text("${top.label} center on top",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant) }
-   Text("${vm.scanIndex+1} / 6",style=MaterialTheme.typography.labelLarge)
+   Column(Modifier.weight(1f)) { Text("Any remaining face",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold); Text("Suggested next: ${color.label}",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant) }
+   Text("${vm.capturedFaces.size+1} / 6",style=MaterialTheme.typography.labelLarge)
   }
   Spacer(Modifier.height(14.dp))
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(7.dp)) {

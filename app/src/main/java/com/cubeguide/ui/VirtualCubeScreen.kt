@@ -169,7 +169,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 move = pending?.move?.let { Move(it.face, it.turns) },
                 replay = replay,
                 highlightFace = selectedFace,
-                focusFace = focusedFace,
+                focusFace = focusedFace.takeIf { preferences.cameraFollowsFace },
                 showInitials = false,
                 onAnimationProgress = finishTurn,
             )
@@ -180,7 +180,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 move = pending?.move,
                 replay = replay,
                 highlightFace = selectedFace,
-                focusFace = focusedFace,
+                focusFace = focusedFace.takeIf { preferences.cameraFollowsFace },
                 onAnimationProgress = finishTurn,
             )
         }

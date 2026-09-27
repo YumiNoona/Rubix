@@ -60,11 +60,12 @@ class ScanAndGuideTest {
  @Test fun galleryCaptureChecksCenterAndBuildsAllSixFaces() {
   val vm=CubeViewModel(SavedStateHandle()); vm.scan()
   val target=CubeState.solved().apply(Move.parse("R U F2 L D"))
-  val wrong=CubeColor.entries.first { it!=CubeColor.entries[vm.pose.face.ordinal] }
-  assertFalse(vm.importFace(Detection(List(9) { anchors.getValue(wrong) },emptyList(),"")))
-  assertEquals(0,vm.scanIndex)
+  val first=Face.B
+  assertTrue(vm.importFace(Detection(target.stickers.drop(first.ordinal*9).take(9).map(anchors::getValue),emptyList(),"")))
+  assertTrue(first in vm.capturedFaces)
+  assertFalse(vm.importFace(Detection(target.stickers.drop(first.ordinal*9).take(9).map(anchors::getValue),emptyList(),"")))
   assertFalse(vm.importFace(Detection(emptyList(),emptyList(),"No face")))
-  repeat(6) {
+  repeat(5) {
    val face=vm.pose.face
    val samples=target.stickers.drop(face.ordinal*9).take(9).map { anchors.getValue(it) }
    assertTrue(vm.importFace(Detection(samples,emptyList(),"")))
@@ -226,8 +227,7 @@ class ScanAndGuideTest {
    val physical=CubeState.solved().apply(Move.parse("R U2 F' L D B2 R' D2 F L2"))
    val photographed=physical.rotateScanFace(Face.U).rotateScanFace(Face.B)
    val vm=CubeViewModel(SavedStateHandle());vm.scan()
-   repeat(6) {
-    val face=vm.pose.face
+   listOf(Face.B,Face.U,Face.L,Face.F,Face.D,Face.R).forEach { face ->
     assertTrue(vm.importFace(Detection(photographed.stickers.drop(face.ordinal*9).take(9).map(anchors::getValue),emptyList(),"")))
    }
    withTimeout(15000) { while(vm.busy) delay(10) }

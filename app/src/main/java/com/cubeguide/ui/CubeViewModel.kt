@@ -118,19 +118,24 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  fun detection(d: Detection) {
   if(screen!=Screen.SCAN) return
   corners=d.corners; cameraAspect=d.aspectRatio; message=d.message
-  val expected=CubeColor.entries[pose.face.ordinal]
-  if(d.samples.size==9 && ColorClassifier.nominal(d.samples[4])!=expected) { stability.reset(); progress=0f; message="Please show the ${expected.label.lowercase()} center face."; return }
+  if(d.samples.size!=9) { stability.reset();progress=0f;return }
+  val center=ColorClassifier.nominal(d.samples[4]);val detectedFace=Face.entries[center.ordinal]
+  val required=rescanFace
+  if(required!=null && detectedFace!=required) { stability.reset();progress=0f;message="Show the ${CubeColor.entries[required.ordinal].label.lowercase()} center face.";return }
+  if(required==null && detectedFace in captures) { stability.reset();progress=0f;message="${center.label} is already captured. Show another face.";return }
   progress=stability.accept(d.samples,System.currentTimeMillis(),d.corners)
   if(progress<1f) return
-  captureFace(d.copy(samples=stability.stableSamples))
+  captureFace(d.copy(samples=stability.stableSamples),detectedFace)
  }
  fun importFace(d: Detection): Boolean {
   if(screen!=Screen.SCAN || d.samples.size!=9) return false
-  if(ColorClassifier.nominal(d.samples[4])!=CubeColor.entries[pose.face.ordinal]) { message="Choose the ${CubeColor.entries[pose.face.ordinal].label.lowercase()} center face."; return false }
-  captureFace(d); return true
+  val center=ColorClassifier.nominal(d.samples[4]);val detectedFace=Face.entries[center.ordinal];val required=rescanFace
+  if(required!=null && detectedFace!=required) { message="Choose the ${CubeColor.entries[required.ordinal].label.lowercase()} center face.";return false }
+  if(required==null && detectedFace in captures) { message="${center.label} is already captured. Choose another face.";return false }
+  captureFace(d,detectedFace); return true
  }
- private fun captureFace(d: Detection) {
-  captures[pose.face]=d.samples; stability.reset(); progress=0f
+ private fun captureFace(d: Detection,face:Face) {
+  captures[face]=d.samples; stability.reset(); progress=0f
   if(captures.size==6) {
    val anchors=Face.entries.associate { f -> CubeColor.entries[f.ordinal] to captures.getValue(f)[4] }
    val previousCube=beforeRescan;val changedFace=rescanFace

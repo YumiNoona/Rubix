@@ -127,7 +127,17 @@ import com.cubeguide.core.*
   SettingsToggle("Touch sounds",preferences.sound) { preferences.updateSound(it) }
   SettingsToggle("Keep screen awake",preferences.keepAwake) { preferences.updateKeepAwake(it) }
   SettingsToggle("Reduce motion",preferences.reduceMotion) { preferences.updateReduceMotion(it) }
+  SettingsToggle("Focus camera on selected face",preferences.cameraFollowsFace) { preferences.updateCameraFollowsFace(it) }
   Spacer(Modifier.height(8.dp))
+  Text("Face highlight",style=MaterialTheme.typography.labelLarge)
+  Spacer(Modifier.height(8.dp))
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+   listOf(0xFF58A6FF,0xFF63E6BE,0xFFFFD43B,0xFFFF6B9A,0xFFFFFFFF).forEach { value ->
+    val color=value.toInt()
+    Surface(onClick={preferences.updateHighlightColor(color);feedback()},modifier=Modifier.weight(1f).aspectRatio(1.35f),shape=RoundedCornerShape(12.dp),color=Color(color),border=BorderStroke(if(preferences.highlightColor==color) 3.dp else 1.dp,if(preferences.highlightColor==color) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant)) {}
+   }
+  }
+  Spacer(Modifier.height(14.dp))
   Text("Cube rotation sensitivity",style=MaterialTheme.typography.labelLarge)
   Slider(value=preferences.cameraSensitivity,onValueChange=preferences::updateCameraSensitivity,valueRange=.0028f..007f,steps=5)
   Text(when { preferences.cameraSensitivity<.004f->"Controlled";preferences.cameraSensitivity<.0058f->"Balanced";else->"Quick" },style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)

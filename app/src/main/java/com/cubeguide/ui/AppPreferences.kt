@@ -17,6 +17,8 @@ class AppPreferences(context: Context) {
  var reduceMotion by mutableStateOf(storage.getBoolean("reduceMotion",false)); private set
  var themeMode by mutableStateOf(runCatching { AppThemeMode.valueOf(storage.getString("themeMode",null) ?: "DARK") }.getOrDefault(AppThemeMode.DARK)); private set
  var cameraSensitivity by mutableFloatStateOf(storage.getFloat("cameraSensitivity",.0048f).coerceIn(.0028f,.007f)); private set
+ var cameraFollowsFace by mutableStateOf(storage.getBoolean("cameraFollowsFace",false)); private set
+ var highlightColor by mutableIntStateOf(storage.getInt("highlightColor",0xFF58A6FF.toInt())); private set
  var puzzleSize by mutableIntStateOf(storage.getInt("puzzleSize",3).coerceIn(2,7)); private set
  var puzzleId by mutableStateOf(com.cubeguide.core.PuzzleId.fromStorage(storage.getString("puzzleId",null))); private set
  var completedLessons by mutableStateOf(storage.getStringSet("completedLessons",emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()); private set
@@ -48,6 +50,8 @@ class AppPreferences(context: Context) {
  fun updateReduceMotion(value: Boolean) { reduceMotion=value; storage.edit().putBoolean("reduceMotion",value).apply() }
  fun updateThemeMode(value: AppThemeMode) { themeMode=value;storage.edit().putString("themeMode",value.name).apply() }
  fun updateCameraSensitivity(value: Float) { cameraSensitivity=value.coerceIn(.0028f,.007f);storage.edit().putFloat("cameraSensitivity",cameraSensitivity).apply() }
+ fun updateCameraFollowsFace(value:Boolean) { cameraFollowsFace=value;storage.edit().putBoolean("cameraFollowsFace",value).apply() }
+ fun updateHighlightColor(value:Int) { highlightColor=value;storage.edit().putInt("highlightColor",value).apply() }
  fun updateAnimation(value: Int) { animationMillis=value; storage.edit().putInt("animationMillis",value).apply() }
  fun updateGuideDelay(value: Int) { guideDelayMillis=value.coerceIn(1000,2000);storage.edit().putInt("guideDelayMillis",guideDelayMillis).apply() }
  fun updateInitials(value: Boolean) { initials=value; storage.edit().putBoolean("initials",value).apply() }

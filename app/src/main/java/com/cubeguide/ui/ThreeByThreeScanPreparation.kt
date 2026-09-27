@@ -46,13 +46,13 @@ internal fun RegularCubeScanPreparation(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        PageIntro("Set up your ${spec.shortName}",subtitle="White on top. Green facing you. Red on the right.")
+        PageIntro(if(size==3) "Scan all six faces" else "Set up your ${spec.shortName}",subtitle=if(size==3) "Any order. Any rotation." else "White on top. Green facing you. Red on the right.")
         if(size==3) CubeView(CubeState.solved(),Modifier.fillMaxWidth().height(215.dp),showInitials=false)
         else VirtualCubeView(VirtualCube.solved(size),Modifier.fillMaxWidth().height(215.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ScanTip(Icons.Rounded.LightMode, "Even light", "Avoid glare", Modifier.weight(1f))
             ScanTip(Icons.Rounded.CenterFocusStrong, "Fill frame", "Show ${size*size} tiles", Modifier.weight(1f))
-            ScanTip(Icons.Rounded.ScreenRotation, "Keep top", "Rotate cube", Modifier.weight(1f))
+            ScanTip(Icons.Rounded.ScreenRotation, if(size==3) "Any angle" else "Keep top", if(size==3) "Auto aligned" else "Rotate cube", Modifier.weight(1f))
         }
         Spacer(Modifier.height(16.dp))
         Surface(
@@ -61,7 +61,7 @@ internal fun RegularCubeScanPreparation(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("Capture order", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(if(size==3) "Six center colors" else "Capture order", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     listOf(
@@ -79,7 +79,7 @@ internal fun RegularCubeScanPreparation(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    (index + 1).toString(),
+                                    if(size==3) "" else (index + 1).toString(),
                                     color = Color(preferences.ink(color)),
                                     fontWeight = FontWeight.Bold,
                                 )

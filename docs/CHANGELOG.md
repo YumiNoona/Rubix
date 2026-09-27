@@ -1,3 +1,9 @@
+# 3.2.8
+
+- Restored frictionless 3×3 capture: faces are identified by center color and accepted in any order and rotation, while duplicate faces are rejected before they can overwrite a capture.
+- Simplified 3×3 preparation and scanning copy around automatic center-based stitching; focused one-face rescans still require the requested center.
+- Kept selected-face outlines while making camera focus optional and off by default, and added persistent highlight-color presets in Settings.
+
 # 3.2.7
 
 - Fixed the remaining balanced-scan failure where several valid face rotations had the same correction score. Equal-cost candidates now use the guided capture order as a deterministic tie-breaker instead of blocking Continue.
