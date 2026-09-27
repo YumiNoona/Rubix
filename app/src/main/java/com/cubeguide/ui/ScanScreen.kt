@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.FlashOff
 import androidx.compose.material.icons.rounded.FlashOn
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -93,8 +93,8 @@ import com.cubeguide.core.*
      color=if(done) Color(LocalAppPreferences.current.color(CubeColor.entries[item.face.ordinal])) else MaterialTheme.colorScheme.surfaceContainer,
      border=BorderStroke(if(current) 2.dp else 1.dp,if(current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
     ) { Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) {
-     if(done) Icon(Icons.Rounded.Check,"Face captured",tint=Color(LocalAppPreferences.current.ink(CubeColor.entries[item.face.ordinal])),modifier=Modifier.size(18.dp))
-     else Text(CubeColor.entries[item.face.ordinal].initial,style=MaterialTheme.typography.labelMedium,color=if(current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+     if(done) Icon(Icons.Rounded.PhotoCamera,"${CubeColor.entries[item.face.ordinal].label} face captured",tint=Color(LocalAppPreferences.current.ink(CubeColor.entries[item.face.ordinal])),modifier=Modifier.size(18.dp))
+     else Surface(Modifier.size(if(current) 16.dp else 13.dp),shape=androidx.compose.foundation.shape.CircleShape,color=Color(LocalAppPreferences.current.color(CubeColor.entries[item.face.ordinal]))) {}
     } }
    }
   }

@@ -85,6 +85,17 @@ class AppFlowTest {
   compose.onNodeWithText("Cube solved").assertExists()
   screenshot("solved")
  }
+ @Test fun invalidReviewKeepsContinueDisabledAndEditAvailable() {
+  val vm=CubeViewModel(SavedStateHandle())
+  compose.activity.runOnUiThread {
+   vm.demo()
+   vm.edit(0,CubeColor.RED)
+   compose.activity.setContent { CubeApp(vm) }
+  }
+  compose.onNodeWithText("Check this scan").assertIsDisplayed()
+  compose.onNodeWithText("Edit").assertIsEnabled()
+  compose.onNodeWithText("Continue").assertIsNotEnabled()
+ }
  @Test fun manualCorrectionRejectsBadCounts() {
   compose.onNodeWithText("Enter colors manually").performScrollTo().performClick()
   compose.onNodeWithContentDescription("Preview cube").assertIsDisplayed().performClick()

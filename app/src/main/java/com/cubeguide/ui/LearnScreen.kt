@@ -14,6 +14,8 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -62,8 +64,8 @@ private fun solution(lesson:Lesson)=Move.parse(lesson.scramble).asReversed().joi
     Text(lesson.title,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
     Spacer(Modifier.height(12.dp))
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) {
-     FilterChip(selected=!showSolved,onClick={showSolved=false},label={Text("Problem")})
-     Spacer(Modifier.width(8.dp));FilterChip(selected=showSolved,onClick={showSolved=true},label={Text("Solved")})
+     FilterChip(selected=!showSolved,onClick={showSolved=false},label={Text("Problem")},leadingIcon={Icon(Icons.Rounded.Search,null,Modifier.size(18.dp))})
+     Spacer(Modifier.width(8.dp));FilterChip(selected=showSolved,onClick={showSolved=true},label={Text("Solved")},leadingIcon={Icon(Icons.Rounded.AutoAwesome,null,Modifier.size(18.dp))})
     }
     Spacer(Modifier.height(12.dp))
     Surface(shape=RubixTokens.cardShape,color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { CubeView(if(showSolved) CubeState.solved() else example(lesson),Modifier.fillMaxWidth().height(190.dp)) }

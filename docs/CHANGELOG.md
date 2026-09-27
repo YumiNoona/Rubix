@@ -1,3 +1,10 @@
+# 3.2.3
+
+- Reflowed 3×3 and large-cube review pages so the preview, compact color counts, validation card and actions form one evenly spaced scrollable layout without a large empty middle section.
+- Replaced automatic selection checkmarks with clear filled states and Net/3D icons, and removed redundant check glyphs from capture, practice and completion surfaces.
+- Disabled Continue for invalid scans, kept Edit available for correction, and replaced the misleading approval icon with a directional action.
+- Refined completion and learning cards with larger gaps, calmer containers and meaningful celebration, problem and solved icons.
+
 # 3.2.2
 
 - Moved every 2×2 and 4×4–7×7 stage onto the same app bar, safe-area and content frame as the polished 3×3 flow, removing the double inset that made those pages look scaled down.

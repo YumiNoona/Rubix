@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Celebration
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,10 +22,11 @@ import com.cubeguide.rendering.CubeView
  CompletionFeedback(vm.moves)
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
   Spacer(Modifier.height(20.dp))
-  Icon(Icons.Rounded.CheckCircle,"Solved",Modifier.size(68.dp),tint=MaterialTheme.colorScheme.tertiary)
+  Surface(Modifier.size(72.dp),shape=androidx.compose.foundation.shape.CircleShape,color=MaterialTheme.colorScheme.tertiaryContainer) { Box(contentAlignment=Alignment.Center) { Icon(Icons.Rounded.Celebration,"Solved",Modifier.size(36.dp),tint=MaterialTheme.colorScheme.onTertiaryContainer) } }
+  Spacer(Modifier.height(14.dp))
   Text(if(vm.moves.isEmpty()) "Already solved" else "Cube solved",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.SemiBold)
   Text(if(vm.isReplay) "Solution replay complete." else "Every face is back in order.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-  CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(280.dp))
+  Spacer(Modifier.height(12.dp));CubeView(vm.cube,modifier=Modifier.fillMaxWidth().height(300.dp));Spacer(Modifier.height(16.dp))
   Surface(shape=RubixTokens.cardShape,color=MaterialTheme.colorScheme.surfaceContainer,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant.copy(alpha=.65f))) {
    Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
     Column { Text("MOVES",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(vm.moves.size.toString(),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) }

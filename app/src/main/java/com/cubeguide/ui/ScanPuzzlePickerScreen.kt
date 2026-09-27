@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -55,7 +54,7 @@ import kotlin.math.max
   }
   DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
    PuzzleRegistry.all.forEach { puzzle ->
-    DropdownMenuItem(text={Text(puzzle.shortName)},onClick={expanded=false;feedback();preferences.updatePuzzle(puzzle.id);onSelect(puzzle.id)},leadingIcon={if(puzzle.id==selected) Icon(Icons.Rounded.Check,null)})
+    DropdownMenuItem(text={Text(puzzle.shortName,color=if(puzzle.id==selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)},onClick={expanded=false;feedback();preferences.updatePuzzle(puzzle.id);onSelect(puzzle.id)})
    }
   }
  }

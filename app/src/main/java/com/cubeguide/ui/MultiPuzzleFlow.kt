@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.*
@@ -161,16 +162,23 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 
 @Composable private fun PuzzleReview(session:MultiPuzzleSession,onExit:()->Unit) {
  val scope=rememberCoroutineScope();var show3D by rememberSaveable { mutableStateOf(false) }
- Column(Modifier.fillMaxSize()) {
+ val issue=session.validation()
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
   Text("Does it match?",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
   Text("Compare every sticker with the puzzle in your hands.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center) { FilterChip(!show3D,{show3D=false},{Text("2D net")});Spacer(Modifier.width(8.dp));FilterChip(show3D,{show3D=true},{Text("3D model")}) }
-  Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),contentAlignment=Alignment.Center) { if(show3D) PuzzleModel(session,Modifier.fillMaxWidth().height(310.dp)) else PuzzleNet(session,false) { face,_ -> session.beginEdit(face) } }
-  Surface(shape=RoundedCornerShape(17.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(when { session.validation()!=null->"Check the colors";session.supportsAutomaticSolution->"Ready to solve";else->"Capture verified" },fontWeight=FontWeight.SemiBold,color=if(session.validation()==null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error);Text(session.validation() ?: when { !session.supportsAutomaticSolution->"All ${session.spec.totalObservedStickers} stickers are balanced. Automatic big-cube solving is not enabled until its move engine can replay-verify every guide.";session.lowConfidence.isEmpty()->"All pieces form a legal ${session.spec.shortName}.";else->"Outlined stickers had low scan confidence. Check them closely." },style=MaterialTheme.typography.bodySmall) } }
-  Spacer(Modifier.height(10.dp));Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+  Spacer(Modifier.height(18.dp));ReviewModeSelector(show3D) { show3D=it }
+  Spacer(Modifier.height(18.dp))
+  Box(Modifier.fillMaxWidth().heightIn(min=280.dp),contentAlignment=Alignment.Center) { if(show3D) PuzzleModel(session,Modifier.fillMaxWidth().height(330.dp)) else PuzzleNet(session,false) { face,_ -> session.beginEdit(face) } }
+  Spacer(Modifier.height(18.dp));StickerCounts(session.colors,session.faceSize)
+  Spacer(Modifier.height(24.dp))
+  Surface(shape=RoundedCornerShape(18.dp),color=MaterialTheme.colorScheme.surfaceContainer,modifier=Modifier.fillMaxWidth(),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant.copy(alpha=.65f))) { Column(Modifier.padding(horizontal=18.dp,vertical=16.dp)) {
+   Row(verticalAlignment=Alignment.CenterVertically) { Icon(if(issue==null) Icons.Rounded.Shield else Icons.Rounded.ErrorOutline,null,Modifier.size(21.dp),tint=if(issue==null) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error);Spacer(Modifier.width(9.dp));Text(when { issue!=null->"Check the colors";session.supportsAutomaticSolution->"Ready to solve";else->"Capture verified" },fontWeight=FontWeight.SemiBold,color=if(issue==null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error) }
+   Spacer(Modifier.height(8.dp));Text(issue ?: when { !session.supportsAutomaticSolution->"All ${session.spec.totalObservedStickers} stickers are balanced. Automatic guidance will appear when a replay-verified engine is available.";session.lowConfidence.isEmpty()->"All pieces form a legal ${session.spec.shortName}.";else->"Outlined stickers had low scan confidence. Check them closely." },style=MaterialTheme.typography.bodySmall)
+  } }
+  Spacer(Modifier.height(12.dp));Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
    OutlinedButton(onClick={session.beginEdit()},modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.Edit,"Edit colors",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Edit",maxLines=1)}
    if(session.supportsAutomaticSolution) Button(onClick={session.busy=true;session.stage=MultiPuzzleStage.ANALYZING;scope.launch { val result=withContext(Dispatchers.Default){session.calculateSolution()};session.acceptSolution(result) }},enabled=session.validation()==null&&!session.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.AutoFixHigh,"Solve",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Solve",maxLines=1)}
-   else FilledTonalButton(onClick=onExit,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.Rounded.Check,"Finish review",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Done",maxLines=1)}
+   else FilledTonalButton(onClick=onExit,modifier=Modifier.weight(1f).height(54.dp),shape=RoundedCornerShape(17.dp),contentPadding=PaddingValues(horizontal=10.dp)){Icon(Icons.AutoMirrored.Rounded.ArrowForward,"Finish review",Modifier.size(20.dp));Spacer(Modifier.width(6.dp));Text("Done",maxLines=1)}
   };Spacer(Modifier.height(12.dp))
  }
 }
@@ -245,7 +253,7 @@ private suspend fun decodePuzzlePhoto(context:android.content.Context,uri:androi
 @Composable private fun PuzzleDone(session:MultiPuzzleSession,onExit:()->Unit) {
  CompletionFeedback(session.moves)
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally) {
-  Spacer(Modifier.height(28.dp));Icon(Icons.Rounded.CheckCircle,"Solved",Modifier.size(72.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.height(12.dp));Text("${session.spec.name} solved",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Spacer(Modifier.height(28.dp));Surface(Modifier.size(72.dp),shape=CircleShape,color=MaterialTheme.colorScheme.tertiaryContainer) { Box(contentAlignment=Alignment.Center) { Icon(Icons.Rounded.Celebration,"Solved",Modifier.size(36.dp),tint=MaterialTheme.colorScheme.onTertiaryContainer) } };Spacer(Modifier.height(16.dp));Text("${session.spec.name} solved",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("${session.moves.size} verified moves",color=MaterialTheme.colorScheme.onSurfaceVariant)
   Box(Modifier.fillMaxWidth().height(300.dp),contentAlignment=Alignment.Center) { when(session.puzzle) { PuzzleId.TWO_BY_TWO->VirtualCubeView(VirtualCube(2,session.colors.toList()),Modifier.fillMaxSize());PuzzleId.FOUR_BY_FOUR->VirtualCubeView(VirtualCube(4,session.colors.toList()),Modifier.fillMaxSize());else->Unit } }
   Primary("Solve another") { onExit() };TextButton(onClick=session::replay,enabled=session.moves.isNotEmpty()){Text("Replay solution")};Spacer(Modifier.height(12.dp))
  }

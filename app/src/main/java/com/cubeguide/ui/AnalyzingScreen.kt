@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.FiberManualRecord
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +39,7 @@ internal fun AnalyzingScreen(vm: CubeViewModel) {
 @Composable
 private fun AnalysisRow(label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Rounded.CheckCircle,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.tertiary)
+        Icon(Icons.Rounded.FiberManualRecord,null,Modifier.size(13.dp),tint=MaterialTheme.colorScheme.tertiary)
         Spacer(Modifier.width(12.dp))
         Text(label)
     }
