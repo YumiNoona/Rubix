@@ -1,3 +1,8 @@
+# 3.2.7
+
+- Fixed the remaining balanced-scan failure where several valid face rotations had the same correction score. Equal-cost candidates now use the guided capture order as a deterministic tie-breaker instead of blocking Continue.
+- Added a regression fixture reconstructed from the reported review net and verified that it resolves to a physically valid cube with a replay-verified solution.
+
 # 3.2.6
 
 - Kept Timed Challenge hints closed until the user taps Hint and added safe end padding around the cube-size control.

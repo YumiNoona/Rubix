@@ -173,7 +173,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
      lowConfidence=remapScanIndices(captured,aligned.cube,uncertain)
      message=if(aligned.rotatedFaces.isEmpty()) "All six faces captured. Your cube is valid." else "Face orientation corrected. Check the preview, then continue."
     }
-    ScanOrientationResult.Ambiguous -> message="Colors are balanced, but a face can fit more than one way. Rescan it with the requested center at the top."
+    ScanOrientationResult.Ambiguous -> message="Keep the requested center above each face and rescan the cube."
     ScanOrientationResult.Impossible -> message=issue.message
    }
    busy=false;save()
@@ -225,7 +225,7 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
    val result=withContext(Dispatchers.Default) { runCatching {
     val aligned=if(issue==null) ScanOrientationResult.Unique(state,emptyList()) else ScanOrientationResolver.resolve(state)
     when(aligned) {
-     ScanOrientationResult.Ambiguous -> error("More than one face orientation fits this scan. Check which side was above each face, then rotate or rescan it.")
+     ScanOrientationResult.Ambiguous -> error("Keep the requested center above each face and rescan the cube.")
      ScanOrientationResult.Impossible -> error((issue?.message ?: "The scan needs correction.")+" Check the sticker colors or rescan the highlighted faces.")
      is ScanOrientationResult.Unique -> {
       when(val verified=PuzzleSolverGate.solve(ThreeByThreeEngine,aligned.cube)) {

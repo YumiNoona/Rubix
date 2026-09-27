@@ -30,7 +30,6 @@ object ScanOrientationResolver {
         }
         var best: ScanOrientationResult.Unique? = null
         var bestScore = Int.MAX_VALUE
-        var tied = false
         for (combination in 0 until 4096) {
             val rotations = Face.entries.map { (combination shr (it.ordinal * 2)) and 3 }
             val candidate = CubeState(Face.entries.flatMap { face -> variants[face.ordinal][rotations[face.ordinal]] })
@@ -39,11 +38,11 @@ object ScanOrientationResolver {
             // above each face. Prefer the valid orientation nearest that guided pose.
             val score=rotations.sumOf { minOf(it,4-it) }
             val resolved=ScanOrientationResult.Unique(candidate,Face.entries.filter { rotations[it.ordinal]!=0 })
-            when {
-                score<bestScore -> { best=resolved;bestScore=score;tied=false }
-                score==bestScore && best?.cube!=candidate -> tied=true
-            }
+            // Iteration order is the final tie-breaker. It follows the guided
+            // capture face order, so equal-cost layouts resolve consistently
+            // instead of blocking an otherwise valid scan.
+            if(score<bestScore) { best=resolved;bestScore=score }
         }
-        return when { best==null -> ScanOrientationResult.Impossible;tied -> ScanOrientationResult.Ambiguous;else -> best }
+        return best ?: ScanOrientationResult.Impossible
     }
 }

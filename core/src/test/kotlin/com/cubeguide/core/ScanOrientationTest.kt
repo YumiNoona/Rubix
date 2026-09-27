@@ -33,4 +33,15 @@ class ScanOrientationTest {
         val invalid = CubeState(physical.stickers.toMutableList().also { it[0] = it[0].let { c -> CubeColor.entries.first { it != c } } })
         assertEquals(ScanOrientationResult.Impossible, ScanOrientationResolver.resolve(invalid))
     }
+
+    @Test fun equalCostGuidedCandidatesDoNotBlockAValidBalancedScan() {
+        val colors=mapOf('W' to CubeColor.WHITE,'R' to CubeColor.RED,'G' to CubeColor.GREEN,'Y' to CubeColor.YELLOW,'O' to CubeColor.ORANGE,'B' to CubeColor.BLUE)
+        // Captured state reproduced from the reported review screen. Counts and
+        // centers are correct, but several face-image rotations fit equally well.
+        val scan=CubeState("GWGGWGGWGWRYBRGWRYRYORGORYOBYBBYBBYBYOWGOBYOWOWROBROWR".map(colors::getValue))
+        assertNotNull(Validator.validate(scan))
+        val resolved=assertIs<ScanOrientationResult.Unique>(ScanOrientationResolver.resolve(scan))
+        assertNull(Validator.validate(resolved.cube))
+        assertTrue(resolved.cube.apply(Solver.solve(resolved.cube)).solved)
+    }
 }
