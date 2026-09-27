@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class Screen { HOME, PRACTICE, LEARN, VIRTUAL, TIMER, SCAN_PICKER, SCAN_PREPARE, PUZZLE_SOLVE, SCAN, REVIEW, EDIT, CORRECT, ANALYZING, SETUP, GUIDE, DONE }
-enum class VirtualMode(val title:String) { FREE("Free play"), CHALLENGE("Challenge"), GUIDED("Guided solve") }
+enum class VirtualMode(val title:String) { FREE("Free play"), CHALLENGE("Timed challenge"), GUIDED("Hint mode") }
 class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
  var activePuzzle by mutableStateOf(PuzzleId.fromStorage(saved.get<String>("activePuzzle")));private set
  var manualEntry by mutableStateOf(saved.get<Boolean>("manualEntry") ?: false); private set
@@ -60,6 +60,12 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
   } else {
    captures.clear();scanIndex=0;screen=Screen.SCAN_PICKER
   }
+  save()
+ }
+ fun leaveReview() {
+  solvingGeneration++;busy=false;solveError=null;rescanFace=null;beforeRescan=null
+  captures.clear();scanIndex=0;lowConfidence=emptySet();message=""
+  screen=if(manualEntry) Screen.HOME else Screen.SCAN_PICKER
   save()
  }
  fun scanPuzzle(puzzleId: PuzzleId) {

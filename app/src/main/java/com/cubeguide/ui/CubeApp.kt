@@ -151,7 +151,7 @@ private fun handleBack(vm: CubeViewModel, requestExit: () -> Unit) {
         vm.screen == Screen.SCAN -> vm.leaveScan()
         vm.screen == Screen.EDIT -> vm.cancelEdit()
         vm.screen == Screen.CORRECT && !vm.busy -> vm.cancelCorrection()
-        vm.screen == Screen.REVIEW -> if (vm.manualEntry) vm.home() else vm.scan(vm.pose.face)
+        vm.screen == Screen.REVIEW -> vm.leaveReview()
         vm.screen in setOf(Screen.ANALYZING, Screen.SETUP) -> vm.returnToReview()
         vm.screen == Screen.DONE -> vm.home()
         else -> requestExit()

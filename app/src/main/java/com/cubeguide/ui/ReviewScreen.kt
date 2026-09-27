@@ -36,6 +36,7 @@ import com.cubeguide.rendering.CubeView
  var show3D by rememberSaveable { mutableStateOf(false) }
  val selectSticker: (Int)->Unit = { index -> if(!vm.busy) { feedback();faceOrdinal=index/9;if(correcting && index%9!=4) selected=index else if(!correcting) vm.beginEdit(Face.entries[index/9]) } }
  val issue=vm.validationIssue
+ val orientationCanBeChecked=!vm.manualEntry && CubeColor.entries.all { color -> vm.cube.stickers.count { it==color }==9 } && Face.entries.map { vm.cube.stickers[it.ordinal*9+4] }.toSet().size==6
  val highlighted=vm.lowConfidence+(issue?.suspectStickers ?: emptyList())
  val uncertainCount=vm.lowConfidence.size
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -74,7 +75,7 @@ import com.cubeguide.rendering.CubeView
      Spacer(Modifier.width(9.dp));Text(if(vm.busy) "Preparing guide" else if(issue!=null) "Check this scan" else if(uncertainCount>0) "$uncertainCount to review" else "Ready to solve",fontWeight=FontWeight.SemiBold,color=if(issue==null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error)
     }
     Spacer(Modifier.height(8.dp))
-    Text(if(vm.busy) vm.message else issue?.message ?: if(uncertainCount>0) "Glare made the outlined colors less certain. Check them, or solve if the cube preview matches." else if(correcting) "Colors are valid. Recalculate from your current cube." else "All six faces checked. Choose your starting position next.",style=MaterialTheme.typography.bodySmall)
+    Text(if(vm.busy) vm.message else if(issue!=null && orientationCanBeChecked) "The colors are balanced. Continue to check and correct the captured face orientation." else issue?.message ?: if(uncertainCount>0) "Glare made the outlined colors less certain. Check them, or solve if the cube preview matches." else if(correcting) "Colors are valid. Recalculate from your current cube." else "All six faces checked. Choose your starting position next.",style=MaterialTheme.typography.bodySmall)
     if(vm.busy) { Spacer(Modifier.height(8.dp)); LinearProgressIndicator(modifier=Modifier.fillMaxWidth()) }
    }
   }
@@ -84,7 +85,7 @@ import com.cubeguide.rendering.CubeView
    TextButton(onClick=vm::cancelCorrection,enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Text("Cancel changes") }
   } else Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
    OutlinedButton(onClick={vm.beginEdit(Face.entries[faceOrdinal])},enabled=!vm.busy,modifier=Modifier.weight(1f).height(54.dp),shape=RubixTokens.controlShape) { Icon(Icons.Rounded.Edit,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text("Edit",maxLines=1) }
-   Button(onClick={selected=null;vm.solve()},enabled=!vm.busy&&issue==null,modifier=Modifier.weight(1f).height(54.dp),shape=RubixTokens.controlShape) { Icon(Icons.AutoMirrored.Rounded.ArrowForward,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text(if(vm.busy) "Checking…" else "Continue",maxLines=1) }
+   Button(onClick={selected=null;vm.solve()},enabled=!vm.busy&&(issue==null||orientationCanBeChecked),modifier=Modifier.weight(1f).height(54.dp),shape=RubixTokens.controlShape) { Icon(Icons.AutoMirrored.Rounded.ArrowForward,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text(if(vm.busy) "Checking…" else "Continue",maxLines=1) }
   }
   Spacer(Modifier.height(12.dp))
  }
@@ -106,8 +107,8 @@ import com.cubeguide.rendering.CubeView
 
 @Composable internal fun ReviewModeSelector(show3D:Boolean,onSelect:(Boolean)->Unit) {
  SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-  SegmentedButton(selected=!show3D,onClick={onSelect(false)},shape=SegmentedButtonDefaults.itemShape(0,2),icon={},label={Row(verticalAlignment=Alignment.CenterVertically) { Icon(Icons.Rounded.GridView,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text("Net",maxLines=1) }})
-  SegmentedButton(selected=show3D,onClick={onSelect(true)},shape=SegmentedButtonDefaults.itemShape(1,2),icon={},label={Row(verticalAlignment=Alignment.CenterVertically) { Icon(Icons.Rounded.ViewInAr,null,Modifier.size(19.dp));Spacer(Modifier.width(7.dp));Text("3D",maxLines=1) }})
+  SegmentedButton(selected=!show3D,onClick={onSelect(false)},shape=SegmentedButtonDefaults.itemShape(0,2),icon={},modifier=Modifier.semantics { contentDescription="Cube net view" },label={Icon(Icons.Rounded.GridView,null,Modifier.size(22.dp))})
+  SegmentedButton(selected=show3D,onClick={onSelect(true)},shape=SegmentedButtonDefaults.itemShape(1,2),icon={},modifier=Modifier.semantics { contentDescription="3D cube view" },label={Icon(Icons.Rounded.ViewInAr,null,Modifier.size(22.dp))})
  }
 }
 

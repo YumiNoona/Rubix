@@ -1,3 +1,10 @@
+# 3.2.4
+
+- Let balanced six-face 3×3 scans continue into automatic orientation repair instead of trapping them behind a disabled action, while still blocking incomplete color counts and duplicate centers.
+- Removed the Review-to-Scan back-navigation cycle; leaving a completed scan now returns to puzzle selection and cancelling an explicit face rescan still restores Review.
+- Replaced Net/3D text with accessible view icons, moved the virtual mode actions toward the bottom of the screen and clarified Free play, Timed challenge and Hint mode descriptions.
+- Condensed hints around one verified next move, added an animation preview, simplified redundant large-cube rewind turns and increased 3×3 solution-improvement search before replay verification.
+
 # 3.2.3
 
 - Reflowed 3×3 and large-cube review pages so the preview, compact color counts, validation card and actions form one evenly spaced scrollable layout without a large empty middle section.

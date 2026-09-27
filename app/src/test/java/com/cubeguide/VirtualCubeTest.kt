@@ -79,4 +79,12 @@ class VirtualCubeTest {
         val plan=smartHintPlan(scrambled)
         assertTrue(plan.fold(scrambled) { state,move -> state.apply(move,record=false) }.solved)
     }
+
+    @Test fun smartHintPlanRemovesRedundantLargeCubeTurns() {
+        val start=VirtualCube.solved(7)
+        val moved=start.apply(VirtualMove(Face.R)).apply(VirtualMove(Face.R,turns=3)).apply(VirtualMove(Face.F))
+        val plan=smartHintPlan(moved)
+        assertEquals(1,plan.size)
+        assertTrue(plan.fold(moved) { state,move -> state.apply(move,record=false) }.solved)
+    }
 }

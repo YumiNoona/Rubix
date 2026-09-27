@@ -147,6 +147,10 @@ class ScanAndGuideTest {
   vm.scan(Face.F);vm.leaveScan()
   assertEquals(Screen.REVIEW,vm.screen)
   assertEquals(target,vm.cube)
+  vm.leaveReview()
+  assertEquals(Screen.SCAN_PICKER,vm.screen)
+  vm.leaveScan()
+  assertEquals(Screen.SCAN_PICKER,vm.screen)
  }
  @Test fun colorsUseCentersAndFlagAmbiguity() {
   anchors.forEach { (color,s) ->

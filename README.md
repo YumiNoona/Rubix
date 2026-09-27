@@ -2,7 +2,7 @@
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?logo=kotlin&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.2.3-238BFF)
+![Version](https://img.shields.io/badge/version-3.2.4-238BFF)
 ![Build checks](https://img.shields.io/badge/tests_%26_lint-passing-15824F)
 
 
@@ -13,7 +13,7 @@ An offline Android workspace for regular cubes from 2×2 through 7×7, with came
 - **Solve** — dedicated camera geometry, gallery import, color review/editing, physical validation and replay-verified animated guides for 2×2, 3×3 and 4×4.
 - **Play** — stable, animated 3D models and legal layer turns for every regular size from 2×2 through 7×7.
 - **Practice** — a focused home for the virtual cube and 3x3 timer.
-- **Virtual cube** — a mode hub for Free play, Challenge and Guided solve across 2x2 through 7x7, with animated outer, inner and wide turns.
+- **Virtual cube** — a mode hub for Free play, Timed challenge and Hint mode across 2x2 through 7x7, with animated outer, inner and wide turns.
 - **Cube timer** — a hold-to-ready 3x3 timer with valid scrambles, large stop target, personal records and responsive controls.
 - **Learn** — Rookie, Experienced and Veteran tracks with visual problem/solved examples, recognition cues, plans and playable practice states.
 

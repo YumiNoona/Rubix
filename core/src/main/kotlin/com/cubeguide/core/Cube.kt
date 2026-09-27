@@ -105,9 +105,11 @@ object Solver {
   if(cube.solved) return emptyList()
   Search.init()
   val search=Search()
-  var result=search.solution(cube.facelets(),20,5000000,1000,0)
+  // Spend a little longer improving the first valid result. This keeps the
+  // 20-turn guarantee while usually returning a shorter guide.
+  var result=search.solution(cube.facelets(),20,10000000,10000,0)
   var attempts=0
-  while(result=="Error 8" && attempts++<10) result=search.next(5000000,1000,0)
+  while(result=="Error 8" && attempts++<10) result=search.next(10000000,10000,0)
   check(!result.startsWith("Error")) { "Could not finish solving. Please try again. ($result)" }
   val moves=optimize(Move.parse(result))
   check(cube.apply(moves).solved) { "Solution verification failed. Rescan the cube." }
