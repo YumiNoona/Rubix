@@ -68,6 +68,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
         mutableStateOf(start)
     }
     var selectedFace by rememberSaveable { mutableStateOf(Face.R) }
+    var focusedFace by remember { mutableStateOf<Face?>(null) }
     var layerDepth by rememberSaveable(size) { mutableIntStateOf(0) }
     var wideTurn by rememberSaveable(size) { mutableStateOf(false) }
     var pending by remember { mutableStateOf<PendingTurn?>(null) }
@@ -167,6 +168,8 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 modifier = cubeModifier,
                 move = pending?.move?.let { Move(it.face, it.turns) },
                 replay = replay,
+                highlightFace = selectedFace,
+                focusFace = focusedFace,
                 showInitials = false,
                 onAnimationProgress = finishTurn,
             )
@@ -176,6 +179,8 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 modifier = cubeModifier,
                 move = pending?.move,
                 replay = replay,
+                highlightFace = selectedFace,
+                focusFace = focusedFace,
                 onAnimationProgress = finishTurn,
             )
         }
@@ -214,7 +219,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(Modifier.padding(12.dp)) {
-                FaceSelector(selectedFace, pending == null) { selectedFace = it; feedback() }
+                FaceSelector(selectedFace, pending == null) { selectedFace = it;focusedFace=it;feedback() }
 
                 if (size >= 4) {
                     Row(
@@ -267,7 +272,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             feedback()
                             cube = virtualScramble(size).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
                             redo = emptyList()
-                            hintVisible = mode != VirtualMode.FREE
+                            hintVisible = mode == VirtualMode.GUIDED
                             if(mode==VirtualMode.CHALLENGE) {
                                 challengeMoves=0;challengeHints=0;challengeElapsed=0L
                                 challengeNow=SystemClock.elapsedRealtime();challengeStart=challengeNow

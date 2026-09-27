@@ -1,3 +1,10 @@
+# 3.2.6
+
+- Kept Timed Challenge hints closed until the user taps Hint and added safe end padding around the cube-size control.
+- Made every cube preview draggable during layer animation, including the continuously animated Home cube.
+- Linked U/R/F/D/L/B selection to a strong outline on the matching cube face and turns the model toward newly selected hidden faces.
+- Restored guided scan orientation handling: valid rotations are ranked against the requested top-center pose and corrected before Review, with uncertainty markers remapped to the corrected stickers.
+
 # 3.2.5
 
 - Moved the larger cube-size control into the Virtual Cube app bar and removed the duplicated mode heading so the model receives the full upper canvas.

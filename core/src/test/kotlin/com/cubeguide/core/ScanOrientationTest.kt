@@ -17,11 +17,12 @@ class ScanOrientationTest {
         assertTrue(result.cube.apply(Solver.solve(result.cube)).solved)
     }
 
-    @Test fun ambiguousFaceImagesAreNeverAutomaticallyChosen() {
+    @Test fun guidedPoseBreaksTiesInFavorOfTheSmallestCorrection() {
         val physical = CubeState.solved().apply(Move(Face.R))
         val scan = physical.rotateScanFace(Face.F)
         assertNotNull(Validator.validate(scan))
-        assertEquals(ScanOrientationResult.Ambiguous, ScanOrientationResolver.resolve(scan))
+        val result=assertIs<ScanOrientationResult.Unique>(ScanOrientationResolver.resolve(scan))
+        assertEquals(physical,result.cube)
     }
 
     @Test fun validScansArePreservedAndWrongColorCountsAreNotGuessed() {

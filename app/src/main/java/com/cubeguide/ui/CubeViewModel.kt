@@ -151,10 +151,42 @@ class CubeViewModel(private val saved: SavedStateHandle): ViewModel() {
     cube=CubeState(decisions.map { it.color });lowConfidence=confidence
    }
    rescanFace=null; beforeRescan=null; screen=Screen.REVIEW
-   message=Validator.validate(cube)?.message ?: if(lowConfidence.isEmpty()) "All six faces captured. Your cube is valid." else "Check the outlined stickers: their colors were uncertain."
-   save()
+   alignCapturedReview()
   } else { scanIndex=(0..5).first { scanSequence[it].face !in captures }; save() }
  }
+ private fun alignCapturedReview() {
+  val issue=Validator.validate(cube)
+  if(issue==null) {
+   message=if(lowConfidence.isEmpty()) "All six faces captured. Your cube is valid." else "Check the outlined stickers: their colors were uncertain."
+   save();return
+  }
+  val complete=CubeColor.entries.all { color -> cube.stickers.count { it==color }==9 } && Face.entries.map { cube.stickers[it.ordinal*9+4] }.toSet().size==6
+  if(!complete) { message=issue.message;save();return }
+  val captured=cube;val uncertain=lowConfidence;val generation=++solvingGeneration
+  busy=true;message="Aligning the six captured faces…";save()
+  viewModelScope.launch {
+   val aligned=withContext(Dispatchers.Default) { ScanOrientationResolver.resolve(captured) }
+   if(generation!=solvingGeneration) return@launch
+   when(aligned) {
+    is ScanOrientationResult.Unique -> {
+     cube=aligned.cube
+     lowConfidence=remapScanIndices(captured,aligned.cube,uncertain)
+     message=if(aligned.rotatedFaces.isEmpty()) "All six faces captured. Your cube is valid." else "Face orientation corrected. Check the preview, then continue."
+    }
+    ScanOrientationResult.Ambiguous -> message="Colors are balanced, but a face can fit more than one way. Rescan it with the requested center at the top."
+    ScanOrientationResult.Impossible -> message=issue.message
+   }
+   busy=false;save()
+  }
+ }
+ private fun remapScanIndices(before:CubeState,after:CubeState,indices:Set<Int>):Set<Int> = indices.map { index ->
+  val face=index/9;val original=before.stickers.subList(face*9,face*9+9);val target=after.stickers.subList(face*9,face*9+9)
+  var rotated=original;var turns=0
+  while(turns<4 && rotated!=target) { rotated=List(9) { out -> val row=out/3;val col=out%3;rotated[(2-col)*3+row] };turns++ }
+  var local=index%9
+  repeat(turns.coerceAtMost(3)) { val row=local/3;val col=local%3;local=col*3+2-row }
+  face*9+local
+ }.toSet()
  fun edit(index: Int,color: CubeColor) { if(busy) return;if(cube.stickers[index]==color) { lowConfidence=lowConfidence-index;save();return };editHistory.addLast(cube);if(editHistory.size>54) editHistory.removeFirst();redoHistory.clear();canUndoEdit=true;canRedoEdit=false;cube=CubeState(cube.stickers.toMutableList().also { it[index]=color });lowConfidence=lowConfidence-index;message=Validator.validate(cube)?.message ?: "Your cube is valid and ready to solve.";save() }
  fun undoEdit() { if(busy || editHistory.isEmpty()) return;redoHistory.addLast(cube);cube=editHistory.removeLast();canUndoEdit=editHistory.isNotEmpty();canRedoEdit=true;save() }
  fun redoEdit() { if(busy || redoHistory.isEmpty()) return;editHistory.addLast(cube);cube=redoHistory.removeLast();canUndoEdit=true;canRedoEdit=redoHistory.isNotEmpty();save() }

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.material3.MaterialTheme
 import com.cubeguide.core.*
 import com.cubeguide.play.VirtualCube
 import com.cubeguide.play.VirtualMove
@@ -27,7 +28,7 @@ private data class VP(val x: Float, val y: Float, val z: Float) {
 }
 
 private fun Vec.vp() = VP(x.toFloat(), y.toFloat(), z.toFloat())
-private data class VQuad(val points: List<VP>, val color: Color, val sticker: Boolean)
+private data class VQuad(val points: List<VP>, val color: Color, val sticker: Boolean, val highlighted: Boolean = false)
 
 /**
  * One renderer for every regular cube size. Its camera target and scale remain fixed
@@ -40,15 +41,29 @@ internal fun VirtualCubeView(
     move: VirtualMove? = null,
     replay: Int = 0,
     viewReset: Int = 0,
+    highlightFace: Face? = null,
+    focusFace: Face? = null,
     onAnimationProgress: (Float) -> Unit = {},
 ) {
     val preferences = LocalAppPreferences.current
+    val highlightColor = MaterialTheme.colorScheme.primary
     var yaw by remember { mutableFloatStateOf(-0.58f) }
     var pitch by remember { mutableFloatStateOf(0.48f) }
     val turn = remember(cube.stickers, move) { Animatable(0f) }
     val progressCallback by rememberUpdatedState(onAnimationProgress)
 
     LaunchedEffect(viewReset) { yaw=-0.58f;pitch=0.48f }
+    LaunchedEffect(focusFace) {
+        when(focusFace) {
+            Face.U -> { yaw=-0.58f;pitch=0.82f }
+            Face.D -> { yaw=-0.58f;pitch=-0.82f }
+            Face.F -> { yaw=0f;pitch=0.22f }
+            Face.B -> { yaw=PI.toFloat();pitch=0.22f }
+            Face.R -> { yaw=(-PI/2).toFloat();pitch=0.22f }
+            Face.L -> { yaw=(PI/2).toFloat();pitch=0.22f }
+            null -> Unit
+        }
+    }
 
     LaunchedEffect(turn) {
         snapshotFlow { turn.value }.collect { progressCallback(it) }
@@ -67,13 +82,11 @@ internal fun VirtualCubeView(
             .semantics {
                 contentDescription = "Interactive ${cube.size} by ${cube.size} virtual cube. Drag to rotate."
             }
-            .pointerInput(move, preferences.cameraSensitivity) {
-                if (move == null) {
-                    detectDragGestures { change, drag ->
-                        change.consume()
-                        yaw = (yaw + drag.x * preferences.cameraSensitivity) % (2 * PI.toFloat())
-                        pitch = (pitch + drag.y * preferences.cameraSensitivity).coerceIn(-1.05f, 1.05f)
-                    }
+            .pointerInput(preferences.cameraSensitivity) {
+                detectDragGestures { change, drag ->
+                    change.consume()
+                    yaw = (yaw + drag.x * preferences.cameraSensitivity) % (2 * PI.toFloat())
+                    pitch = (pitch + drag.y * preferences.cameraSensitivity).coerceIn(-1.05f, 1.05f)
                 }
             },
     ) {
@@ -160,7 +173,7 @@ internal fun VirtualCubeView(
                 center + right * half + down * half,
                 center + right * -half + down * half,
             ).map { camera(rotate(it, position)) }
-            quads += VQuad(points, Color(preferences.color(cube.stickers[index])), true)
+            quads += VQuad(points, Color(preferences.color(cube.stickers[index])), true,index/(cube.size*cube.size)==highlightFace?.ordinal)
         }
 
         val cameraDistance = max(8f, edge * 3.2f + 7f)
@@ -203,7 +216,7 @@ internal fun VirtualCubeView(
                             points[2],
                         ),
                     )
-                    drawPath(path, Color(0xFF07100E), style = Stroke(max(1.2f, 4.2f - cube.size * .32f)))
+                    drawPath(path, if(quad.highlighted) highlightColor else Color(0xFF07100E), style = Stroke(if(quad.highlighted) max(3.2f,6f-cube.size*.2f) else max(1.2f, 4.2f - cube.size * .32f)))
                 }
             }
     }

@@ -220,6 +220,22 @@ class ScanAndGuideTest {
    assertTrue(vm.message.contains("Aligned"))
   } finally { Dispatchers.resetMain() }
  }
+ @Test fun completedCaptureAlignsGuidedFacesBeforeReview() = runBlocking {
+  Dispatchers.setMain(UnconfinedTestDispatcher())
+  try {
+   val physical=CubeState.solved().apply(Move.parse("R U2 F' L D B2 R' D2 F L2"))
+   val photographed=physical.rotateScanFace(Face.U).rotateScanFace(Face.B)
+   val vm=CubeViewModel(SavedStateHandle());vm.scan()
+   repeat(6) {
+    val face=vm.pose.face
+    assertTrue(vm.importFace(Detection(photographed.stickers.drop(face.ordinal*9).take(9).map(anchors::getValue),emptyList(),"")))
+   }
+   withTimeout(15000) { while(vm.busy) delay(10) }
+   assertEquals(Screen.REVIEW,vm.screen)
+   assertEquals(physical,vm.cube,vm.message)
+   assertNull(vm.validationIssue)
+  } finally { Dispatchers.resetMain() }
+ }
  @Test fun chosenStartingSideIsSavedAndDirectionsAreRebasedOnce() = runBlocking {
   Dispatchers.setMain(UnconfinedTestDispatcher())
   try {

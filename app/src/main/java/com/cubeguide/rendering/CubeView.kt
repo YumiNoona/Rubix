@@ -21,6 +21,8 @@ fun CubeView(
     move: Move? = null,
     replay: Int = 0,
     viewReset: Int = 0,
+    highlightFace: com.cubeguide.core.Face? = null,
+    focusFace: com.cubeguide.core.Face? = null,
     showInitials: Boolean? = null,
     onAnimationProgress: (Float) -> Unit = {},
 ) {
@@ -32,6 +34,8 @@ fun CubeView(
         move = move?.let(VirtualMove::from),
         replay = replay,
         viewReset = viewReset,
+        highlightFace = highlightFace,
+        focusFace = focusFace,
         onAnimationProgress = onAnimationProgress,
     )
 }

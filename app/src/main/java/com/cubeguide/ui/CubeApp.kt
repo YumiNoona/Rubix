@@ -169,7 +169,7 @@ private fun RubixTopBar(
     val feedback = rememberTouchFeedback()
     Row(
         modifier.fillMaxWidth().height(64.dp).background(MaterialTheme.colorScheme.background.copy(alpha = .96f))
-            .padding(horizontal = 2.dp),
+            .padding(start = 2.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (!root) {
