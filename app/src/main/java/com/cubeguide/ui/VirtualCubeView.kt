@@ -41,6 +41,7 @@ internal fun VirtualCubeView(
     replay: Int = 0,
     viewReset: Int = 0,
     highlightFace: Face? = null,
+    highlightMove: VirtualMove? = null,
     focusFace: Face? = null,
     onAnimationProgress: (Float) -> Unit = {},
 ) {
@@ -115,6 +116,13 @@ internal fun VirtualCubeView(
         fun isMoving(position: VP) =
             axis != null && movingLayers.any { abs(position.dot(axis) - it) < .01f }
 
+        val highlightAxis = highlightMove?.let { Geometry.normals[it.face.ordinal].vp() }
+        val highlightedLayers = highlightMove?.let { value ->
+            (value.depth until value.depth + value.width).map { edge - 2f * it }
+        }.orEmpty()
+        fun isHighlighted(position: VP) = highlightAxis != null &&
+            highlightedLayers.any { abs(position.dot(highlightAxis) - it) < .01f }
+
         fun rotate(point: VP, position: VP): VP {
             if (axis == null || !isMoving(position)) return point
             return point * cos(angle) + axis.cross(point) * sin(angle) +
@@ -172,7 +180,13 @@ internal fun VirtualCubeView(
                 center + right * half + down * half,
                 center + right * -half + down * half,
             ).map { camera(rotate(it, position)) }
-            quads += VQuad(points, Color(preferences.color(cube.stickers[index])), true,index/(cube.size*cube.size)==highlightFace?.ordinal)
+            val faceHighlighted = index / (cube.size * cube.size) == highlightFace?.ordinal
+            quads += VQuad(
+                points,
+                Color(preferences.color(cube.stickers[index])),
+                true,
+                faceHighlighted || isHighlighted(position),
+            )
         }
 
         val cameraDistance = max(8f, edge * 3.2f + 7f)

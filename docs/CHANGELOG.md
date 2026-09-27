@@ -1,3 +1,10 @@
+# 3.3.1
+
+- Kept Hint mode closed after entry and every scramble; hints are calculated and shown only after the user taps Hint.
+- Replaced verbose turn directions with compact `90° ↻`, `180°` and `90° ↺` guidance.
+- Highlighted the complete outer, inner or wide layer named by the current hint and active animation while preserving the user's camera angle.
+- Refreshed the installable APK, checksum and release documentation.
+
 # 3.2.8
 
 - Restored frictionless 3×3 capture: faces are identified by center color and accepted in any order and rotation, while duplicate faces are rejected before they can overwrite a capture.

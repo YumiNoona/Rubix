@@ -74,7 +74,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
     var pending by remember { mutableStateOf<PendingTurn?>(null) }
     var replay by remember { mutableIntStateOf(0) }
     var redo by remember(size) { mutableStateOf<List<VirtualMove>>(emptyList()) }
-    var hintVisible by rememberSaveable { mutableStateOf(false) }
+    var hintVisible by rememberSaveable(size, mode) { mutableStateOf(false) }
     var hintInfo by rememberSaveable { mutableStateOf(false) }
     var hintPlan by remember(size) { mutableStateOf<List<VirtualMove>>(emptyList()) }
     var hintLoading by remember { mutableStateOf(false) }
@@ -161,6 +161,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 }
             }
         }
+        val activeHintMove = pending?.move ?: hintPlan.firstOrNull().takeIf { hintVisible }
         val cubeModifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 220.dp)
         if (size == 3) {
             CubeView(
@@ -168,7 +169,8 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 modifier = cubeModifier,
                 move = pending?.move?.let { Move(it.face, it.turns) },
                 replay = replay,
-                highlightFace = selectedFace,
+                highlightFace = selectedFace.takeIf { activeHintMove == null },
+                highlightMove = activeHintMove,
                 focusFace = focusedFace.takeIf { preferences.cameraFollowsFace },
                 showInitials = false,
                 onAnimationProgress = finishTurn,
@@ -179,7 +181,8 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                 modifier = cubeModifier,
                 move = pending?.move,
                 replay = replay,
-                highlightFace = selectedFace,
+                highlightFace = selectedFace.takeIf { activeHintMove == null },
+                highlightMove = activeHintMove,
                 focusFace = focusedFace.takeIf { preferences.cameraFollowsFace },
                 onAnimationProgress = finishTurn,
             )
@@ -196,7 +199,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                     else hintPlan.firstOrNull()?.let { hint ->
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Surface(shape=RoundedCornerShape(14.dp),color=MaterialTheme.colorScheme.surface) { Text(hint.notation,Modifier.padding(horizontal=16.dp,vertical=10.dp),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) }
-                            Spacer(Modifier.width(12.dp));Text("Turn ${hint.face.name} ${turnDescription(hint)}",fontWeight=FontWeight.Medium,modifier=Modifier.weight(1f),maxLines=2)
+                            Spacer(Modifier.width(12.dp));Text("${hint.face.name} face · ${turnDescription(hint)}",fontWeight=FontWeight.Medium,modifier=Modifier.weight(1f),maxLines=1)
                             IconButton(onClick={hintInfo=true}) { Icon(Icons.Rounded.Info,"About this hint") }
                             IconButton(onClick={hintVisible=false}) { Icon(Icons.Rounded.Close,"Hide hint") }
                         }
@@ -272,7 +275,7 @@ internal fun VirtualCubeScreen(vm: CubeViewModel) {
                             feedback()
                             cube = virtualScramble(size).fold(VirtualCube.solved(size)) { state, move -> state.apply(move) }
                             redo = emptyList()
-                            hintVisible = mode == VirtualMode.GUIDED
+                            hintVisible = false
                             if(mode==VirtualMode.CHALLENGE) {
                                 challengeMoves=0;challengeHints=0;challengeElapsed=0L
                                 challengeNow=SystemClock.elapsedRealtime();challengeStart=challengeNow
@@ -411,9 +414,9 @@ private fun FaceSelector(selected: Face, enabled: Boolean, onSelect: (Face) -> U
 }
 
 private fun turnDescription(move: VirtualMove) = when (move.turns) {
-    2 -> "halfway around"
-    3 -> "counter-clockwise"
-    else -> "clockwise"
+    2 -> "180°"
+    3 -> "90° ↺"
+    else -> "90° ↻"
 }
 
 internal fun smartHintPlan(cube: VirtualCube): List<VirtualMove> {

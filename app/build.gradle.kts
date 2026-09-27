@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace = "com.cubeguide"; compileSdk = 36
- defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 26; versionName = "3.2.8"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId = "com.cubeguide"; minSdk = 26; targetSdk = 36; versionCode = 27; versionName = "3.3.1"; ndk { abiFilters += (providers.gradleProperty("testAbi").orNull?.let { listOf(it) } ?: listOf("arm64-v8a", "armeabi-v7a")) }; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
 
  buildFeatures { compose = true }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
